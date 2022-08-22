@@ -23,6 +23,7 @@ message MsgWirePayForData {
   bytes message = 4;
   repeated ShareCommitAndSignature message_share_commitment = 6
       [ (gogoproto.nullable) = false ];
+  uint32 version = 7;
 }
 
 // MsgWirePayForDataResponse describes the response returned after the
@@ -46,6 +47,7 @@ message MsgPayForData {
   bytes message_namespace_id = 2;
   uint64 message_size = 3;
   bytes message_share_commitment = 4;
+  uint32 version = 5;
 }
 
 // MsgPayForDataResponse describes the response returned after the submission
