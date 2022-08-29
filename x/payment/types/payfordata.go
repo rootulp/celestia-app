@@ -1,11 +1,9 @@
 package types
 
 import (
-	"bytes"
 	"fmt"
 	"math/bits"
 
-	shares "github.com/celestiaorg/celestia-app/pkg/shares"
 	"github.com/celestiaorg/rsmt2d"
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,6 +13,8 @@ import (
 	"github.com/tendermint/tendermint/pkg/consts"
 	"github.com/tendermint/tendermint/pkg/wrapper"
 	coretypes "github.com/tendermint/tendermint/types"
+
+	shares "github.com/celestiaorg/celestia-app/pkg/shares"
 )
 
 const (
@@ -38,13 +38,8 @@ func (msg *MsgPayForData) Type() string {
 // ValidateBasic fullfills the sdk.Msg interface by performing stateless
 // validity checks on the msg that also don't require having the actual message
 func (msg *MsgPayForData) ValidateBasic() error {
-	// ensure that the namespace id is of length == NamespaceIDSize
-	if nsLen := len(msg.GetMessageNamespaceId()); nsLen != NamespaceIDSize {
-		return fmt.Errorf(
-			"invalid namespace length: got %d wanted %d",
-			nsLen,
-			NamespaceIDSize,
-		)
+	if err := ValidateMessageNamespaceID(msg.GetMessageNamespaceId()); err != nil {
+		return err
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -52,14 +47,8 @@ func (msg *MsgPayForData) ValidateBasic() error {
 		return err
 	}
 
-	// ensure that ParitySharesNamespaceID is not used
-	if bytes.Equal(msg.GetMessageNamespaceId(), consts.ParitySharesNamespaceID) {
-		return ErrParitySharesNamespace
-	}
-
-	// ensure that TailPaddingNamespaceID is not used
-	if bytes.Equal(msg.GetMessageNamespaceId(), consts.TailPaddingNamespaceID) {
-		return ErrTailPaddingNamespace
+	if len(msg.MessageShareCommitment) == 0 {
+		return ErrNoMessageShareCommitments
 	}
 
 	return nil
@@ -182,7 +171,7 @@ func powerOf2MountainRange(l, k uint64) []uint64 {
 			output = append(output, k)
 			l = l - k
 		case l < k:
-			p := nextLowestPowerOf2(l)
+			p := nextLowerPowerOf2(l)
 			output = append(output, p)
 			l = l - p
 		}
@@ -191,9 +180,12 @@ func powerOf2MountainRange(l, k uint64) []uint64 {
 	return output
 }
 
-// NextHighestPowerOf2 returns the next lowest power of 2 unless the input is a power
-// of two, in which case it returns the input
-func NextHighestPowerOf2(v uint64) uint64 {
+// NextHigherPowerOf2 returns the next power of 2 that is higher than v.
+// Examples:
+// NextHigherPowerOf2(1) = 2
+// NextHigherPowerOf2(2) = 4
+// NextHigherPowerOf2(5) = 8
+func NextHigherPowerOf2(v uint64) uint64 {
 	// keep track of the value to check if its the same later
 	i := v
 
@@ -215,8 +207,13 @@ func NextHighestPowerOf2(v uint64) uint64 {
 	return v
 }
 
-func nextLowestPowerOf2(v uint64) uint64 {
-	c := NextHighestPowerOf2(v)
+// nextLowerPowerOf2 returns the next power of 2 that is lower than v unless v
+// is a power of 2 in which case it returns v. Examples:
+// nextLowerPowerOf2(1) = 1
+// nextLowerPowerOf2(2) = 2
+// nextLowerPowerOf2(5) = 4
+func nextLowerPowerOf2(v uint64) uint64 {
+	c := NextHigherPowerOf2(v)
 	if c == v {
 		return c
 	}

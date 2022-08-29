@@ -9,6 +9,26 @@
 
 **celestia-app** is a blockchain application built using Cosmos SDK and [celestia-core](https://github.com/celestiaorg/celestia-core) in place of Tendermint.
 
+## Diagram
+
+```ascii
+                ^  +-------------------------------+  ^
+                |  |                               |  |
+                |  |  State-machine = Application  |  |
+                |  |                               |  |   celestia-app (built with Cosmos SDK)
+                |  |            ^      +           |  |
+                |  +----------- | ABCI | ----------+  v
+Celestia        |  |            +      v           |  ^
+validator or    |  |                               |  |
+full consensus  |  |           Consensus           |  |
+node            |  |                               |  |
+                |  +-------------------------------+  |   celestia-core (fork of Tendermint Core)
+                |  |                               |  |
+                |  |           Networking          |  |
+                |  |                               |  |
+                v  +-------------------------------+  v
+```
+
 ## Install
 
 1. [Install Go](https://go.dev/doc/install) 1.18+
@@ -41,6 +61,11 @@ See <https://docs.celestia.org/category/celestia-app> for more information
 
 ## Contributing
 
+### Tools
+
+1. Install [golangci-lint](https://golangci-lint.run/usage/install/)
+1. Install [markdownlint](https://github.com/DavidAnson/markdownlint)
+
 ### Helpful Commands
 
 ```sh
@@ -49,6 +74,9 @@ make build
 
 # Run tests
 make test
+
+# Format code with linters (this assumes golangci-lint and markdownlint are installed)
+make fmt
 ```
 
 ## Careers
