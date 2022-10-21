@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	_ "embed"
 	"encoding/hex"
 	"fmt"
 	"strconv"
@@ -53,14 +54,17 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 	s.network.Cleanup()
 }
 
+//go:embed moby_dick_hex.txt
+var hexMsg string
+
+// fails due to Cosmos SDK code 21: tx too large
+// https://github.com/cosmos/cosmos-sdk/blob/1dae922fe0c01ce87f129b247166323ee080521c/types/errors/errors.go#L101
 func (s *IntegrationTestSuite) TestSubmitWirePayForData() {
 	require := s.Require()
 	val := s.network.Validators[0]
 
 	// some hex namespace
 	hexNS := "0102030405060708"
-	// some hex message
-	hexMsg := "0204033704032c0b162109000908094d425837422c2116"
 
 	testCases := []struct {
 		name         string
