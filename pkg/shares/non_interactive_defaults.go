@@ -78,3 +78,7 @@ func roundUpBy(cursor, v int) int {
 		return ((cursor / v) + 1) * v
 	}
 }
+
+func roundUpByNew(cursor, v int) int {
+	return ((cursor + v - 1) & (-v))
+}

@@ -278,3 +278,23 @@ func Test_roundUpBy(t *testing.T) {
 			})
 	}
 }
+
+func benchmarkRoundUpBy(cursor int, v int, b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		roundUpBy(cursor, v)
+	}
+}
+
+func benchmarkRoundUpByNew(cursor int, v int, b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		roundUpBy(cursor, v)
+	}
+}
+
+func Benchmark_roundUpBy4(b *testing.B)  { benchmarkRoundUpBy(13, 4, b) }
+func Benchmark_roundUpBy8(b *testing.B)  { benchmarkRoundUpBy(72, 8, b) }
+func Benchmark_roundUpBy16(b *testing.B) { benchmarkRoundUpBy(100, 16, b) }
+
+func Benchmark_roundUpByNew4(b *testing.B)  { benchmarkRoundUpByNew(13, 4, b) }
+func Benchmark_roundUpByNew8(b *testing.B)  { benchmarkRoundUpByNew(72, 8, b) }
+func Benchmark_roundUpByNew16(b *testing.B) { benchmarkRoundUpByNew(100, 16, b) }
