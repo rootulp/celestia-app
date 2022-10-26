@@ -21,7 +21,7 @@ var _ sdk.Msg = &MsgWirePayForData{}
 // namespace and message to generate share commitments for the provided square sizes
 // Note that the share commitments generated still need to be signed using the SignShareCommitments
 // method.
-func NewWirePayForData(namespace, message []byte, sizes ...uint64) (*MsgWirePayForData, error) {
+func NewWirePayForData(namespace, message []byte) (*MsgWirePayForData, error) {
 	// sanity check namespace ID size
 	if len(namespace) != NamespaceIDSize {
 		return nil, ErrInvalidNamespaceLen.Wrapf("got: %d want: %d",
@@ -34,20 +34,19 @@ func NewWirePayForData(namespace, message []byte, sizes ...uint64) (*MsgWirePayF
 		MessageNamespaceId:     namespace,
 		MessageSize:            uint64(len(message)),
 		Message:                message,
-		MessageShareCommitment: make([]ShareCommitAndSignature, len(sizes)),
+		MessageShareCommitment: &ShareCommitAndSignature{},
 	}
 
-	// generate the share commitments
-	for i, size := range sizes {
-		if !shares.IsPowerOfTwo(size) {
-			return nil, fmt.Errorf("invalid square size, the size must be power of 2: %d", size)
-		}
-		commit, err := CreateCommitment(size, namespace, message)
-		if err != nil {
-			return nil, err
-		}
-		out.MessageShareCommitment[i] = ShareCommitAndSignature{SquareSize: size, ShareCommitment: commit}
+	// generate the share commitment
+	squareSize := MsgMinSquareSize(uint64(len(message)))
+	if !shares.IsPowerOfTwo(squareSize) {
+		return nil, fmt.Errorf("invalid square size, the size must be power of 2: %d", squareSize)
 	}
+	commit, err := CreateCommitment(squareSize, namespace, message)
+	if err != nil {
+		return nil, err
+	}
+	out.MessageShareCommitment = &ShareCommitAndSignature{SquareSize: squareSize, ShareCommitment: commit}
 	return out, nil
 }
 
@@ -67,16 +66,14 @@ func (msg *MsgWirePayForData) SignShareCommitments(signer *KeyringSigner, option
 	}
 
 	msg.Signer = addr.String()
-	// create an entire MsgPayForData and signing over it, including the signature in each commitment
-	for i, commit := range msg.MessageShareCommitment {
-		builder := signer.NewTxBuilder(options...)
+	// create an entire MsgPayForData and sign over it (including the signature in the commitment)
+	builder := signer.NewTxBuilder(options...)
 
-		sig, err := msg.createPayForDataSignature(signer, builder, commit.SquareSize)
-		if err != nil {
-			return err
-		}
-		msg.MessageShareCommitment[i].Signature = sig
+	sig, err := msg.createPayForDataSignature(signer, builder, msg.MessageShareCommitment.SquareSize)
+	if err != nil {
+		return err
 	}
+	msg.MessageShareCommitment.Signature = sig
 	return nil
 }
 
@@ -113,42 +110,21 @@ func (msg *MsgWirePayForData) ValidateBasic() error {
 // ValidateMessageShareCommitments returns an error if the message share
 // commitments are invalid.
 func (msg *MsgWirePayForData) ValidateMessageShareCommitments() error {
-	for idx, commit := range msg.MessageShareCommitment {
-		// check that each commit is valid
-		if !shares.IsPowerOfTwo(commit.SquareSize) {
-			return ErrCommittedSquareSizeNotPowOf2.Wrapf("committed to square size: %d", commit.SquareSize)
-		}
-
-		calculatedCommit, err := CreateCommitment(commit.SquareSize, msg.GetMessageNamespaceId(), msg.Message)
-		if err != nil {
-			return ErrCalculateCommit.Wrap(err.Error())
-		}
-
-		if !bytes.Equal(calculatedCommit, commit.ShareCommitment) {
-			return ErrInvalidShareCommit.Wrapf("for square size %d and commit number %v", commit.SquareSize, idx)
-		}
+	// check that the commit is valid
+	commit := msg.MessageShareCommitment
+	if !shares.IsPowerOfTwo(commit.SquareSize) {
+		return ErrCommittedSquareSizeNotPowOf2.Wrapf("committed to square size: %d", commit.SquareSize)
 	}
 
-	if len(msg.MessageShareCommitment) == 0 {
-		return ErrNoMessageShareCommitments
+	calculatedCommit, err := CreateCommitment(commit.SquareSize, msg.GetMessageNamespaceId(), msg.Message)
+	if err != nil {
+		return ErrCalculateCommit.Wrap(err.Error())
 	}
 
-	if err := msg.ValidateAllSquareSizesCommitedTo(); err != nil {
-		return err
+	if !bytes.Equal(calculatedCommit, commit.ShareCommitment) {
+		return ErrInvalidShareCommit.Wrapf("for square size %d", commit.SquareSize)
 	}
 
-	return nil
-}
-
-// ValidateAllSquareSizesCommitedTo returns an error if the list of square sizes
-// committed to don't match all square sizes expected for this message size.
-func (msg *MsgWirePayForData) ValidateAllSquareSizesCommitedTo() error {
-	allSquareSizes := AllSquareSizes(int(msg.MessageSize))
-	committedSquareSizes := msg.committedSquareSizes()
-
-	if !isEqual(allSquareSizes, committedSquareSizes) {
-		return ErrInvalidShareCommitments.Wrapf("all square sizes: %v, committed square sizes: %v", allSquareSizes, committedSquareSizes)
-	}
 	return nil
 }
 
@@ -163,16 +139,6 @@ func isEqual(a, b []uint64) bool {
 		}
 	}
 	return true
-}
-
-// commitedSquareSizes returns a list of square sizes that are present in a
-// message's share commitment.
-func (msg *MsgWirePayForData) committedSquareSizes() []uint64 {
-	squareSizes := make([]uint64, 0, len(msg.MessageShareCommitment))
-	for _, commit := range msg.MessageShareCommitment {
-		squareSizes = append(squareSizes, commit.SquareSize)
-	}
-	return squareSizes
 }
 
 // ValidateMessageNamespaceID returns an error if the provided namespace.ID is an invalid or reserved namespace id.
@@ -260,14 +226,7 @@ func (msg *MsgWirePayForData) unsignedPayForData(squareSize uint64) (*MsgPayForD
 func ProcessWirePayForData(msg *MsgWirePayForData, squareSize uint64) (*tmproto.Message, *MsgPayForData, []byte, error) {
 	// make sure that a ShareCommitAndSignature of the correct size is
 	// included in the message
-	var shareCommit ShareCommitAndSignature
-	for _, commit := range msg.MessageShareCommitment {
-		if commit.SquareSize == squareSize {
-			shareCommit = commit
-			break
-		}
-	}
-	if shareCommit.Signature == nil {
+	if msg.MessageShareCommitment.SquareSize != squareSize {
 		return nil,
 			nil,
 			nil,
@@ -286,7 +245,7 @@ func ProcessWirePayForData(msg *MsgWirePayForData, squareSize uint64) (*tmproto.
 		return nil, nil, nil, err
 	}
 
-	return &coreMsg, pfd, shareCommit.Signature, nil
+	return &coreMsg, pfd, msg.MessageShareCommitment.Signature, nil
 }
 
 // HasWirePayForData performs a quick but not definitive check to see if a tx
@@ -324,4 +283,16 @@ func ExtractMsgWirePayForData(tx sdk.Tx) (*MsgWirePayForData, error) {
 	}
 
 	return wireMsg, nil
+}
+
+// MsgMinSquareSize returns the minimum square size that messageLength can be
+// included in.
+func MsgMinSquareSize(messageLength uint64) uint64 {
+	squareSize := shares.RoundUpPowerOfTwo(messageLength)
+	// check if message fits with non-interactive default rules
+	if messageLength <= squareSize*(squareSize-1) {
+		return squareSize
+	}
+	// round up to the next power of two
+	return squareSize << 1
 }

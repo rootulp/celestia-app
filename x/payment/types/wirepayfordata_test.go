@@ -39,19 +39,19 @@ func TestWirePayForData_ValidateBasic(t *testing.T) {
 
 	// pfd with bad commitment
 	badCommitMsg := validWirePayForData(t)
-	badCommitMsg.MessageShareCommitment[0].ShareCommitment = []byte{1, 2, 3, 4}
+	badCommitMsg.MessageShareCommitment.ShareCommitment = []byte{1, 2, 3, 4}
 
 	// pfd that has invalid square size (not power of 2)
 	invalidSquareSizeMsg := validWirePayForData(t)
-	invalidSquareSizeMsg.MessageShareCommitment[0].SquareSize = 15
+	invalidSquareSizeMsg.MessageShareCommitment.SquareSize = 15
 
 	// pfd that signs over all squares but the first one
 	missingCommitmentForOneSquareSize := validWirePayForData(t)
-	missingCommitmentForOneSquareSize.MessageShareCommitment = missingCommitmentForOneSquareSize.MessageShareCommitment[1:]
+	missingCommitmentForOneSquareSize.MessageShareCommitment = missingCommitmentForOneSquareSize.MessageShareCommitment
 
 	// pfd that signed over no squares
 	noMessageShareCommitments := validWirePayForData(t)
-	noMessageShareCommitments.MessageShareCommitment = []ShareCommitAndSignature{}
+	noMessageShareCommitments.MessageShareCommitment = &ShareCommitAndSignature{}
 
 	tests := []test{
 		{

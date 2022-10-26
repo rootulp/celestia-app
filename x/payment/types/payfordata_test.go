@@ -159,13 +159,13 @@ func TestSignMalleatedTxs(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		wpfd, err := NewWirePayForData(tt.ns, tt.msg, tt.ss...)
+		wpfd, err := NewWirePayForData(tt.ns, tt.msg)
 		require.NoError(t, err, tt.name)
 		err = wpfd.SignShareCommitments(signer, tt.options...)
 		// there should be no error
 		assert.NoError(t, err)
 		// the signature should exist
-		assert.Equal(t, len(wpfd.MessageShareCommitment[0].Signature), 64)
+		assert.Equal(t, len(wpfd.MessageShareCommitment.Signature), 64)
 
 		sData, err := signer.GetSignerData()
 		require.NoError(t, err)
@@ -221,7 +221,7 @@ func TestProcessMessage(t *testing.T) {
 			msg:        bytes.Repeat([]byte{2}, totalMsgSize(appconsts.SparseShareContentSize*12)),
 			squareSize: 4,
 			modify: func(wpfd *MsgWirePayForData) *MsgWirePayForData {
-				wpfd.MessageShareCommitment[0].SquareSize = 99999
+				wpfd.MessageShareCommitment.SquareSize = 99999
 				return wpfd
 			},
 			expectErr: true,
@@ -229,7 +229,7 @@ func TestProcessMessage(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		wpfd, err := NewWirePayForData(tt.namespace, tt.msg, tt.squareSize)
+		wpfd, err := NewWirePayForData(tt.namespace, tt.msg)
 		require.NoError(t, err, tt.name)
 		err = wpfd.SignShareCommitments(signer)
 		assert.NoError(t, err)
@@ -247,8 +247,8 @@ func TestProcessMessage(t *testing.T) {
 		assert.Equal(t, tt.namespace, message.NamespaceId, tt.name)
 		assert.Equal(t, wpfd.Signer, spfd.Signer, tt.name)
 		assert.Equal(t, wpfd.MessageNamespaceId, spfd.MessageNamespaceId, tt.name)
-		assert.Equal(t, wpfd.MessageShareCommitment[0].ShareCommitment, spfd.MessageShareCommitment, tt.name)
-		assert.Equal(t, wpfd.MessageShareCommitment[0].Signature, sig, tt.name)
+		assert.Equal(t, wpfd.MessageShareCommitment.ShareCommitment, spfd.MessageShareCommitment, tt.name)
+		assert.Equal(t, wpfd.MessageShareCommitment.Signature, sig, tt.name)
 	}
 }
 
@@ -357,7 +357,6 @@ func validWirePayForData(t *testing.T) *MsgWirePayForData {
 	msg, err := NewWirePayForData(
 		[]byte{1, 2, 3, 4, 5, 6, 7, 8},
 		message,
-		AllSquareSizes(len(message))...,
 	)
 	if err != nil {
 		panic(err)
@@ -379,7 +378,7 @@ func validMsgPayForData(t *testing.T) *MsgPayForData {
 	msg := bytes.Repeat([]byte{2}, totalMsgSize(appconsts.SparseShareContentSize*12))
 	squareSize := uint64(4)
 
-	wpfd, err := NewWirePayForData(ns, msg, squareSize)
+	wpfd, err := NewWirePayForData(ns, msg)
 	assert.NoError(t, err)
 
 	err = wpfd.SignShareCommitments(signer)

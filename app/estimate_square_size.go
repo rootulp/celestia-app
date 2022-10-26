@@ -170,7 +170,7 @@ func rawShareCount(txs []*parsedTx, evd core.EvidenceList) (txShares, evdShares 
 		// compensates for the actual size of the message, and in some cases can
 		// result in some wasted square space or picking a square size that is
 		// too large. TODO: improve by making a more accurate estimation formula
-		txBytes += overEstimateMalleatedTxSize(len(pTx.rawTx), len(pTx.msg.Message), len(pTx.msg.MessageShareCommitment))
+		txBytes += overEstimateMalleatedTxSize(len(pTx.rawTx), len(pTx.msg.Message), 1)
 
 		msgSummaries = append(msgSummaries, msgSummary{shares.MsgSharesUsed(int(pTx.msg.MessageSize)), pTx.msg.MessageNamespaceId})
 	}
