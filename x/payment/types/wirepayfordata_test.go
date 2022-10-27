@@ -105,29 +105,41 @@ func TestWirePayForData_ValidateBasic(t *testing.T) {
 
 func TestMsgMinSquareSize(t *testing.T) {
 	type testCase struct {
+		name     string
 		msgLen   uint64
 		expected uint64
 	}
 	tests := []testCase{
 		{
+			name:     "1 byte",
 			msgLen:   1,
-			expected: 2,
+			expected: 1,
 		},
 		{
+			name:     "100 bytes",
 			msgLen:   100,
+			expected: 1,
+		},
+		{
+			name:     "2 sparse shares",
+			msgLen:   appconsts.SparseShareContentSize * 2,
 			expected: 2,
 		},
 		{
+			name:     "4 sparse shares",
 			msgLen:   appconsts.SparseShareContentSize * 4,
 			expected: 4,
 		},
 		{
+			name:     "16 sparse shares",
 			msgLen:   appconsts.SparseShareContentSize * 16,
 			expected: 8,
 		},
 	}
 	for _, tc := range tests {
-		got := MsgMinSquareSize(tc.msgLen)
-		assert.Equal(t, tc.expected, got)
+		t.Run(tc.name, func(t *testing.T) {
+			got := MsgMinSquareSize(tc.msgLen)
+			assert.Equal(t, tc.expected, got)
+		})
 	}
 }

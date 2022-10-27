@@ -286,17 +286,11 @@ func ExtractMsgWirePayForData(tx sdk.Tx) (*MsgWirePayForData, error) {
 	return wireMsg, nil
 }
 
-// MsgMinSquareSize returns the minimum square size that msgLen can be
-// included in.
+// MsgMinSquareSize returns the minimum square size that msgLen can be included
+// in. The returned square size does not account for the associated transaction
+// shares or non-interactive defaults so it is a minimum.
 func MsgMinSquareSize(msgLen uint64) uint64 {
 	shareCount := shares.MsgSharesUsed(int(msgLen))
-	// squareSize := shares.RoundUpPowerOfTwo(shareCount)
 	squareSize := shares.RoundUpPowerOfTwo(int(math.Ceil(math.Sqrt(float64(shareCount)))))
-
-	// check if message fits with non-interactive default rules
-	if shareCount <= squareSize*(squareSize-1) {
-		return uint64(squareSize)
-	}
-	// round up to the next power of two
-	return uint64(squareSize << 1)
+	return uint64(squareSize)
 }
