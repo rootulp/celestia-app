@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	sdkerrors "cosmossdk.io/errors"
+	"github.com/celestiaorg/celestia-app/pkg/appconsts"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -117,5 +118,34 @@ func TestWirePayForData_ValidateBasic(t *testing.T) {
 				t.Log(log)
 			}
 		})
+	}
+}
+
+func TestMsgMinSquareSize(t *testing.T) {
+	type testCase struct {
+		msgLen   uint64
+		expected uint64
+	}
+	tests := []testCase{
+		{
+			msgLen:   1,
+			expected: 2,
+		},
+		{
+			msgLen:   100,
+			expected: 2,
+		},
+		{
+			msgLen:   appconsts.SparseShareContentSize * 4,
+			expected: 4,
+		},
+		{
+			msgLen:   appconsts.SparseShareContentSize * 16,
+			expected: 8,
+		},
+	}
+	for _, tc := range tests {
+		got := MsgMinSquareSize(tc.msgLen)
+		assert.Equal(t, tc.expected, got)
 	}
 }

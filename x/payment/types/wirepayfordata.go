@@ -3,7 +3,8 @@ package types
 import (
 	"bytes"
 	"errors"
-	fmt "fmt"
+	"fmt"
+	"math"
 
 	"github.com/celestiaorg/celestia-app/pkg/appconsts"
 	shares "github.com/celestiaorg/celestia-app/pkg/shares"
@@ -224,13 +225,13 @@ func (msg *MsgWirePayForData) unsignedPayForData(squareSize uint64) (*MsgPayForD
 // creating a block. It parses the MsgWirePayForData to produce the components
 // needed to create a single MsgPayForData.
 func ProcessWirePayForData(msg *MsgWirePayForData, squareSize uint64) (*tmproto.Message, *MsgPayForData, []byte, error) {
-	// make sure that a ShareCommitAndSignature of the correct size is
-	// included in the message
-	if msg.MessageShareCommitment.SquareSize != squareSize {
+	// verify that the message's share commitment is valid for this squareSize
+	if squareSize < msg.MessageShareCommitment.SquareSize {
 		return nil,
 			nil,
 			nil,
-			fmt.Errorf("message does not commit to current square size: %d", squareSize)
+			fmt.Errorf("message can't be included in squareSize %d because the message committed to the larger square size %d",
+				squareSize, msg.MessageShareCommitment.SquareSize)
 	}
 
 	// add the message to the list of core message to be returned to ll-core
@@ -285,14 +286,17 @@ func ExtractMsgWirePayForData(tx sdk.Tx) (*MsgWirePayForData, error) {
 	return wireMsg, nil
 }
 
-// MsgMinSquareSize returns the minimum square size that messageLength can be
+// MsgMinSquareSize returns the minimum square size that msgLen can be
 // included in.
-func MsgMinSquareSize(messageLength uint64) uint64 {
-	squareSize := shares.RoundUpPowerOfTwo(messageLength)
+func MsgMinSquareSize(msgLen uint64) uint64 {
+	shareCount := shares.MsgSharesUsed(int(msgLen))
+	// squareSize := shares.RoundUpPowerOfTwo(shareCount)
+	squareSize := shares.RoundUpPowerOfTwo(int(math.Ceil(math.Sqrt(float64(shareCount)))))
+
 	// check if message fits with non-interactive default rules
-	if messageLength <= squareSize*(squareSize-1) {
-		return squareSize
+	if shareCount <= squareSize*(squareSize-1) {
+		return uint64(squareSize)
 	}
 	// round up to the next power of two
-	return squareSize << 1
+	return uint64(squareSize << 1)
 }
