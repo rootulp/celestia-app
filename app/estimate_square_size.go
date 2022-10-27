@@ -217,10 +217,8 @@ func rawShareCount(txs []*parsedTx, evd core.EvidenceList) (txShares, evdShares 
 // overEstimateMalleatedTxSize estimates the size of a malleated tx. The formula it uses will always over estimate.
 func overEstimateMalleatedTxSize(txLen, msgLen, sharesCommitments int) int {
 	// the malleated tx uses the original txLen to account for meta data from
-	// the original tx, but removes the message and extra share commitments that
-	// are in the wire message by subtracting msgLen and all extra share
-	// commitments.
-	malleatedTxLen := txLen - msgLen - (sharesCommitments * appconsts.ShareCommitmentBytes)
+	// the original tx, but removes the message
+	malleatedTxLen := txLen - msgLen
 	// we need to ensure that the returned number is at least larger than or
 	// equal to the actual number, which is difficult to calculate without
 	// actually malleating the tx
