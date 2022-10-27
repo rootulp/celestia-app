@@ -43,7 +43,7 @@ func NewWirePayForData(namespace, message []byte) (*MsgWirePayForData, error) {
 	if !shares.IsPowerOfTwo(squareSize) {
 		return nil, fmt.Errorf("invalid square size, the size must be power of 2: %d", squareSize)
 	}
-	commit, err := CreateCommitment(squareSize, namespace, message)
+	commit, err := CreateCommitment(namespace, message)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (msg *MsgWirePayForData) ValidateMessageShareCommitments() error {
 		return ErrCommittedSquareSizeNotPowOf2.Wrapf("committed to square size: %d", commit.SquareSize)
 	}
 
-	calculatedCommit, err := CreateCommitment(commit.SquareSize, msg.GetMessageNamespaceId(), msg.Message)
+	calculatedCommit, err := CreateCommitment(msg.GetMessageNamespaceId(), msg.Message)
 	if err != nil {
 		return ErrCalculateCommit.Wrap(err.Error())
 	}
@@ -207,7 +207,7 @@ func (msg *MsgWirePayForData) createPayForDataSignature(signer *KeyringSigner, b
 // to create a new MsgPayForData.
 func (msg *MsgWirePayForData) unsignedPayForData(squareSize uint64) (*MsgPayForData, error) {
 	// create the commitment using the padded message
-	commit, err := CreateCommitment(squareSize, msg.MessageNamespaceId, msg.Message)
+	commit, err := CreateCommitment(msg.MessageNamespaceId, msg.Message)
 	if err != nil {
 		return nil, err
 	}
