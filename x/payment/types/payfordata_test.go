@@ -201,17 +201,6 @@ func TestProcessMessage(t *testing.T) {
 			squareSize: 4,
 			modify:     dontModify,
 		},
-		{
-			name:       "incorrect square size",
-			namespace:  []byte{1, 1, 1, 1, 1, 1, 1, 2},
-			msg:        bytes.Repeat([]byte{2}, totalMsgSize(appconsts.SparseShareContentSize*12)),
-			squareSize: 4,
-			modify: func(wpfd *MsgWirePayForData) *MsgWirePayForData {
-				wpfd.MessageShareCommitment.SquareSize = 99999
-				return wpfd
-			},
-			expectErr: true,
-		},
 	}
 
 	for _, tt := range tests {
@@ -222,7 +211,7 @@ func TestProcessMessage(t *testing.T) {
 
 		wpfd = tt.modify(wpfd)
 
-		message, spfd, sig, err := ProcessWirePayForData(wpfd, tt.squareSize)
+		message, spfd, sig, err := ProcessWirePayForData(wpfd)
 		if tt.expectErr {
 			assert.Error(t, err, tt.name)
 			continue
@@ -362,7 +351,6 @@ func validMsgPayForData(t *testing.T) *MsgPayForData {
 	signer := NewKeyringSigner(kb, "test", "chain-id")
 	ns := []byte{1, 1, 1, 1, 1, 1, 1, 2}
 	msg := bytes.Repeat([]byte{2}, totalMsgSize(appconsts.SparseShareContentSize*12))
-	squareSize := uint64(4)
 
 	wpfd, err := NewWirePayForData(ns, msg)
 	assert.NoError(t, err)
@@ -370,7 +358,7 @@ func validMsgPayForData(t *testing.T) *MsgPayForData {
 	err = wpfd.SignShareCommitments(signer)
 	assert.NoError(t, err)
 
-	_, spfd, _, err := ProcessWirePayForData(wpfd, squareSize)
+	_, spfd, _, err := ProcessWirePayForData(wpfd)
 	require.NoError(t, err)
 
 	return spfd

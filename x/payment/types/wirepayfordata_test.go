@@ -42,10 +42,6 @@ func TestWirePayForData_ValidateBasic(t *testing.T) {
 	badCommitMsg := validWirePayForData(t)
 	badCommitMsg.MessageShareCommitment.ShareCommitment = []byte{1, 2, 3, 4}
 
-	// pfd that has invalid square size (not power of 2)
-	invalidSquareSizeMsg := validWirePayForData(t)
-	invalidSquareSizeMsg.MessageShareCommitment.SquareSize = 15
-
 	tests := []test{
 		{
 			name:    "valid msg",
@@ -71,11 +67,6 @@ func TestWirePayForData_ValidateBasic(t *testing.T) {
 			name:    "bad commitment",
 			msg:     badCommitMsg,
 			wantErr: ErrInvalidShareCommit,
-		},
-		{
-			name:    "invalid square size",
-			msg:     invalidSquareSizeMsg,
-			wantErr: ErrCommittedSquareSizeNotPowOf2,
 		},
 		{
 			name:    "parity shares namespace id",

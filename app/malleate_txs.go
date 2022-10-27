@@ -89,7 +89,7 @@ func (p *parsedTx) malleate(txConf client.TxConfig, squareSize uint64) error {
 	}
 
 	// parse wire message and create a single message
-	_, unsignedPFD, sig, err := types.ProcessWirePayForData(p.msg, squareSize)
+	_, unsignedPFD, sig, err := types.ProcessWirePayForData(p.msg)
 	if err != nil {
 		return err
 	}

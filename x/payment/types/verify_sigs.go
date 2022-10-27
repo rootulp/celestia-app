@@ -45,7 +45,7 @@ func VerifyPFDSigs(signerData authsigning.SignerData, txConfig client.TxConfig, 
 	}
 
 	// go through the entire malleation process as if this tx was being included in a block.
-	_, pfd, sig, err := ProcessWirePayForData(wirePFDMsg, wirePFDMsg.MessageShareCommitment.SquareSize)
+	_, pfd, sig, err := ProcessWirePayForData(wirePFDMsg)
 	if err != nil {
 		return false, err
 	}
