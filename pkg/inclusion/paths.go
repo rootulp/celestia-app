@@ -21,6 +21,7 @@ func calculateCommitPaths(squareSize, start, msgShareLen int) []path {
 	start, _ = shares.NextAlignedPowerOfTwo(start, msgShareLen, squareSize)
 	startRow, endRow := start/squareSize, (start+msgShareLen-1)/squareSize
 	normalizedStartIndex := start % squareSize
+	// normalizedEndIndex is the index in the endRow where the message ends
 	normalizedEndIndex := (start + msgShareLen) - endRow*squareSize
 	paths := []path{}
 	maxDepth := int(math.Log2(float64(squareSize)))

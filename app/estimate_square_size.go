@@ -57,7 +57,7 @@ func prune(txConf client.TxConfig, txs []*parsedTx, currentShareCount, squareSiz
 		// we ignore the error here, as if there is an error malleating the tx,
 		// then we need to remove it anyway and it will not end up contributing
 		// bytes to the square anyway.
-		_ = txs[i].malleate(txConf, uint64(squareSize))
+		_ = txs[i].malleate(txConf)
 		adjustContigCursor(len(txs[i].malleatedTx) + appconsts.MalleatedTxBytes)
 	}
 
