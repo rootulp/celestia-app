@@ -143,7 +143,7 @@ func CreateCommitment(squareSize uint64, namespace, message []byte) ([]byte, err
 	}
 
 	// organize shares for merkle mountain range
-	treeSizes := merkleMountainRangeSizes(uint64(len(shares)), squareSize)
+	treeSizes := MerkleMountainRangeSizes(uint64(len(shares)), squareSize)
 	leafSets := make([][][]byte, len(treeSizes))
 	cursor := uint64(0)
 	for i, treeSize := range treeSizes {
@@ -169,14 +169,14 @@ func CreateCommitment(squareSize uint64, namespace, message []byte) ([]byte, err
 	return merkle.HashFromByteSlices(subTreeRoots), nil
 }
 
-// merkleMountainRangeSizes returns the sizes (number of leaf nodes) of the
+// MerkleMountainRangeSizes returns the sizes (number of leaf nodes) of the
 // trees in a merkle mountain range constructed for a given totalSize and
 // maxTreeSize.
 //
 // https://docs.grin.mw/wiki/chain-state/merkle-mountain-range/
 // https://github.com/opentimestamps/opentimestamps-server/blob/master/doc/merkle-mountain-range.md
 // TODO: potentially rename function because this doesn't return heights
-func merkleMountainRangeSizes(totalSize, maxTreeSize uint64) []uint64 {
+func MerkleMountainRangeSizes(totalSize, maxTreeSize uint64) []uint64 {
 	var treeSizes []uint64
 
 	for totalSize != 0 {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/celestiaorg/celestia-app/x/payment/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -305,5 +306,36 @@ func Test_calculateCommitPaths(t *testing.T) {
 				assert.Equal(t, tt.expected, calculateCommitPaths(tt.size, tt.start, tt.msgLen))
 			},
 		)
+	}
+}
+
+func Test_calculateCommitPathsReturnsNumberOfSubtreeRoots(t *testing.T) {
+	type test struct {
+		name             string
+		start            int
+		end              int
+		maxDepth         int
+		msgMinSquareSize int
+		expected         []coord
+	}
+	tests := []test{
+		{
+			name:             "first four shares of an 8 leaf tree",
+			start:            0,
+			end:              4,
+			maxDepth:         3,
+			msgMinSquareSize: 4,
+			expected: []coord{
+				{
+					depth:    1,
+					position: 0,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		numCoords := len(calculateSubTreeRootCoordinates(tt.maxDepth, tt.start, tt.end))
+		numSubtreeRoots := len(types.MerkleMountainRangeSizes(uint64(tt.end-tt.start), uint64(tt.msgMinSquareSize)))
+		assert.Equal(t, numCoords, numSubtreeRoots)
 	}
 }
