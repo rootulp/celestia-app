@@ -135,7 +135,7 @@ func CreateCommitment(namespace, message []byte) ([]byte, error) {
 	// equal to the minimum square size the message can be included in. See
 	// https://github.com/celestiaorg/celestia-app/blob/fbfbf111bcaa056e53b0bc54d327587dee11a945/docs/architecture/adr-008-blocksize-independent-commitment.md
 	minSquareSize := MsgMinSquareSize(uint64(len(message)))
-	treeSizes := merkleMountainRangeSizes(uint64(len(shares)), minSquareSize)
+	treeSizes := MerkleMountainRangeSizes(uint64(len(shares)), minSquareSize)
 	leafSets := make([][][]byte, len(treeSizes))
 	cursor := uint64(0)
 	for i, treeSize := range treeSizes {
@@ -161,14 +161,14 @@ func CreateCommitment(namespace, message []byte) ([]byte, error) {
 	return merkle.HashFromByteSlices(subTreeRoots), nil
 }
 
-// merkleMountainRangeSizes returns the sizes (number of leaf nodes) of the
+// MerkleMountainRangeSizes returns the sizes (number of leaf nodes) of the
 // trees in a merkle mountain range constructed for a given totalSize and
 // maxTreeSize.
 //
 // https://docs.grin.mw/wiki/chain-state/merkle-mountain-range/
 // https://github.com/opentimestamps/opentimestamps-server/blob/master/doc/merkle-mountain-range.md
 // TODO: potentially rename function because this doesn't return heights
-func merkleMountainRangeSizes(totalSize, maxTreeSize uint64) []uint64 {
+func MerkleMountainRangeSizes(totalSize, maxTreeSize uint64) []uint64 {
 	var treeSizes []uint64
 
 	for totalSize != 0 {
