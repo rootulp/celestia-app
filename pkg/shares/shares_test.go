@@ -200,7 +200,7 @@ func TestMerge(t *testing.T) {
 				tc.maxSize,
 			)
 
-			shares, err := Split(data, false)
+			shares, _, err := Split(data, false)
 			require.NoError(t, err)
 			rawShares := ToBytes(shares)
 
@@ -227,6 +227,7 @@ func TestMerge(t *testing.T) {
 			data.Evidence = coretypes.EvidenceData{}
 			res.Evidence = coretypes.EvidenceData{}
 
+			// ignore differences in OriginalSquareSize
 			res.OriginalSquareSize = data.OriginalSquareSize
 
 			assert.Equal(t, data, res)

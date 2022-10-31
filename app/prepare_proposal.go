@@ -21,22 +21,11 @@ func (app *App) PrepareProposal(req abci.RequestPrepareProposal) abci.ResponsePr
 	// of the txs is maintained.
 	parsedTxs := parseTxs(app.txConfig, req.BlockData.Txs)
 
-	// estimate the square size. This estimation errors on the side of larger
-	// squares but can only return values within the min and max square size.
-	squareSize, totalSharesUsed := estimateSquareSize(parsedTxs, req.BlockData.Evidence)
-
-	// the totalSharesUsed can be larger that the max number of shares if we
-	// reach the max square size. In this case, we must prune the deprioritized
-	// txs (and their messages if they're pfd txs).
-	if totalSharesUsed > int(squareSize*squareSize) {
-		parsedTxs = prune(app.txConfig, parsedTxs, totalSharesUsed, int(squareSize))
-	}
-
 	// in this step we are processing any MsgWirePayForData transactions into
 	// MsgPayForData and their respective messages. The malleatedTxs contain the
 	// the new sdk.Msg with the original tx's metadata (sequence number, gas
 	// price etc).
-	processedTxs, messages, err := malleateTxs(app.txConfig, squareSize, parsedTxs, req.BlockData.Evidence)
+	processedTxs, messages, err := malleateTxs(app.txConfig, parsedTxs, req.BlockData.Evidence)
 	if err != nil {
 		panic(err)
 	}
@@ -45,7 +34,7 @@ func (app *App) PrepareProposal(req abci.RequestPrepareProposal) abci.ResponsePr
 		Txs:                processedTxs,
 		Evidence:           req.BlockData.Evidence,
 		Messages:           core.Messages{MessagesList: messages},
-		OriginalSquareSize: squareSize,
+		OriginalSquareSize: 0, // hardcode 0 here. OriginalSquareSize will be set after share.Split()
 	}
 
 	coreData, err := coretypes.DataFromProto(&blockData)
@@ -53,7 +42,7 @@ func (app *App) PrepareProposal(req abci.RequestPrepareProposal) abci.ResponsePr
 		panic(err)
 	}
 
-	dataSquare, err := shares.Split(coreData, true)
+	dataSquare, squareSize, err := shares.Split(coreData, true)
 	if err != nil {
 		panic(err)
 	}

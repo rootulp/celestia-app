@@ -36,7 +36,7 @@ func GenerateValidBlockData(
 		parsedTxs = prune(txConfig, parsedTxs, totalSharesUsed, int(squareSize))
 	}
 
-	processedTxs, messages, err := malleateTxs(txConfig, squareSize, parsedTxs, core.EvidenceList{})
+	processedTxs, messages, err := malleateTxs(txConfig, parsedTxs, core.EvidenceList{})
 	require.NoError(t, err)
 
 	blockData := core.Data{

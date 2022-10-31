@@ -1,5 +1,9 @@
 package shares
 
+import (
+	"math"
+)
+
 // FitsInSquare uses the non interactive default rules to see if messages of
 // some lengths will fit in a square of squareSize starting at share index
 // cursor. Returns whether the messages fit in the square and the number of
@@ -18,22 +22,31 @@ func FitsInSquare(cursor, squareSize int, msgShareLens ...int) (bool, int) {
 	}
 	// here we account for padding between the compact and sparse shares
 	cursor, _ = NextAlignedPowerOfTwo(cursor, firstMsgLen, squareSize)
-	sharesUsed, _ := MsgSharesUsedNonInteractiveDefaults(cursor, squareSize, msgShareLens...)
+	sharesUsed, _ := MsgSharesUsedNonInteractiveDefaults(cursor, msgShareLens...)
 	return cursor+sharesUsed <= squareSize*squareSize, sharesUsed
 }
 
 // MsgSharesUsedNonInteractiveDefaults calculates the number of shares used by a given set
 // of messages share lengths. It follows the non-interactive default rules and
 // returns the share indexes for each message.
-func MsgSharesUsedNonInteractiveDefaults(cursor, squareSize int, msgShareLens ...int) (int, []uint32) {
+func MsgSharesUsedNonInteractiveDefaults(cursor int, msgShareLens ...int) (int, []uint32) {
 	start := cursor
 	indexes := make([]uint32, len(msgShareLens))
 	for i, msgLen := range msgShareLens {
-		cursor, _ = NextAlignedPowerOfTwo(cursor, msgLen, squareSize)
+		cursor = RoundUpToNextMultipleOfMsgMinSquareSize(cursor, msgLen)
 		indexes[i] = uint32(cursor)
 		cursor += msgLen
 	}
 	return cursor - start, indexes
+}
+
+// RoundUpToNextMultipleOfMsgMinSquareSize rounds cursor up to the next multiple
+// of the minimum square size that can contain msgLen number of shares.
+func RoundUpToNextMultipleOfMsgMinSquareSize(cursor, msgLen int) int {
+	minSquareSize := MinSquareSize(uint64(msgLen))
+	remainder := uint64(cursor) % minSquareSize
+	paddingLen := minSquareSize - remainder
+	return int(uint64(cursor) + paddingLen)
 }
 
 // NextAlignedPowerOfTwo calculates the next index in a row that is an aligned
@@ -77,4 +90,10 @@ func roundUpBy(cursor, v int) int {
 	default:
 		return ((cursor / v) + 1) * v
 	}
+}
+
+// MinSquareSize returns the minimum square size that can contain shareCount
+// number of shares.
+func MinSquareSize(shareCount uint64) uint64 {
+	return RoundUpPowerOfTwo(uint64(math.Ceil(math.Sqrt(float64(shareCount)))))
 }

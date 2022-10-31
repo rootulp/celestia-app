@@ -13,7 +13,6 @@ import (
 
 func malleateTxs(
 	txConf client.TxConfig,
-	squareSize uint64,
 	txs parsedTxs,
 	evd core.EvidenceList,
 ) ([][]byte, []*core.Message, error) {
@@ -58,10 +57,10 @@ func malleateTxs(
 	// share index of the message, which we still need to calculate. Here we
 	// calculate the exact share counts used by the different types of block
 	// data in order to get an accurate index.
-	compactShareCount := calculateCompactShareCount(txs, evd, int(squareSize))
+	compactShareCount := calculateCompactShareCount(txs, evd)
 	msgShareCounts := shares.MessageShareCountsFromMessages(msgs)
 	// calculate the indexes that will be used for each message
-	_, indexes := shares.MsgSharesUsedNonInteractiveDefaults(compactShareCount, int(squareSize), msgShareCounts...)
+	_, indexes := shares.MsgSharesUsedNonInteractiveDefaults(compactShareCount, msgShareCounts...)
 	for i, reverseIndex := range parsedTxReverseIndexes {
 		wrappedMalleatedTx, err := txs[reverseIndex].wrap(indexes[i])
 		if err != nil {

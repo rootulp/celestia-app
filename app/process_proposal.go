@@ -41,7 +41,7 @@ func (app *App) ProcessProposal(req abci.RequestProcessProposal) abci.ResponsePr
 		}
 	}
 
-	dataSquare, err := shares.Split(data, true)
+	dataSquare, _, err := shares.Split(data, true)
 	if err != nil {
 		logInvalidPropBlockError(app.Logger(), req.Header, "failure to compute shares from block data:", err)
 		return abci.ResponseProcessProposal{

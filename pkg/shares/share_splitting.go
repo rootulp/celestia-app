@@ -3,7 +3,7 @@ package shares
 import (
 	"bytes"
 	"errors"
-	"fmt"
+	"math"
 	"sort"
 
 	"github.com/celestiaorg/celestia-app/pkg/appconsts"
@@ -22,11 +22,8 @@ var (
 // Split converts block data into encoded shares, optionally using share indexes
 // that are encoded as wrapped transactions. Most use cases out of this package
 // should use these share indexes and therefore set useShareIndexes to true.
-func Split(data coretypes.Data, useShareIndexes bool) ([]Share, error) {
-	if data.OriginalSquareSize == 0 || !isPowerOf2(data.OriginalSquareSize) {
-		return nil, fmt.Errorf("square size is not a power of two: %d", data.OriginalSquareSize)
-	}
-	wantShareCount := int(data.OriginalSquareSize * data.OriginalSquareSize)
+// Split returns the shares, the squareSize, and optionally an error.
+func Split(data coretypes.Data, useShareIndexes bool) ([]Share, uint64, error) {
 	currentShareCount := 0
 
 	txShares := SplitTxs(data.Txs)
@@ -34,7 +31,7 @@ func Split(data coretypes.Data, useShareIndexes bool) ([]Share, error) {
 
 	evdShares, err := SplitEvidence(data.Evidence.Evidence)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	currentShareCount += len(evdShares)
 
@@ -46,10 +43,9 @@ func Split(data coretypes.Data, useShareIndexes bool) ([]Share, error) {
 
 	var padding []Share
 	if len(data.Messages.MessagesList) > 0 {
-		msgShareStart, _ := NextAlignedPowerOfTwo(
+		msgShareStart := RoundUpToNextMultipleOfMsgMinSquareSize(
 			currentShareCount,
 			MsgSharesUsed(len(data.Messages.MessagesList[0].Data)),
-			int(data.OriginalSquareSize),
 		)
 		ns := appconsts.TxNamespaceID
 		if len(evdShares) > 0 {
@@ -61,14 +57,16 @@ func Split(data coretypes.Data, useShareIndexes bool) ([]Share, error) {
 
 	var msgShares []Share
 	if msgIndexes != nil && int(msgIndexes[0]) < currentShareCount {
-		return nil, ErrUnexpectedFirstMessageShareIndex
+		return nil, 0, ErrUnexpectedFirstMessageShareIndex
 	}
 
 	msgShares, err = SplitMessages(currentShareCount, msgIndexes, data.Messages.MessagesList, useShareIndexes)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	currentShareCount += len(msgShares)
+	squareSize := RoundUpPowerOfTwo(int(math.Ceil(math.Sqrt(float64(currentShareCount)))))
+	wantShareCount := int(math.Pow(float64(squareSize), 2))
 	tailShares := TailPaddingShares(wantShareCount - currentShareCount)
 
 	// todo: optimize using a predefined slice
@@ -79,7 +77,7 @@ func Split(data coretypes.Data, useShareIndexes bool) ([]Share, error) {
 		msgShares...),
 		tailShares...)
 
-	return shares, nil
+	return shares, uint64(squareSize), nil
 }
 
 // ExtractShareIndexes iterates over the transactions and extracts the share

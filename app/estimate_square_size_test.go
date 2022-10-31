@@ -49,7 +49,7 @@ func Test_estimateSquareSize(t *testing.T) {
 				parsedTxs = prune(encConf.TxConfig, parsedTxs, totalSharesUsed, int(squareSize))
 			}
 
-			processedTxs, messages, err := malleateTxs(encConf.TxConfig, squareSize, parsedTxs, core.EvidenceList{})
+			processedTxs, messages, err := malleateTxs(encConf.TxConfig, parsedTxs, core.EvidenceList{})
 			require.NoError(t, err)
 
 			blockData := coretypes.Data{
@@ -59,7 +59,7 @@ func Test_estimateSquareSize(t *testing.T) {
 				OriginalSquareSize: squareSize,
 			}
 
-			rawShares, err := shares.Split(blockData, true)
+			rawShares, _, err := shares.Split(blockData, true)
 			require.NoError(t, err)
 			require.Equal(t, int(squareSize*squareSize), len(rawShares))
 		})
@@ -135,7 +135,7 @@ func Test_overEstimateMalleatedTxSize(t *testing.T) {
 		)
 		parsedTxs := parseTxs(encConf.TxConfig, [][]byte{wpfdTx})
 		res := overEstimateMalleatedTxSize(len(parsedTxs[0].rawTx), tt.size, len(types.AllSquareSizes(tt.size)))
-		malleatedTx, _, err := malleateTxs(encConf.TxConfig, 32, parsedTxs, core.EvidenceList{})
+		malleatedTx, _, err := malleateTxs(encConf.TxConfig, parsedTxs, core.EvidenceList{})
 		require.NoError(t, err)
 		assert.Less(t, len(malleatedTx[0]), res)
 	}
@@ -173,10 +173,10 @@ func Test_calculateCompactShareCount(t *testing.T) {
 				parsedTxs = prune(encConf.TxConfig, parsedTxs, totalSharesUsed, int(squareSize))
 			}
 
-			malleated, _, err := malleateTxs(encConf.TxConfig, squareSize, parsedTxs, core.EvidenceList{})
+			malleated, _, err := malleateTxs(encConf.TxConfig, parsedTxs, core.EvidenceList{})
 			require.NoError(t, err)
 
-			calculatedTxShareCount := calculateCompactShareCount(parsedTxs, core.EvidenceList{}, int(squareSize))
+			calculatedTxShareCount := calculateCompactShareCount(parsedTxs, core.EvidenceList{})
 
 			txShares := shares.SplitTxs(shares.TxsFromBytes(malleated))
 			assert.LessOrEqual(t, len(txShares), calculatedTxShareCount, tt.name)

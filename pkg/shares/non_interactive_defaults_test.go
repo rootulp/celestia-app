@@ -37,7 +37,7 @@ func TestMsgSharesUsedNonInteractiveDefaults(t *testing.T) {
 		{1024, appconsts.MaxSquareSize, 32, []int{32}, []uint32{1024}},
 	}
 	for i, tt := range tests {
-		res, indexes := MsgSharesUsedNonInteractiveDefaults(tt.cursor, tt.squareSize, tt.msgLens...)
+		res, indexes := MsgSharesUsedNonInteractiveDefaults(tt.cursor, tt.msgLens...)
 		test := fmt.Sprintf("test %d: cursor %d, squareSize %d", i, tt.cursor, tt.squareSize)
 		assert.Equal(t, tt.expected, res, test)
 		assert.Equal(t, tt.indexes, indexes, test)
