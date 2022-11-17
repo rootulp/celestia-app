@@ -82,6 +82,11 @@ test:
 	@go test -mod=readonly ./...
 .PHONY: test
 
+test-short:
+	@echo "--> Running unit tests with -short"
+	@go test ./... -short
+.PHONY: test-short
+
 test-all: test-race test-cover
 
 test-race:
