@@ -51,3 +51,22 @@ func TestFuzzPrepareProcessProposal(t *testing.T) {
 		}
 	}
 }
+
+func TestPrepareProcessProposalCoherence(t *testing.T) {
+	testApp := testutil.SetupTestAppWithGenesisValSet(t)
+	txs := make([][]byte, 1)
+
+	resp := testApp.PrepareProposal(abci.RequestPrepareProposal{
+		BlockData: &core.Data{
+			Txs: txs,
+		},
+	})
+	res := testApp.ProcessProposal(abci.RequestProcessProposal{
+		BlockData: resp.BlockData,
+		Header: core.Header{
+			DataHash: resp.BlockData.Hash,
+		},
+	})
+
+	require.Equal(t, abci.ResponseProcessProposal_ACCEPT, res.Result)
+}
