@@ -211,7 +211,7 @@ func totalBlobSize(size int) int {
 func validMsgPayForBlob(t *testing.T) *MsgPayForBlob {
 	signer := GenerateKeyringSigner(t, TestAccName)
 	ns := []byte{1, 1, 1, 1, 1, 1, 1, 2}
-	blob := bytes.Repeat([]byte{2}, totalBlobSize(appconsts.SparseShareContentSize*12))
+	blob := bytes.Repeat([]byte{2}, totalBlobSize(appconsts.ContinuationSparseShareContentSize*12))
 
 	addr, err := signer.GetSignerInfo().GetAddress()
 	require.NoError(t, err)
@@ -302,17 +302,17 @@ func TestBlobMinSquareSize(t *testing.T) {
 		},
 		{
 			name:     "2 sparse shares",
-			blobSize: appconsts.SparseShareContentSize * 2,
+			blobSize: appconsts.FirstCompactShareContentSize + appconsts.ContinuationCompactShareContentSize,
 			expected: 2,
 		},
 		{
-			name:     "4 sparse shares",
-			blobSize: appconsts.SparseShareContentSize * 4,
+			name:     "5 sparse shares",
+			blobSize: appconsts.FirstCompactShareContentSize + appconsts.ContinuationCompactShareContentSize*4,
 			expected: 4,
 		},
 		{
-			name:     "16 sparse shares",
-			blobSize: appconsts.SparseShareContentSize * 16,
+			name:     "17 sparse shares",
+			blobSize: appconsts.FirstCompactShareContentSize + appconsts.ContinuationCompactShareContentSize*16,
 			expected: 8,
 		},
 	}
