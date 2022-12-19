@@ -65,12 +65,11 @@ func parseSparseShares(rawShares [][]byte, supportedShareVersions []uint8) (blob
 			}
 			lastBlob.Data = append(lastBlob.Data, data...)
 		}
-
-		for _, blobWithLen := range blobsWithLen {
-			// trim any padding
-			blobWithLen.blob.Data = blobWithLen.blob.Data[:blobWithLen.sequenceLen]
-			blobs = append(blobs, blobWithLen.blob)
-		}
+	}
+	for _, blobWithLen := range blobsWithLen {
+		// trim any padding
+		blobWithLen.blob.Data = blobWithLen.blob.Data[:blobWithLen.sequenceLen]
+		blobs = append(blobs, blobWithLen.blob)
 	}
 
 	return blobs, nil

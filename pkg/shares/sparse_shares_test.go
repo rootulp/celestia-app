@@ -77,8 +77,8 @@ func Test_parseSparseShares(t *testing.T) {
 
 			// check that the namespaces and data are the same
 			for i := 0; i < len(blobs); i++ {
-				assert.Equal(t, blobs[i].NamespaceID, parsedBlobs[i].NamespaceID)
-				assert.Equal(t, blobs[i].Data, parsedBlobs[i].Data)
+				assert.Equal(t, blobs[i].NamespaceID, parsedBlobs[i].NamespaceID, "parsed blob namespace does not match")
+				assert.Equal(t, blobs[i].Data, parsedBlobs[i].Data, "parsed blob data does not match")
 			}
 		})
 
