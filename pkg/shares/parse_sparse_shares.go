@@ -69,8 +69,14 @@ func parseSparseShares(rawShares [][]byte, supportedShareVersions []uint8) (blob
 	for _, blobWithLen := range blobsWithLen {
 		// trim any padding
 		blobWithLen.blob.Data = blobWithLen.blob.Data[:blobWithLen.sequenceLen]
-		blobs = append(blobs, blobWithLen.blob)
+		if !isNamespacedPadding(blobWithLen) {
+			blobs = append(blobs, blobWithLen.blob)
+		}
 	}
 
 	return blobs, nil
+}
+
+func isNamespacedPadding(blobWithLen BlobWithLen) bool {
+	return blobWithLen.sequenceLen == 0
 }
