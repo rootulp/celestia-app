@@ -88,7 +88,7 @@ func generateRandomBlockData(txCount, blobCount, maxSize int) (data coretypes.Da
 // generateRandomBlobOfShareCount returns a blob that spans the given
 // number of shares
 func generateRandomBlobOfShareCount(count int) coretypes.Blob {
-	size := rawBlobSize(appconsts.ContinuationSparseShareContentSize * count)
+	size := rawBlobSize(appconsts.FirstSparseShareContentSize * count)
 	return testfactory.GenerateRandomBlob(size)
 }
 
