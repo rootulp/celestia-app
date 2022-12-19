@@ -64,6 +64,9 @@ func (sss *SparseShareSplitter) WriteNamespacedPaddedShares(count int) {
 	if len(sss.shares) == 0 {
 		panic("cannot write empty namespaced shares on an empty SparseShareSplitter")
 	}
+	if count < 0 {
+		panic("cannot write negative namespaced shares")
+	}
 	if count == 0 {
 		return
 	}
