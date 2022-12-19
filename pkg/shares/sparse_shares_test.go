@@ -40,21 +40,16 @@ func Test_parseSparseShares(t *testing.T) {
 			blobSize:  appconsts.ContinuationSparseShareContentSize * 4,
 			blobCount: 1,
 		},
-		// {
-		// 	name:      "many big blobs",
-		// 	blobSize:  appconsts.ContinuationSparseShareContentSize * 4,
-		// 	blobCount: 10,
-		// },
-		// {
-		// 	name:      "single exact size blob",
-		// 	blobSize:  appconsts.FirstSparseShareContentSize,
-		// 	blobCount: 1,
-		// },
-		// {
-		// 	name:      "many exact size blobs",
-		// 	blobSize:  appconsts.ContinuationSparseShareContentSize,
-		// 	blobCount: 10,
-		// },
+		{
+			name:      "many big blobs",
+			blobSize:  appconsts.ContinuationSparseShareContentSize * 4,
+			blobCount: 10,
+		},
+		{
+			name:      "single exact size blob",
+			blobSize:  appconsts.FirstSparseShareContentSize,
+			blobCount: 1,
+		},
 	}
 
 	for _, tc := range tests {
@@ -83,25 +78,25 @@ func Test_parseSparseShares(t *testing.T) {
 		})
 
 		// run the same tests using randomly sized blobs with caps of tc.blobSize
-		// t.Run(fmt.Sprintf("%s randomly sized", tc.name), func(t *testing.T) {
-		// 	blobs := testfactory.GenerateRandomlySizedBlobs(tc.blobCount, tc.blobSize)
-		// 	shares, _ := SplitBlobs(0, nil, blobs, false)
-		// 	rawShares := make([][]byte, len(shares))
-		// 	for i, share := range shares {
-		// 		rawShares[i] = []byte(share)
-		// 	}
+		t.Run(fmt.Sprintf("%s randomly sized", tc.name), func(t *testing.T) {
+			blobs := testfactory.GenerateRandomlySizedBlobs(tc.blobCount, tc.blobSize)
+			shares, _ := SplitBlobs(0, nil, blobs, false)
+			rawShares := make([][]byte, len(shares))
+			for i, share := range shares {
+				rawShares[i] = []byte(share)
+			}
 
-		// 	parsedBlobs, err := parseSparseShares(rawShares, appconsts.SupportedShareVersions)
-		// 	if err != nil {
-		// 		t.Error(err)
-		// 	}
+			parsedBlobs, err := parseSparseShares(rawShares, appconsts.SupportedShareVersions)
+			if err != nil {
+				t.Error(err)
+			}
 
-		// 	// check that the namespaces and data are the same
-		// 	for i := 0; i < len(blobs); i++ {
-		// 		assert.Equal(t, blobs[i].NamespaceID, parsedBlobs[i].NamespaceID)
-		// 		assert.Equal(t, blobs[i].Data, parsedBlobs[i].Data)
-		// 	}
-		// })
+			// check that the namespaces and data are the same
+			for i := 0; i < len(blobs); i++ {
+				assert.Equal(t, blobs[i].NamespaceID, parsedBlobs[i].NamespaceID)
+				assert.Equal(t, blobs[i].Data, parsedBlobs[i].Data)
+			}
+		})
 	}
 }
 
