@@ -20,7 +20,7 @@ func TestMarshalDelimitedBlob(t *testing.T) {
 		{
 			name: "empty blob",
 			blob: coretypes.Blob{},
-			want: []byte{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}, // sequence length
+			want: []byte{0x0, 0x0, 0x0, 0x0}, // sequence length
 		},
 		{
 			name: "one byte blob",
@@ -30,7 +30,7 @@ func TestMarshalDelimitedBlob(t *testing.T) {
 				ShareVersion: appconsts.ShareVersionZero,
 			},
 			want: []byte{
-				0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, // sequence length
+				0x0, 0x0, 0x0, 0x1, // sequence length
 				0xf, // data
 			},
 		},
@@ -42,7 +42,7 @@ func TestMarshalDelimitedBlob(t *testing.T) {
 				ShareVersion: appconsts.ShareVersionZero,
 			},
 			want: []byte{
-				0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x2, // sequence length
+				0x0, 0x0, 0x0, 0x2, // sequence length
 				0xf, 0xf, // data
 			},
 		},
