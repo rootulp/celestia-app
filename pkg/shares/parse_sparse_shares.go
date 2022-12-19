@@ -55,15 +55,15 @@ func parseSparseShares(rawShares [][]byte, supportedShareVersions []uint8) (blob
 				sequenceLen: sequenceLen,
 			})
 		} else { // continuation share
-			if len(blobs) == 0 {
+			if len(blobsWithLen) == 0 {
 				return nil, fmt.Errorf("continuation share %v without a sequence start share", share)
 			}
-			lastBlob := &blobs[len(blobs)-1]
+			lastBlob := &blobsWithLen[len(blobsWithLen)-1]
 			data, err := share.RawData()
 			if err != nil {
 				return nil, err
 			}
-			lastBlob.Data = append(lastBlob.Data, data...)
+			lastBlob.blob.Data = append(lastBlob.blob.Data, data...)
 		}
 	}
 	for _, blobWithLen := range blobsWithLen {

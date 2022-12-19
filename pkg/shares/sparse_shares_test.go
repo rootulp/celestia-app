@@ -35,11 +35,11 @@ func Test_parseSparseShares(t *testing.T) {
 			blobSize:  10,
 			blobCount: 10,
 		},
-		// {
-		// 	name:      "single big blob",
-		// 	blobSize:  appconsts.ContinuationSparseShareContentSize * 4,
-		// 	blobCount: 1,
-		// },
+		{
+			name:      "single big blob",
+			blobSize:  appconsts.ContinuationSparseShareContentSize * 4,
+			blobCount: 1,
+		},
 		// {
 		// 	name:      "many big blobs",
 		// 	blobSize:  appconsts.ContinuationSparseShareContentSize * 4,
