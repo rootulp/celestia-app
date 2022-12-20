@@ -50,7 +50,7 @@ func TestMarshalDelimitedBlob(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := MarshalDelimitedBlob(tc.blob)
+			got := blobSequenceLen(tc.blob)
 			assert.Equal(t, tc.want, got)
 		})
 	}

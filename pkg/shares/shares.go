@@ -18,6 +18,20 @@ func NewShare(data []byte) (Share, error) {
 	return Share(data), nil
 }
 
+func BuildShare(ns namespace.ID, shareVersion uint8, isSequenceStart bool, sequenceLen []byte, rawData []byte) (Share, error) {
+	infoByte, err := NewInfoByte(shareVersion, isSequenceStart)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]byte, 0, appconsts.ShareSize)
+	data = append(data, ns...)
+	data = append(data, byte(infoByte))
+	data = append(data, sequenceLen...)
+	data = append(data, rawData...)
+	return NewShare(data)
+}
+
 func (s Share) NamespaceID() namespace.ID {
 	if len(s) < appconsts.NamespaceSize {
 		panic(fmt.Sprintf("share %s is too short to contain a namespace ID", s))

@@ -27,10 +27,11 @@ func (sss *SparseShareSplitter) Write(blob coretypes.Blob) error {
 	if !slices.Contains(appconsts.SupportedShareVersions, blob.ShareVersion) {
 		return fmt.Errorf("unsupported share version: %d", blob.ShareVersion)
 	}
-	rawBlob := MarshalDelimitedBlob(blob)
-	newShares := make([]Share, 0)
-	newShares = AppendToShares(newShares, blob.NamespaceID, rawBlob, blob.ShareVersion)
-	sss.shares = append(sss.shares, newShares...)
+	shares, err := split(blob)
+	if err != nil {
+		return err
+	}
+	sss.shares = append(sss.shares, shares...)
 	return nil
 }
 
@@ -74,7 +75,7 @@ func (sss *SparseShareSplitter) WriteNamespacedPaddedShares(count int) {
 	sss.shares = append(sss.shares, namespacedPaddedShares(lastBlob.NamespaceID(), count)...)
 }
 
-// Export finalizes and returns the underlying shares.
+// Export returns the underlying shares written to this sparse share splitter.
 func (sss *SparseShareSplitter) Export() []Share {
 	return sss.shares
 }
@@ -84,69 +85,43 @@ func (sss *SparseShareSplitter) Count() int {
 	return len(sss.shares)
 }
 
-// AppendToShares appends raw data as shares.
-// Used for blobs.
-func AppendToShares(shares []Share, nid namespace.ID, rawData []byte, shareVersion uint8) []Share {
-	if len(rawData) <= appconsts.ContinuationSparseShareContentSize {
-		infoByte, err := NewInfoByte(shareVersion, true)
-		if err != nil {
-			panic(err)
-		}
-		rawShare := append(append(append(
-			make([]byte, 0, appconsts.ShareSize),
-			nid...),
-			byte(infoByte)),
-			rawData...,
-		)
-		paddedShare, _ := zeroPadIfNecessary(rawShare, appconsts.ShareSize)
-		shares = append(shares, paddedShare)
-	} else { // len(rawData) > BlobShareSize
-		shares = append(shares, splitBlob(rawData, nid, shareVersion)...)
+func split(blob coretypes.Blob) (shares []Share, err error) {
+	if len(blob.Data) == 0 {
+		return shares, nil
 	}
-	return shares
+	dataToSplit := blob.Data
+	for len(dataToSplit) > 0 {
+		// the first share is special because it contains the sequence length
+		if len(shares) == 0 {
+			sequenceLen := blobSequenceLen(blob)
+			dataToWrite := dataToSplit[:appconsts.FirstSparseShareContentSize]
+			share, err := BuildShare(blob.NamespaceID, blob.ShareVersion, true, sequenceLen, dataToWrite)
+			if err != nil {
+				return shares, err
+			}
+			dataToSplit = dataToSplit[appconsts.FirstSparseShareContentSize:]
+			shares = append(shares, share)
+		} else {
+			// all other shares are just the data
+			dataToWrite := dataToSplit[:appconsts.ContinuationSparseShareContentSize]
+			share, err := BuildShare(blob.NamespaceID, blob.ShareVersion, true, nil, dataToWrite)
+			if err != nil {
+				return shares, err
+			}
+			dataToSplit = dataToSplit[appconsts.ContinuationSparseShareContentSize:]
+			shares = append(shares, share)
+		}
+	}
+	return shares, nil
 }
 
-// MarshalDelimitedBlob marshals the raw share data (excluding the namespace)
-// of this blob and prefixes it with the length of the blob.
-func MarshalDelimitedBlob(blob coretypes.Blob) []byte {
-	lenBuf := make([]byte, appconsts.SequenceLenBytes)
-	length := uint32(len(blob.Data))
-	binary.BigEndian.PutUint32(lenBuf, length)
-	return append(lenBuf, blob.Data...)
-}
-
-// splitBlob breaks the data in a blob into the minimum number of
-// namespaced shares
-func splitBlob(rawData []byte, nid namespace.ID, shareVersion uint8) (shares []Share) {
-	infoByte, err := NewInfoByte(shareVersion, true)
-	if err != nil {
-		panic(err)
-	}
-	firstRawShare := append(append(append(
-		make([]byte, 0, appconsts.ShareSize),
-		nid...),
-		byte(infoByte)),
-		rawData[:appconsts.ContinuationSparseShareContentSize]...,
-	)
-	shares = append(shares, firstRawShare)
-	rawData = rawData[appconsts.ContinuationSparseShareContentSize:]
-	for len(rawData) > 0 {
-		shareSizeOrLen := min(appconsts.ContinuationSparseShareContentSize, len(rawData))
-		infoByte, err := NewInfoByte(appconsts.ShareVersionZero, false)
-		if err != nil {
-			panic(err)
-		}
-		rawShare := append(append(append(
-			make([]byte, 0, appconsts.ShareSize),
-			nid...),
-			byte(infoByte)),
-			rawData[:shareSizeOrLen]...,
-		)
-		paddedShare, _ := zeroPadIfNecessary(rawShare, appconsts.ShareSize)
-		shares = append(shares, paddedShare)
-		rawData = rawData[shareSizeOrLen:]
-	}
-	return shares
+// blobSequenceLen returns a byte slice of appconsts.SequenceLenBytes with a big
+// endian encoded sequence length of the provided blob.
+func blobSequenceLen(blob coretypes.Blob) []byte {
+	buf := make([]byte, appconsts.SequenceLenBytes)
+	len := uint32(len(blob.Data))
+	binary.BigEndian.PutUint32(buf, len)
+	return buf
 }
 
 func namespacedPaddedShares(ns namespace.ID, count int) []Share {
