@@ -152,7 +152,7 @@ func Test_finalizeLayout(t *testing.T) {
 		coreData, err := coretypes.DataFromProto(&blockData)
 		require.NoError(t, err)
 
-		_, err = shares.Split(coreData, true)
+		_, err = shares.Split(coreData)
 		require.NoError(t, err)
 	}
 }

@@ -99,7 +99,7 @@ func CreateCommitment(namespace []byte, blobData []byte, shareVersion uint8) ([]
 
 	// split into shares that are length delimited and include the namespace in
 	// each share
-	shares, err := appshares.SplitBlobs(0, nil, []coretypes.Blob{blob}, false)
+	shares, err := appshares.SplitBlobs(0, nil, []coretypes.Blob{blob})
 	if err != nil {
 		return nil, err
 	}

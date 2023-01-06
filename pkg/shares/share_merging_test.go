@@ -31,14 +31,14 @@ func TestParseShares(t *testing.T) {
 	transactionShareStart := transactionShares[0]
 	transactionShareContinuation := transactionShares[1]
 
-	blobOneShares, err := SplitBlobs(0, []uint32{}, []types.Blob{generateRandomBlobWithNamespace(blobOneNamespace, 1000)}, false)
+	blobOneShares, err := SplitBlobs(0, []uint32{}, []types.Blob{generateRandomBlobWithNamespace(blobOneNamespace, 1000)})
 	if err != nil {
 		t.Fatal(err)
 	}
 	blobOneStart := blobOneShares[0]
 	blobOneContinuation := blobOneShares[1]
 
-	blobTwoShares, err := SplitBlobs(0, []uint32{}, []types.Blob{generateRandomBlobWithNamespace(blobTwoNamespace, 1000)}, false)
+	blobTwoShares, err := SplitBlobs(0, []uint32{}, []types.Blob{generateRandomBlobWithNamespace(blobTwoNamespace, 1000)})
 	if err != nil {
 		t.Fatal(err)
 	}

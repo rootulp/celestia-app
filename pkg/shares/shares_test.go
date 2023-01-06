@@ -43,7 +43,7 @@ func TestMerge(t *testing.T) {
 				tc.maxSize,
 			)
 
-			shares, err := Split(data, false)
+			shares, err := Split(data)
 			require.NoError(t, err)
 			rawShares := ToBytes(shares)
 
@@ -81,7 +81,7 @@ func TestPadFirstIndexedBlob(t *testing.T) {
 		SquareSize: 64,
 	}
 
-	shares, err := Split(bd, true)
+	shares, err := Split(bd)
 	require.NoError(t, err)
 
 	resShare, err := shares[index].RawData()

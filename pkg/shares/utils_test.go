@@ -18,7 +18,7 @@ func FuzzBlobSharesUsed(f *testing.F) {
 		}
 		ml := SparseSharesNeeded(a)
 		blob := testfactory.GenerateRandomBlob(int(a))
-		rawShares, err := SplitBlobs(0, nil, []types.Blob{blob}, false)
+		rawShares, err := SplitBlobs(0, nil, []types.Blob{blob})
 		require.NoError(t, err)
 		require.Equal(t, len(rawShares), ml)
 	})

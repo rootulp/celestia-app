@@ -43,7 +43,7 @@ func (app *App) PrepareProposal(req abci.RequestPrepareProposal) abci.ResponsePr
 		panic(err)
 	}
 
-	dataSquare, err := shares.Split(coreData, true)
+	dataSquare, err := shares.Split(coreData)
 	if err != nil {
 		panic(err)
 	}

@@ -18,10 +18,8 @@ var (
 	)
 )
 
-// Split converts block data into encoded shares, optionally using share indexes
-// that are encoded as wrapped transactions. Most use cases out of this package
-// should use these share indexes and therefore set useShareIndexes to true.
-func Split(data coretypes.Data, useShareIndexes bool) ([]Share, error) {
+// Split converts block data into encoded shares.
+func Split(data coretypes.Data) ([]Share, error) {
 	if data.SquareSize == 0 || !isPowerOf2(data.SquareSize) {
 		return nil, fmt.Errorf("square size is not a power of two: %d", data.SquareSize)
 	}
@@ -44,7 +42,7 @@ func Split(data coretypes.Data, useShareIndexes bool) ([]Share, error) {
 			int(data.SquareSize),
 		)
 		// force blobSharesStart to be the first share index
-		if len(blobIndexes) != 0 && useShareIndexes {
+		if len(blobIndexes) != 0 {
 			blobShareStart = int(blobIndexes[0])
 		}
 
@@ -56,7 +54,7 @@ func Split(data coretypes.Data, useShareIndexes bool) ([]Share, error) {
 		return nil, ErrUnexpectedFirstBlobShareIndex
 	}
 
-	blobShares, err := SplitBlobs(currentShareCount, blobIndexes, data.Blobs, useShareIndexes)
+	blobShares, err := SplitBlobs(currentShareCount, blobIndexes, data.Blobs)
 	if err != nil {
 		return nil, err
 	}
@@ -104,8 +102,8 @@ func SplitTxs(txs coretypes.Txs) []Share {
 	return writer.Export()
 }
 
-func SplitBlobs(cursor int, indexes []uint32, blobs []coretypes.Blob, useShareIndexes bool) ([]Share, error) {
-	if useShareIndexes && len(indexes) != len(blobs) {
+func SplitBlobs(cursor int, indexes []uint32, blobs []coretypes.Blob) ([]Share, error) {
+	if len(indexes) != len(blobs) {
 		return nil, ErrIncorrectNumberOfIndexes
 	}
 	writer := NewSparseShareSplitter()
@@ -113,7 +111,7 @@ func SplitBlobs(cursor int, indexes []uint32, blobs []coretypes.Blob, useShareIn
 		if err := writer.Write(blob); err != nil {
 			return nil, err
 		}
-		if useShareIndexes && len(indexes) > i+1 {
+		if len(indexes) > i+1 {
 			paddedShareCount := int(indexes[i+1]) - (writer.Count() + cursor)
 			writer.WriteNamespacedPaddedShares(paddedShareCount)
 		}

@@ -163,7 +163,7 @@ func TestProcessProposalWithTamperedSequenceStart(t *testing.T) {
 
 	coreData, err := coretypes.DataFromProto(resp.BlockData)
 	assert.NoError(t, err)
-	dataSquare, err := shares.Split(coreData, true)
+	dataSquare, err := shares.Split(coreData)
 	assert.NoError(t, err)
 	dataSquare[1] = flipSequenceStart(dataSquare[1])
 	eds, err := da.ExtendShares(resp.BlockData.SquareSize, shares.ToBytes(dataSquare))

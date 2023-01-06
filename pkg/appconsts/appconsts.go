@@ -83,6 +83,9 @@ var (
 	// EvidenceNamespaceID is the namespace reserved for evidence.
 	EvidenceNamespaceID = namespace.ID{0, 0, 0, 0, 0, 0, 0, 3}
 
+	// PayForBlobNamespaceID is the namespace reserved for PayForBlob transactions
+	PayForBlobNamespaceID = namespace.ID{0, 0, 0, 0, 0, 0, 0, 4}
+
 	// MaxReservedNamespace is the lexicographically largest namespace that is
 	// reserved for protocol use.
 	MaxReservedNamespace = namespace.ID{0, 0, 0, 0, 0, 0, 0, 255}
