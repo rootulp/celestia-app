@@ -17,9 +17,12 @@ func TestCount(t *testing.T) {
 	testCases := []testCase{
 		{transactions: []coretypes.Tx{}, wantShareCount: 0},
 		{transactions: []coretypes.Tx{[]byte{0}}, wantShareCount: 1},
-		{transactions: []coretypes.Tx{bytes.Repeat([]byte{0}, 100)}, wantShareCount: 1},
-		{transactions: []coretypes.Tx{bytes.Repeat([]byte{0}, appconsts.ContinuationCompactShareContentSize+1)}, wantShareCount: 2},
-		{transactions: []coretypes.Tx{bytes.Repeat([]byte{0}, appconsts.ContinuationCompactShareContentSize*2+1)}, wantShareCount: 3},
+		{transactions: []coretypes.Tx{bytes.Repeat([]byte{1}, 100)}, wantShareCount: 1},
+		// Test with 1 byte over 1 share
+		{transactions: []coretypes.Tx{bytes.Repeat([]byte{1}, rawTxSize(appconsts.FirstCompactShareContentSize+1))}, wantShareCount: 2},
+		{transactions: []coretypes.Tx{generateTx(1)}, wantShareCount: 1},
+		{transactions: []coretypes.Tx{generateTx(2)}, wantShareCount: 2},
+		{transactions: []coretypes.Tx{generateTx(20)}, wantShareCount: 20},
 	}
 	for _, tc := range testCases {
 		css := NewCompactShareSplitter(appconsts.TxNamespaceID, appconsts.ShareVersionZero)
@@ -33,7 +36,26 @@ func TestCount(t *testing.T) {
 	}
 }
 
-func TestExport(t *testing.T) {
+// generateTx generates a transaction that occupies exactly numShares number of
+// shares.
+func generateTx(numShares int) coretypes.Tx {
+	if numShares == 0 {
+		return coretypes.Tx{}
+	}
+	if numShares == 1 {
+		return bytes.Repeat([]byte{1}, rawTxSize(appconsts.FirstCompactShareContentSize))
+	}
+	return bytes.Repeat([]byte{1}, rawTxSize(appconsts.FirstCompactShareContentSize+(numShares-1)*appconsts.ContinuationCompactShareContentSize))
+}
+
+// rawTxSize returns the raw tx size that can be used to construct a
+// tx of desiredSize bytes. This function is useful in tests to account for
+// the length delimiter that is prefixed to a tx.
+func rawTxSize(desiredSize int) int {
+	return desiredSize - DelimLen(uint64(desiredSize))
+}
+
+func TestExport_write(t *testing.T) {
 	type testCase struct {
 		name       string
 		want       []Share
@@ -89,10 +111,145 @@ func TestExport(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			css := NewCompactShareSplitter(appconsts.TxNamespaceID, appconsts.ShareVersionZero)
 			for _, bytes := range tc.writeBytes {
-				css.WriteBytes(bytes)
+				css.write(bytes)
 			}
-			got := css.Export()
+			got, _ := css.Export(0)
 			assert.Equal(t, tc.want, got)
 		})
 	}
+}
+
+func TestExport(t *testing.T) {
+	type testCase struct {
+		name             string
+		txs              []coretypes.Tx
+		want             map[coretypes.TxKey]ShareRange
+		shareRangeOffset int
+	}
+
+	txOne := coretypes.Tx{0x1}
+	txTwo := coretypes.Tx(bytes.Repeat([]byte{2}, 600))
+	txThree := coretypes.Tx(bytes.Repeat([]byte{3}, 1000))
+	exactlyOneShare := coretypes.Tx(bytes.Repeat([]byte{4}, subtractDelimLen(appconsts.FirstCompactShareContentSize)))
+	exactlyTwoShares := coretypes.Tx(bytes.Repeat([]byte{5}, subtractDelimLen(appconsts.FirstCompactShareContentSize+appconsts.ContinuationCompactShareContentSize)))
+
+	testCases := []testCase{
+		{
+			name: "empty",
+			txs:  []coretypes.Tx{},
+			want: map[coretypes.TxKey]ShareRange{},
+		},
+		{
+			name: "txOne occupies shares 0 to 0",
+			txs: []coretypes.Tx{
+				txOne,
+			},
+			want: map[coretypes.TxKey]ShareRange{
+				txOne.Key(): {0, 0},
+			},
+		},
+		{
+			name: "txTwo occupies shares 0 to 1",
+			txs: []coretypes.Tx{
+				txTwo,
+			},
+			want: map[coretypes.TxKey]ShareRange{
+				txTwo.Key(): {0, 1},
+			},
+		},
+		{
+			name: "txThree occupies shares 0 to 2",
+			txs: []coretypes.Tx{
+				txThree,
+			},
+			want: map[coretypes.TxKey]ShareRange{
+				txThree.Key(): {0, 2},
+			},
+		},
+		{
+			name: "txOne occupies shares 0 to 0, txTwo occupies shares 0 to 1, txThree occupies shares 1 to 3",
+			txs: []coretypes.Tx{
+				txOne,
+				txTwo,
+				txThree,
+			},
+			want: map[coretypes.TxKey]ShareRange{
+				txOne.Key():   {0, 0},
+				txTwo.Key():   {0, 1},
+				txThree.Key(): {1, 3},
+			},
+		},
+
+		{
+			name: "exactly one share occupies shares 0 to 0",
+			txs: []coretypes.Tx{
+				exactlyOneShare,
+			},
+			want: map[coretypes.TxKey]ShareRange{
+				exactlyOneShare.Key(): {0, 0},
+			},
+		},
+		{
+			name: "exactly two shares occupies shares 0 to 1",
+			txs: []coretypes.Tx{
+				exactlyTwoShares,
+			},
+			want: map[coretypes.TxKey]ShareRange{
+				exactlyTwoShares.Key(): {0, 1},
+			},
+		},
+		{
+			name: "two shares followed by one share",
+			txs: []coretypes.Tx{
+				exactlyTwoShares,
+				exactlyOneShare,
+			},
+			want: map[coretypes.TxKey]ShareRange{
+				exactlyTwoShares.Key(): {0, 1},
+				exactlyOneShare.Key():  {2, 2},
+			},
+		},
+		{
+			name: "one share followed by two shares",
+			txs: []coretypes.Tx{
+				exactlyOneShare,
+				exactlyTwoShares,
+			},
+			want: map[coretypes.TxKey]ShareRange{
+				exactlyOneShare.Key():  {0, 0},
+				exactlyTwoShares.Key(): {1, 2},
+			},
+		},
+		{
+			name: "one share followed by two shares offset by 10",
+			txs: []coretypes.Tx{
+				exactlyOneShare,
+				exactlyTwoShares,
+			},
+			want: map[coretypes.TxKey]ShareRange{
+				exactlyOneShare.Key():  {10, 10},
+				exactlyTwoShares.Key(): {11, 12},
+			},
+			shareRangeOffset: 10,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			css := NewCompactShareSplitter(appconsts.TxNamespaceID, appconsts.ShareVersionZero)
+			for _, tx := range tc.txs {
+				css.WriteTx(tx)
+			}
+
+			_, got := css.Export(tc.shareRangeOffset)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
+// subtractDelimLen subtracts the delimiter size from numBytesDelimited. This is
+// useful for determining the size of a tx prior to it being prepended with a
+// delimiter.
+func subtractDelimLen(numBytesDelimited int) (numBytesUndelimited int) {
+	return numBytesDelimited - DelimLen(uint64(numBytesDelimited))
 }

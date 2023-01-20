@@ -18,7 +18,7 @@ import (
 	"github.com/celestiaorg/celestia-app/app"
 	"github.com/celestiaorg/celestia-app/app/encoding"
 	"github.com/celestiaorg/celestia-app/pkg/appconsts"
-	"github.com/celestiaorg/celestia-app/pkg/prove"
+	"github.com/celestiaorg/celestia-app/pkg/proof"
 	"github.com/celestiaorg/celestia-app/testutil/network"
 	"github.com/celestiaorg/celestia-app/x/blob"
 	"github.com/celestiaorg/celestia-app/x/blob/types"
@@ -177,8 +177,7 @@ func (s *IntegrationTestSuite) TestMaxBlockSize() {
 
 			heights := make(map[int64]int)
 			for _, hash := range hashes {
-				// TODO: reenable fetching and verifying proofs
-				resp, err := queryTx(val.ClientCtx, hash, false)
+				resp, err := queryTx(val.ClientCtx, hash, true)
 				assert.NoError(err)
 				assert.NotNil(resp)
 				if resp == nil {
@@ -349,7 +348,7 @@ func (s *IntegrationTestSuite) TestShareInclusionProof() {
 	}
 
 	for _, hash := range hashes {
-		txResp, err := queryTx(val.ClientCtx, hash, false)
+		txResp, err := queryTx(val.ClientCtx, hash, true)
 		require.NoError(err)
 		require.Equal(abci.CodeTypeOK, txResp.TxResult.Code)
 
@@ -359,7 +358,7 @@ func (s *IntegrationTestSuite) TestShareInclusionProof() {
 		require.NoError(err)
 
 		// get the blob shares
-		beginBlobShare, endBlobShare, err := prove.BlobShareRange(blockRes.Block.Txs[txResp.Index])
+		beginBlobShare, endBlobShare, err := proof.BlobShareRange(blockRes.Block.Txs[txResp.Index])
 		require.NoError(err)
 
 		// verify the blob shares proof
