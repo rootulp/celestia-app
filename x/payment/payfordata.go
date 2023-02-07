@@ -2,6 +2,8 @@ package payment
 
 import (
 	"context"
+	"fmt"
+	"os"
 
 	"google.golang.org/grpc"
 
@@ -24,6 +26,7 @@ func SubmitPayForData(
 	gasLim uint64,
 	opts ...types.TxBuilderOption,
 ) (*sdk.TxResponse, error) {
+	fmt.Println("[rootulp] inside SubmitPayForData")
 	opts = append(opts, types.SetGasLimit(gasLim))
 
 	pfd, err := BuildPayForData(ctx, signer, conn, nID, data, opts...)
@@ -42,6 +45,16 @@ func SubmitPayForData(
 	}
 
 	txResp, err := types.BroadcastTx(ctx, conn, sdk_tx.BroadcastMode_BROADCAST_MODE_BLOCK, rawTx)
+	log := fmt.Sprintf("[rootulp] txResp: %+v, err %+v\n", txResp, err)
+	fmt.Println(log)
+	f, err := os.Create("/tmp/rootulp/debug.txt")
+	if err != nil {
+		panic(err)
+	}
+	_, err = f.WriteString(log)
+	if err != nil {
+		panic(err)
+	}
 	if err != nil {
 		return nil, err
 	}

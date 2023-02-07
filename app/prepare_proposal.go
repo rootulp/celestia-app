@@ -77,6 +77,7 @@ func (app *App) PrepareProposal(req abci.RequestPrepareProposal) abci.ResponsePr
 	// root to tendermint.
 	blockData.Hash = dah.Hash()
 	blockData.OriginalSquareSize = squareSize
+	app.Logger().Info("[rootulp] inside PrepareProposal")
 
 	// tendermint doesn't need to use any of the erasure data, as only the
 	// protobuf encoded version of the block data is gossiped.
