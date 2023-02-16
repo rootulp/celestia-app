@@ -12,6 +12,7 @@ import (
 )
 
 func TestQGBRPCQueries(t *testing.T) {
+	// no-op change to trigger CI
 	if testing.Short() {
 		t.Skip("skipping QGB integration test in short mode.")
 	}
