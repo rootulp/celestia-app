@@ -1,0 +1,137 @@
+package namespace
+
+import (
+	"bytes"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
+var (
+	validID         = append(VersionZeroPrefix, bytes.Repeat([]byte{1}, NamespaceSize-len(VersionZeroPrefix))...)
+	tooShortID      = append(VersionZeroPrefix, []byte{1}...)
+	tooLongID       = append(VersionZeroPrefix, bytes.Repeat([]byte{1}, NamespaceSize)...)
+	invalidPrefixID = bytes.Repeat([]byte{1}, NamespaceSize)
+)
+
+func TestNew(t *testing.T) {
+	type testCase struct {
+		name    string
+		version uint8
+		id      []byte
+		wantErr bool
+		want    Namespace
+	}
+
+	testCases := []testCase{
+		{
+			name:    "valid namespace",
+			version: VersionZero,
+			id:      validID,
+			wantErr: false,
+			want: Namespace{
+				Version: VersionZero,
+				ID:      validID,
+			},
+		},
+		{
+			name:    "unsupported version",
+			version: uint8(1),
+			id:      validID,
+			wantErr: true,
+		},
+		{
+			name:    "unsupported id: too short",
+			version: VersionZero,
+			id:      tooShortID,
+			wantErr: true,
+		},
+		{
+			name:    "unsupported id: too long",
+			version: VersionZero,
+			id:      tooLongID,
+			wantErr: true,
+		},
+		{
+			name:    "unsupported id: invalid prefix",
+			version: VersionZero,
+			id:      invalidPrefixID,
+			wantErr: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := New(tc.version, tc.id)
+			if tc.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
+func TestFrom(t *testing.T) {
+	type testCase struct {
+		name    string
+		bytes   []byte
+		wantErr bool
+		want    Namespace
+	}
+
+	testCases := []testCase{
+		{
+			name:    "valid namespace",
+			bytes:   append([]byte{VersionZero}, append(VersionZeroPrefix, bytes.Repeat([]byte{1}, NamespaceSize-len(VersionZeroPrefix))...)...),
+			wantErr: false,
+			want: Namespace{
+				Version: VersionZero,
+				ID:      validID,
+			},
+		},
+		{
+			name:    "unsupported version",
+			bytes:   append([]byte{1}, append(VersionZeroPrefix, bytes.Repeat([]byte{1}, NamespaceSize-len(VersionZeroPrefix))...)...),
+			wantErr: true,
+		},
+		{
+			name:    "unsupported id: too short",
+			bytes:   append([]byte{VersionZero}, tooShortID...),
+			wantErr: true,
+		},
+		{
+			name:    "unsupported id: too long",
+			bytes:   append([]byte{VersionZero}, tooLongID...),
+			wantErr: true,
+		},
+		{
+			name:    "unsupported id: invalid prefix",
+			bytes:   append([]byte{VersionZero}, invalidPrefixID...),
+			wantErr: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := From(tc.bytes)
+			if tc.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
+func TestBytes(t *testing.T) {
+	namespace, err := New(VersionZero, validID)
+	assert.NoError(t, err)
+
+	want := append([]byte{VersionZero}, validID...)
+	got := namespace.Bytes()
+
+	assert.Equal(t, want, got)
+}
