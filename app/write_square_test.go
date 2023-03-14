@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/celestiaorg/celestia-app/pkg/appconsts"
+	appns "github.com/celestiaorg/celestia-app/pkg/namespace"
 	"github.com/celestiaorg/celestia-app/pkg/shares"
 	"github.com/celestiaorg/celestia-app/testutil/blobfactory"
 	"github.com/stretchr/testify/require"
@@ -14,9 +14,9 @@ import (
 )
 
 func Test_finalizeLayout(t *testing.T) {
-	ns1 := bytes.Repeat([]byte{1}, appconsts.NamespaceSize)
-	ns2 := bytes.Repeat([]byte{2}, appconsts.NamespaceSize)
-	ns3 := bytes.Repeat([]byte{3}, appconsts.NamespaceSize)
+	ns1 := bytes.Repeat([]byte{1}, appns.NamespaceSize)
+	ns2 := bytes.Repeat([]byte{2}, appns.NamespaceSize)
+	ns3 := bytes.Repeat([]byte{3}, appns.NamespaceSize)
 
 	type test struct {
 		squareSize      uint64

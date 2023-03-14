@@ -6,10 +6,9 @@ import (
 
 	"github.com/celestiaorg/celestia-app/app"
 	"github.com/celestiaorg/celestia-app/app/encoding"
-	"github.com/celestiaorg/celestia-app/pkg/appconsts"
+	appns "github.com/celestiaorg/celestia-app/pkg/namespace"
 	"github.com/celestiaorg/celestia-app/testutil"
 	"github.com/celestiaorg/celestia-app/testutil/blobfactory"
-	"github.com/celestiaorg/celestia-app/testutil/namespace"
 	blobtypes "github.com/celestiaorg/celestia-app/x/blob/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,7 +20,7 @@ import (
 // assume that the rest of CheckTx is tested by the cosmos-sdk.
 func TestCheckTx(t *testing.T) {
 	encCfg := encoding.MakeConfig(app.ModuleEncodingRegisters...)
-	namespaceOne := bytes.Repeat([]byte{1}, appconsts.NamespaceSize)
+	namespaceOne := bytes.Repeat([]byte{1}, appns.NamespaceSize)
 
 	accs := []string{"a", "b", "c", "d", "e", "f"}
 
@@ -81,7 +80,7 @@ func TestCheckTx(t *testing.T) {
 				)[0]
 
 				dtx, _ := coretypes.UnmarshalBlobTx(btx)
-				dtx.Blobs[0].NamespaceId = namespace.RandomBlobNamespace()
+				dtx.Blobs[0].NamespaceId = appns.RandomBlobNamespace().ID
 				bbtx, err := coretypes.MarshalBlobTx(dtx.Tx, dtx.Blobs[0])
 				require.NoError(t, err)
 				return bbtx

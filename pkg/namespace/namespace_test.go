@@ -26,11 +26,11 @@ func TestNew(t *testing.T) {
 	testCases := []testCase{
 		{
 			name:    "valid namespace",
-			version: VersionZero,
+			version: NamespaceVersionZero,
 			id:      validID,
 			wantErr: false,
 			want: Namespace{
-				Version: VersionZero,
+				Version: NamespaceVersionZero,
 				ID:      validID,
 			},
 		},
@@ -42,19 +42,19 @@ func TestNew(t *testing.T) {
 		},
 		{
 			name:    "unsupported id: too short",
-			version: VersionZero,
+			version: NamespaceVersionZero,
 			id:      tooShortID,
 			wantErr: true,
 		},
 		{
 			name:    "unsupported id: too long",
-			version: VersionZero,
+			version: NamespaceVersionZero,
 			id:      tooLongID,
 			wantErr: true,
 		},
 		{
 			name:    "unsupported id: invalid prefix",
-			version: VersionZero,
+			version: NamespaceVersionZero,
 			id:      invalidPrefixID,
 			wantErr: true,
 		},
@@ -84,10 +84,10 @@ func TestFrom(t *testing.T) {
 	testCases := []testCase{
 		{
 			name:    "valid namespace",
-			bytes:   append([]byte{VersionZero}, append(VersionZeroPrefix, bytes.Repeat([]byte{1}, NamespaceSize-len(VersionZeroPrefix))...)...),
+			bytes:   append([]byte{NamespaceVersionZero}, append(VersionZeroPrefix, bytes.Repeat([]byte{1}, NamespaceSize-len(VersionZeroPrefix))...)...),
 			wantErr: false,
 			want: Namespace{
-				Version: VersionZero,
+				Version: NamespaceVersionZero,
 				ID:      validID,
 			},
 		},
@@ -98,17 +98,17 @@ func TestFrom(t *testing.T) {
 		},
 		{
 			name:    "unsupported id: too short",
-			bytes:   append([]byte{VersionZero}, tooShortID...),
+			bytes:   append([]byte{NamespaceVersionZero}, tooShortID...),
 			wantErr: true,
 		},
 		{
 			name:    "unsupported id: too long",
-			bytes:   append([]byte{VersionZero}, tooLongID...),
+			bytes:   append([]byte{NamespaceVersionZero}, tooLongID...),
 			wantErr: true,
 		},
 		{
 			name:    "unsupported id: invalid prefix",
-			bytes:   append([]byte{VersionZero}, invalidPrefixID...),
+			bytes:   append([]byte{NamespaceVersionZero}, invalidPrefixID...),
 			wantErr: true,
 		},
 	}
@@ -127,10 +127,10 @@ func TestFrom(t *testing.T) {
 }
 
 func TestBytes(t *testing.T) {
-	namespace, err := New(VersionZero, validID)
+	namespace, err := New(NamespaceVersionZero, validID)
 	assert.NoError(t, err)
 
-	want := append([]byte{VersionZero}, validID...)
+	want := append([]byte{NamespaceVersionZero}, validID...)
 	got := namespace.Bytes()
 
 	assert.Equal(t, want, got)

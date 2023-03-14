@@ -1,13 +1,12 @@
 package types
 
 import (
-	"bytes"
 	"crypto/sha256"
 
 	"github.com/celestiaorg/celestia-app/pkg/appconsts"
+	appns "github.com/celestiaorg/celestia-app/pkg/namespace"
 	appshares "github.com/celestiaorg/celestia-app/pkg/shares"
 	"github.com/celestiaorg/nmt"
-	"github.com/celestiaorg/nmt/namespace"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto/merkle"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -83,7 +82,7 @@ func (msg *MsgPayForBlobs) ValidateBasic() error {
 	}
 
 	for _, ns := range msg.NamespaceIds {
-		err := ValidateBlobNamespaceID(ns)
+		err := ValidateBlobNamespace(ns)
 		if err != nil {
 			return err
 		}
@@ -199,7 +198,11 @@ func ValidateBlobs(blobs ...*Blob) error {
 	}
 
 	for _, blob := range blobs {
-		err := ValidateBlobNamespaceID(blob.NamespaceId)
+		ns, err := appns.New(blob.NamespaceVersion, blob.NamespaceId)
+		if err != nil {
+			return err
+		}
+		err := ValidateBlobNamespace(ns)
 		if err != nil {
 			return err
 		}
@@ -216,27 +219,27 @@ func ValidateBlobs(blobs ...*Blob) error {
 	return nil
 }
 
-// ValidateBlobNamespaceID returns an error if the provided namespace.ID is an invalid or reserved namespace id.
-func ValidateBlobNamespaceID(ns namespace.ID) error {
+// ValidateBlobNamespace returns an error if the provided namespace.ID is an invalid or reserved namespace id.
+func ValidateBlobNamespace(ns appns.Namespace) error {
 	// ensure that the namespace id is of length == NamespaceIDSize
-	if nsLen := len(ns); nsLen != NamespaceIDSize {
+	if nsLen := len(ns.Bytes()); nsLen != appns.NamespaceSize {
 		return ErrInvalidNamespaceLen.Wrapf("got: %d want: %d",
 			nsLen,
 			NamespaceIDSize,
 		)
 	}
 	// ensure that a reserved namespace is not used
-	if bytes.Compare(ns, appconsts.MaxReservedNamespace) < 1 {
-		return ErrReservedNamespace.Wrapf("got namespace: %x, want: > %x", ns, appconsts.MaxReservedNamespace)
+	if ns.IsReserved() {
+		return ErrReservedNamespace.Wrapf("got namespace: %x, want: > %x", ns.Bytes(), appns.MaxReservedNamespace.Bytes())
 	}
 
 	// ensure that ParitySharesNamespaceID is not used
-	if bytes.Equal(ns, appconsts.ParitySharesNamespaceID) {
+	if ns.IsParityShares() {
 		return ErrParitySharesNamespace
 	}
 
 	// ensure that TailPaddingNamespaceID is not used
-	if bytes.Equal(ns, appconsts.TailPaddingNamespaceID) {
+	if ns.IsTailPadding() {
 		return ErrTailPaddingNamespace
 	}
 

@@ -4,8 +4,8 @@ import (
 	"bytes"
 
 	"github.com/celestiaorg/celestia-app/pkg/appconsts"
+	appns "github.com/celestiaorg/celestia-app/pkg/namespace"
 	shares "github.com/celestiaorg/celestia-app/pkg/shares"
-	"github.com/celestiaorg/nmt/namespace"
 	"github.com/cosmos/cosmos-sdk/client"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
@@ -15,8 +15,8 @@ type Blob = tmproto.Blob
 
 // NewBlob creates a new coretypes.Blob from the provided data after performing
 // basic stateless checks over it.
-func NewBlob(ns namespace.ID, blob []byte) (*Blob, error) {
-	err := ValidateBlobNamespaceID(ns)
+func NewBlob(ns appns.Namespace, blob []byte) (*Blob, error) {
+	err := ValidateBlobNamespace(ns)
 	if err != nil {
 		return nil, err
 	}

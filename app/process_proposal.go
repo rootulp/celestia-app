@@ -8,6 +8,7 @@ import (
 	"github.com/celestiaorg/celestia-app/pkg/appconsts"
 	"github.com/celestiaorg/celestia-app/pkg/da"
 	"github.com/celestiaorg/celestia-app/pkg/inclusion"
+	appns "github.com/celestiaorg/celestia-app/pkg/namespace"
 	"github.com/celestiaorg/celestia-app/pkg/shares"
 	blobtypes "github.com/celestiaorg/celestia-app/x/blob/types"
 	"github.com/celestiaorg/nmt/namespace"
@@ -213,9 +214,9 @@ func arePFBsOrderedAfterTxs(txs [][]byte) bool {
 }
 
 func isValidBlobNamespace(namespace namespace.ID) bool {
-	isReserved := bytes.Compare(namespace, appconsts.MaxReservedNamespace) <= 0
-	isParity := bytes.Equal(namespace, appconsts.ParitySharesNamespaceID)
-	isTailPadding := bytes.Equal(namespace, appconsts.TailPaddingNamespaceID)
+	isReserved := bytes.Compare(namespace, appns.MaxReservedNamespace.Bytes()) <= 0
+	isParity := bytes.Equal(namespace, appns.ParitySharesNamespaceID.Bytes())
+	isTailPadding := bytes.Equal(namespace, appns.TailPaddingNamespaceID.Bytes())
 	return !isReserved && !isParity && !isTailPadding
 }
 

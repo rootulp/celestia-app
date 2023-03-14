@@ -8,9 +8,9 @@ import (
 	"github.com/celestiaorg/celestia-app/testutil/testfactory"
 
 	"github.com/celestiaorg/celestia-app/pkg/da"
-	nmtnamespace "github.com/celestiaorg/nmt/namespace"
 
 	"github.com/celestiaorg/celestia-app/pkg/appconsts"
+	appns "github.com/celestiaorg/celestia-app/pkg/namespace"
 	"github.com/celestiaorg/celestia-app/pkg/shares"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -74,9 +74,9 @@ func TestNewTxInclusionProof(t *testing.T) {
 }
 
 func TestNewShareInclusionProof(t *testing.T) {
-	namespaceOne := bytes.Repeat([]byte{1}, appconsts.NamespaceSize)
-	namespaceTwo := bytes.Repeat([]byte{2}, appconsts.NamespaceSize)
-	namespaceThree := bytes.Repeat([]byte{3}, appconsts.NamespaceSize)
+	namespaceOne := appns.MustNew(appns.NamespaceVersionZero, append(appns.VersionZeroPrefix, bytes.Repeat([]byte{1}, appconsts.NamespaceSize-len(appns.VersionZeroPrefix))...))
+	namespaceTwo := appns.MustNew(appns.NamespaceVersionZero, append(appns.VersionZeroPrefix, bytes.Repeat([]byte{2}, appconsts.NamespaceSize-len(appns.VersionZeroPrefix))...))
+	namespaceThree := appns.MustNew(appns.NamespaceVersionZero, append(appns.VersionZeroPrefix, bytes.Repeat([]byte{3}, appconsts.NamespaceSize-len(appns.VersionZeroPrefix))...))
 
 	blobs := append(
 		testfactory.GenerateBlobsWithNamespace(
@@ -124,7 +124,7 @@ func TestNewShareInclusionProof(t *testing.T) {
 		name          string
 		startingShare int64
 		endingShare   int64
-		namespaceID   nmtnamespace.ID
+		namespaceID   appns.Namespace
 		expectErr     bool
 	}
 	tests := []test{
@@ -132,56 +132,56 @@ func TestNewShareInclusionProof(t *testing.T) {
 			name:          "negative starting share",
 			startingShare: -1,
 			endingShare:   99,
-			namespaceID:   appconsts.TxNamespaceID,
+			namespaceID:   appns.TxNamespaceID,
 			expectErr:     true,
 		},
 		{
 			name:          "negative ending share",
 			startingShare: 0,
 			endingShare:   -99,
-			namespaceID:   appconsts.TxNamespaceID,
+			namespaceID:   appns.TxNamespaceID,
 			expectErr:     true,
 		},
 		{
 			name:          "ending share lower than starting share",
 			startingShare: 1,
 			endingShare:   0,
-			namespaceID:   appconsts.TxNamespaceID,
+			namespaceID:   appns.TxNamespaceID,
 			expectErr:     true,
 		},
 		{
 			name:          "ending share higher than number of shares available in square size of 32",
 			startingShare: 0,
 			endingShare:   4097,
-			namespaceID:   appconsts.TxNamespaceID,
+			namespaceID:   appns.TxNamespaceID,
 			expectErr:     true,
 		},
 		{
 			name:          "1 transaction share",
 			startingShare: 0,
 			endingShare:   0,
-			namespaceID:   appconsts.TxNamespaceID,
+			namespaceID:   appns.TxNamespaceID,
 			expectErr:     false,
 		},
 		{
 			name:          "10 transaction shares",
 			startingShare: 0,
 			endingShare:   9,
-			namespaceID:   appconsts.TxNamespaceID,
+			namespaceID:   appns.TxNamespaceID,
 			expectErr:     false,
 		},
 		{
 			name:          "50 transaction shares",
 			startingShare: 0,
 			endingShare:   49,
-			namespaceID:   appconsts.TxNamespaceID,
+			namespaceID:   appns.TxNamespaceID,
 			expectErr:     false,
 		},
 		{
 			name:          "shares from different namespaces",
 			startingShare: 48,
 			endingShare:   54,
-			namespaceID:   appconsts.TxNamespaceID,
+			namespaceID:   appns.TxNamespaceID,
 			expectErr:     true,
 		},
 		{

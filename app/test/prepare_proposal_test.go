@@ -16,9 +16,9 @@ import (
 	"github.com/celestiaorg/celestia-app/app"
 	"github.com/celestiaorg/celestia-app/app/encoding"
 	"github.com/celestiaorg/celestia-app/pkg/appconsts"
+	appns "github.com/celestiaorg/celestia-app/pkg/namespace"
 	"github.com/celestiaorg/celestia-app/testutil"
 	"github.com/celestiaorg/celestia-app/testutil/blobfactory"
-	"github.com/celestiaorg/celestia-app/testutil/namespace"
 	"github.com/celestiaorg/celestia-app/testutil/testfactory"
 	blobtypes "github.com/celestiaorg/celestia-app/x/blob/types"
 )
@@ -28,9 +28,9 @@ func TestPrepareProposalBlobSorting(t *testing.T) {
 	accnts := testfactory.GenerateAccounts(6)
 	testApp, kr := testutil.SetupTestAppWithGenesisValSet(accnts...)
 	infos := queryAccountInfo(testApp, accnts, kr)
-	namespaceOne := bytes.Repeat([]byte{1}, appconsts.NamespaceSize)
-	namespaceTwo := bytes.Repeat([]byte{2}, appconsts.NamespaceSize)
-	namespaceThree := bytes.Repeat([]byte{3}, appconsts.NamespaceSize)
+	namespaceOne := bytes.Repeat([]byte{1}, appns.NamespaceSize)
+	namespaceTwo := bytes.Repeat([]byte{2}, appns.NamespaceSize)
+	namespaceThree := bytes.Repeat([]byte{3}, appns.NamespaceSize)
 
 	type test struct {
 		input         abci.RequestPrepareProposal
@@ -181,7 +181,7 @@ func TestPrepareProposalPutsPFBsAtEnd(t *testing.T) {
 		infos[:numBlobTxs],
 		testfactory.Repeat([]*tmproto.Blob{
 			{
-				NamespaceId:  namespace.RandomBlobNamespace(),
+				NamespaceId:  appns.RandomBlobNamespace().ID,
 				Data:         []byte{1},
 				ShareVersion: uint32(appconsts.DefaultShareVersion),
 			},
@@ -233,11 +233,7 @@ func TestPrepareProposalFiltering(t *testing.T) {
 		infos[:3],
 		blobfactory.NestedBlobs(
 			t,
-			[][]byte{
-				namespace.RandomBlobNamespace(),
-				namespace.RandomBlobNamespace(),
-				namespace.RandomBlobNamespace(),
-			},
+			appns.RandomBlobNamespaces(3),
 			[][]int{{100}, {1000}, {420}},
 		),
 	)

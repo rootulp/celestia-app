@@ -3,22 +3,14 @@ package namespace
 import (
 	"bytes"
 	"fmt"
-
-	"github.com/celestiaorg/celestia-app/pkg/appconsts"
 )
-
-const (
-	NamespaceSize = appconsts.NamespaceSize
-	VersionZero   = uint8(0)
-)
-
-var VersionZeroPrefix = bytes.Repeat([]byte{0}, 22)
 
 type Namespace struct {
 	Version uint8
 	ID      []byte
 }
 
+// New returns a new namespace with the provided version and id.
 func New(version uint8, id []byte) (Namespace, error) {
 	err := validateVersion(version)
 	if err != nil {
@@ -34,6 +26,16 @@ func New(version uint8, id []byte) (Namespace, error) {
 		Version: version,
 		ID:      id,
 	}, nil
+}
+
+// MustNew returns a new namespace with the provided version and id. It panics
+// if the provided version or id are not supported.
+func MustNew(version uint8, id []byte) Namespace {
+	ns, err := New(version, id)
+	if err != nil {
+		panic(err)
+	}
+	return ns
 }
 
 // From returns a namespace from the provided byte slice.
@@ -53,7 +55,7 @@ func (n Namespace) Bytes() []byte {
 
 // validateVersion returns an error if the version is not supported.
 func validateVersion(version uint8) error {
-	if version != VersionZero {
+	if version != NamespaceVersionZero {
 		return fmt.Errorf("unsupported namespace version %v", version)
 	}
 	return nil
@@ -66,8 +68,20 @@ func validateID(version uint8, id []byte) error {
 		return fmt.Errorf("unsupported namespace id length: id %v must be %v bytes ", id, NamespaceSize)
 	}
 
-	if version == VersionZero && !bytes.HasPrefix(id, VersionZeroPrefix) {
+	if version == NamespaceVersionZero && !bytes.HasPrefix(id, VersionZeroPrefix) {
 		return fmt.Errorf("unsupported namespace id %v must start with prefix %v", id, VersionZeroPrefix)
 	}
 	return nil
+}
+
+func (n Namespace) IsReserved() bool {
+	return bytes.Compare(n.Bytes(), MaxReservedNamespace.Bytes()) < 1
+}
+
+func (n Namespace) IsParityShares() bool {
+	return bytes.Equal(n.Bytes(), ParitySharesNamespaceID.Bytes())
+}
+
+func (n Namespace) IsTailPadding() bool {
+	return bytes.Equal(n.Bytes(), TailPaddingNamespaceID.Bytes())
 }

@@ -19,6 +19,7 @@ import (
 	"github.com/celestiaorg/celestia-app/app"
 	"github.com/celestiaorg/celestia-app/app/encoding"
 	"github.com/celestiaorg/celestia-app/pkg/appconsts"
+	appns "github.com/celestiaorg/celestia-app/pkg/namespace"
 	"github.com/celestiaorg/celestia-app/pkg/proof"
 	"github.com/celestiaorg/celestia-app/testutil/network"
 	"github.com/celestiaorg/celestia-app/x/blob"
@@ -223,7 +224,7 @@ func (s *IntegrationTestSuite) TestSubmitPayForBlob() {
 	require := s.Require()
 	assert := s.Assert()
 	val := s.network.Validators[0]
-	namespaceOne := bytes.Repeat([]byte{1}, appconsts.NamespaceSize)
+	namespaceOne := bytes.Repeat([]byte{1}, appns.NamespaceSize)
 
 	mustNewBlob := func(ns, data []byte) *blobtypes.Blob {
 		b, err := blobtypes.NewBlob(ns, data)
