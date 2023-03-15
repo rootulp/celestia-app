@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/celestiaorg/celestia-app/pkg/appconsts"
-	"github.com/celestiaorg/nmt/namespace"
+	appns "github.com/celestiaorg/celestia-app/pkg/namespace"
 	"github.com/stretchr/testify/assert"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	"github.com/tendermint/tendermint/types"
@@ -23,8 +23,14 @@ func TestParseShares(t *testing.T) {
 	}
 
 	start := true
-	blobOneNamespace := bytes.Repeat([]byte{1}, appconsts.NamespaceSize)
-	blobTwoNamespace := bytes.Repeat([]byte{2}, appconsts.NamespaceSize)
+	blobOneNamespace := appns.MustNew(
+		appns.NamespaceVersionZero,
+		append(appns.VersionZeroPrefix, bytes.Repeat([]byte{1}, appns.NamespaceIDSize-len(appns.VersionZeroPrefix))...),
+	)
+	blobTwoNamespace := appns.MustNew(
+		appns.NamespaceVersionZero,
+		append(appns.VersionZeroPrefix, bytes.Repeat([]byte{2}, appns.NamespaceIDSize-len(appns.VersionZeroPrefix))...),
+	)
 
 	txShares, _, _ := SplitTxs(generateRandomTxs(2, 1000))
 	txShareStart := txShares[0]
@@ -63,13 +69,13 @@ func TestParseShares(t *testing.T) {
 		{
 			"one transaction share",
 			[][]byte{txShareStart},
-			[]ShareSequence{{Namespace: appconsts.TxNamespaceID, Shares: []Share{txShareStart}}},
+			[]ShareSequence{{Namespace: appns.TxNamespaceID, Shares: []Share{txShareStart}}},
 			false,
 		},
 		{
 			"two transaction shares",
 			[][]byte{txShareStart, txShareContinuation},
-			[]ShareSequence{{Namespace: appconsts.TxNamespaceID, Shares: []Share{txShareStart, txShareContinuation}}},
+			[]ShareSequence{{Namespace: appns.TxNamespaceID, Shares: []Share{txShareStart, txShareContinuation}}},
 			false,
 		},
 		{
@@ -97,7 +103,7 @@ func TestParseShares(t *testing.T) {
 			"one transaction, one blob",
 			[][]byte{txShareStart, blobOneStart},
 			[]ShareSequence{
-				{Namespace: appconsts.TxNamespaceID, Shares: []Share{txShareStart}},
+				{Namespace: appns.TxNamespaceID, Shares: []Share{txShareStart}},
 				{Namespace: blobOneNamespace, Shares: []Share{blobOneStart}},
 			},
 			false,
@@ -106,7 +112,7 @@ func TestParseShares(t *testing.T) {
 			"one transaction, two blobs",
 			[][]byte{txShareStart, blobOneStart, blobTwoStart},
 			[]ShareSequence{
-				{Namespace: appconsts.TxNamespaceID, Shares: []Share{txShareStart}},
+				{Namespace: appns.TxNamespaceID, Shares: []Share{txShareStart}},
 				{Namespace: blobOneNamespace, Shares: []Share{blobOneStart}},
 				{Namespace: blobTwoNamespace, Shares: []Share{blobTwoStart}},
 			},
@@ -151,13 +157,13 @@ func TestParseShares(t *testing.T) {
 	}
 }
 
-func generateRawShare(namespace namespace.ID, isSequenceStart bool, sequenceLen uint32) (rawShare []byte) {
+func generateRawShare(namespace appns.Namespace, isSequenceStart bool, sequenceLen uint32) (rawShare []byte) {
 	infoByte, _ := NewInfoByte(appconsts.ShareVersionZero, isSequenceStart)
 
 	sequenceLenBuf := make([]byte, appconsts.SequenceLenBytes)
 	binary.BigEndian.PutUint32(sequenceLenBuf, sequenceLen)
 
-	rawShare = append(rawShare, namespace...)
+	rawShare = append(rawShare, namespace.Bytes()...)
 	rawShare = append(rawShare, byte(infoByte))
 	rawShare = append(rawShare, sequenceLenBuf...)
 
@@ -184,10 +190,11 @@ func generateRandomTxs(count, size int) types.Txs {
 	return txs
 }
 
-func generateRandomBlobWithNamespace(namespace namespace.ID, size int) types.Blob {
+func generateRandomBlobWithNamespace(namespace appns.Namespace, size int) types.Blob {
 	blob := types.Blob{
-		NamespaceID: namespace,
-		Data:        tmrand.Bytes(size),
+		NamespaceVersion: namespace.Version,
+		NamespaceID:      namespace.ID,
+		Data:             tmrand.Bytes(size),
 	}
 	return blob
 }

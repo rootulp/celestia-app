@@ -48,20 +48,23 @@ func TestPrepareProposalBlobSorting(t *testing.T) {
 		[][]*tmproto.Blob{
 			{
 				{
-					NamespaceId: namespaceOne,
-					Data:        tmrand.Bytes(100),
+					NamespaceVersion: uint32(namespaceOne.Version),
+					NamespaceId:      namespaceOne.ID,
+					Data:             tmrand.Bytes(100),
 				},
 			},
 			{
 				{
-					NamespaceId: namespaceThree,
-					Data:        tmrand.Bytes(1000),
+					NamespaceVersion: uint32(namespaceThree.Version),
+					NamespaceId:      namespaceThree.ID,
+					Data:             tmrand.Bytes(1000),
 				},
 			},
 			{
 				{
-					NamespaceId: namespaceTwo,
-					Data:        tmrand.Bytes(420),
+					NamespaceVersion: uint32(namespaceTwo.Version),
+					NamespaceId:      namespaceTwo.ID,
+					Data:             tmrand.Bytes(420),
 				},
 			},
 		},

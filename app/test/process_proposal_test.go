@@ -138,7 +138,11 @@ func TestProcessProposal(t *testing.T) {
 			mutator: func(d *core.Data) {
 				d.Blobs = append(
 					d.Blobs,
-					core.Blob{NamespaceId: namespaceOne, Data: []byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}},
+					core.Blob{
+						NamespaceVersion: uint32(namespaceOne.Version),
+						NamespaceId:      namespaceOne.ID,
+						Data:             []byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+					},
 				)
 			},
 			expectedResult: abci.ResponseProcessProposal_REJECT,
@@ -147,7 +151,11 @@ func TestProcessProposal(t *testing.T) {
 			name:  "modified a blob",
 			input: validData(),
 			mutator: func(d *core.Data) {
-				d.Blobs[0] = core.Blob{NamespaceId: namespaceOne, Data: []byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
+				d.Blobs[0] = core.Blob{
+					NamespaceVersion: uint32(namespaceOne.Version),
+					NamespaceId:      namespaceOne.ID,
+					Data:             []byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+				}
 			},
 			expectedResult: abci.ResponseProcessProposal_REJECT,
 		},

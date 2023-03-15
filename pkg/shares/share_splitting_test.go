@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/celestiaorg/celestia-app/pkg/appconsts"
+	appns "github.com/celestiaorg/celestia-app/pkg/namespace"
 	"github.com/stretchr/testify/assert"
 	coretypes "github.com/tendermint/tendermint/types"
 )
@@ -32,7 +33,7 @@ func TestSplitTxs_forTxShares(t *testing.T) {
 			want: []Share{
 				padShare(
 					append(
-						appconsts.TxNamespaceID,
+						appns.TxNamespaceID.Bytes(),
 						[]byte{
 							0x1,                // info byte
 							0x0, 0x0, 0x0, 0x2, // 1 byte (unit) + 1 byte (unit length) = 2 bytes sequence length
@@ -50,7 +51,7 @@ func TestSplitTxs_forTxShares(t *testing.T) {
 			want: []Share{
 				padShare(
 					append(
-						appconsts.TxNamespaceID,
+						appns.TxNamespaceID.Bytes(),
 						[]byte{
 							0x1,                // info byte
 							0x0, 0x0, 0x0, 0x4, // 2 bytes (first transaction) + 2 bytes (second transaction) = 4 bytes sequence length
@@ -70,7 +71,7 @@ func TestSplitTxs_forTxShares(t *testing.T) {
 			want: []Share{
 				fillShare(
 					append(
-						appconsts.TxNamespaceID,
+						appns.TxNamespaceID.Bytes(),
 						[]byte{
 							0x1,                // info byte
 							0x0, 0x0, 0x2, 0x2, // 512 (unit) + 2 (unit length) = 514 sequence length
@@ -83,7 +84,7 @@ func TestSplitTxs_forTxShares(t *testing.T) {
 				padShare(
 					append(
 						append(
-							appconsts.TxNamespaceID,
+							appns.TxNamespaceID.Bytes(),
 							[]byte{
 								0x0,                // info byte
 								0x0, 0x0, 0x0, 0x0, // reserved bytes
@@ -100,7 +101,7 @@ func TestSplitTxs_forTxShares(t *testing.T) {
 			want: []Share{
 				fillShare(
 					append(
-						appconsts.TxNamespaceID,
+						appns.TxNamespaceID.Bytes(),
 						[]byte{
 							0x1,                // info byte
 							0x0, 0x0, 0x2, 0x4, // 2 bytes (first transaction) + 514 bytes (second transaction) = 516 bytes sequence length
@@ -114,7 +115,7 @@ func TestSplitTxs_forTxShares(t *testing.T) {
 				padShare(
 					append(
 						append(
-							appconsts.TxNamespaceID,
+							appns.TxNamespaceID.Bytes(),
 							[]byte{
 								0x0,                // info byte
 								0x0, 0x0, 0x0, 0x0, // reserved bytes
@@ -131,7 +132,7 @@ func TestSplitTxs_forTxShares(t *testing.T) {
 			want: []Share{
 				fillShare(
 					append(
-						appconsts.TxNamespaceID,
+						appns.TxNamespaceID.Bytes(),
 						[]byte{
 							0x1,                // info byte
 							0x0, 0x0, 0x2, 0x4, // 514 bytes (first transaction) + 2 bytes (second transaction) = 516 bytes sequence length
@@ -143,7 +144,7 @@ func TestSplitTxs_forTxShares(t *testing.T) {
 				),
 				padShare(
 					append(
-						appconsts.TxNamespaceID,
+						appns.TxNamespaceID.Bytes(),
 						[]byte{
 							0x0,                 // info byte
 							0x0, 0x0, 0x0, 0x50, // reserved bytes
@@ -180,7 +181,7 @@ func TestSplitTxs(t *testing.T) {
 	smallTx := coretypes.Tx{0xa} // spans one share
 	smallTxShares := []Share{
 		padShare(
-			append(appconsts.TxNamespaceID,
+			append(appns.TxNamespaceID.Bytes(),
 				[]byte{
 					0x1,                // info byte
 					0x0, 0x0, 0x0, 0x2, // 1 byte (unit) + 1 byte (unit length) = 2 bytes sequence length
@@ -197,7 +198,7 @@ func TestSplitTxs(t *testing.T) {
 	pfbTxShares := []Share{
 		padShare(
 			append(
-				appconsts.PayForBlobNamespaceID,
+				appns.PayForBlobNamespaceID.Bytes(),
 				[]uint8{
 					0x1,               // info byte
 					0x0, 0x0, 0x0, 13, // 1 byte (unit) + 1 byte (unit length) = 2 bytes sequence length
@@ -212,7 +213,7 @@ func TestSplitTxs(t *testing.T) {
 	largeTx := coretypes.Tx(bytes.Repeat([]byte{0xc}, appconsts.ShareSize)) // spans two shares
 	largeTxShares := []Share{
 		fillShare(
-			append(appconsts.TxNamespaceID,
+			append(appns.TxNamespaceID.Bytes(),
 				[]uint8{
 					0x1,                // info byte
 					0x0, 0x0, 0x2, 0x2, // 512 (unit) + 2 (unit length) = 514 sequence length
@@ -224,7 +225,7 @@ func TestSplitTxs(t *testing.T) {
 		padShare(
 			append(
 				append(
-					appconsts.TxNamespaceID,
+					appns.TxNamespaceID.Bytes(),
 					[]uint8{
 						0x0,                // info byte
 						0x0, 0x0, 0x0, 0x0, // reserved bytes

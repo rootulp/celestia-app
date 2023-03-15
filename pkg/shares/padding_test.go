@@ -5,14 +5,18 @@ import (
 	"testing"
 
 	"github.com/celestiaorg/celestia-app/pkg/appconsts"
+	appns "github.com/celestiaorg/celestia-app/pkg/namespace"
 	"github.com/stretchr/testify/assert"
 )
 
-var namespaceOne = bytes.Repeat([]byte{1}, appconsts.NamespaceSize)
+var namespaceOne = appns.MustNew(
+	appns.NamespaceVersionZero,
+	append(appns.VersionZeroPrefix, bytes.Repeat([]byte{1}, appns.NamespaceIDSize-len(appns.VersionZeroPrefix))...),
+)
 
 var nsOnePadding, _ = zeroPadIfNecessary(
 	append(
-		namespaceOne,
+		namespaceOne.Bytes(),
 		[]byte{
 			1,          // info byte
 			0, 0, 0, 0, // sequence len
@@ -21,7 +25,7 @@ var nsOnePadding, _ = zeroPadIfNecessary(
 
 var reservedPadding, _ = zeroPadIfNecessary(
 	append(
-		appconsts.ReservedPaddingNamespaceID,
+		appns.ReservedPaddingNamespaceID.Bytes(),
 		[]byte{
 			1,          // info byte
 			0, 0, 0, 0, // sequence len
@@ -30,7 +34,7 @@ var reservedPadding, _ = zeroPadIfNecessary(
 
 var tailPadding, _ = zeroPadIfNecessary(
 	append(
-		appconsts.TailPaddingNamespaceID,
+		appns.TailPaddingNamespaceID.Bytes(),
 		[]byte{
 			1,          // info byte
 			0, 0, 0, 0, // sequence len

@@ -44,9 +44,7 @@ func TestCheckTx(t *testing.T) {
 				btx := blobfactory.RandBlobTxsWithNamespacesAndSigner(
 					encCfg.TxConfig.TxEncoder(),
 					blobtypes.NewKeyringSigner(kr, accs[0], testutil.ChainID),
-					[][]byte{
-						namespaceOne,
-					},
+					[]appns.Namespace{namespaceOne},
 					[]int{100},
 				)[0]
 				return btx
@@ -60,9 +58,7 @@ func TestCheckTx(t *testing.T) {
 				btx := blobfactory.RandBlobTxsWithNamespacesAndSigner(
 					encCfg.TxConfig.TxEncoder(),
 					blobtypes.NewKeyringSigner(kr, accs[1], testutil.ChainID),
-					[][]byte{
-						namespaceOne,
-					},
+					[]appns.Namespace{namespaceOne},
 					[]int{100},
 				)[0]
 				return btx
@@ -76,9 +72,7 @@ func TestCheckTx(t *testing.T) {
 				btx := blobfactory.RandBlobTxsWithNamespacesAndSigner(
 					encCfg.TxConfig.TxEncoder(),
 					blobtypes.NewKeyringSigner(kr, accs[2], testutil.ChainID),
-					[][]byte{
-						namespaceOne,
-					},
+					[]appns.Namespace{namespaceOne},
 					[]int{100},
 				)[0]
 
@@ -97,9 +91,7 @@ func TestCheckTx(t *testing.T) {
 				btx := blobfactory.RandBlobTxsWithNamespacesAndSigner(
 					encCfg.TxConfig.TxEncoder(),
 					blobtypes.NewKeyringSigner(kr, accs[3], testutil.ChainID),
-					[][]byte{
-						namespaceOne,
-					},
+					[]appns.Namespace{namespaceOne},
 					[]int{100},
 				)[0]
 				dtx, _ := coretypes.UnmarshalBlobTx(btx)
