@@ -112,7 +112,10 @@ func TestProcessProposal(t *testing.T) {
 		mutator        func(*core.Data)
 		expectedResult abci.ResponseProcessProposal_Result
 	}
-	namespaceOne := bytes.Repeat([]byte{1}, appns.NamespaceSize)
+	namespaceOne := appns.MustNew(
+		appns.NamespaceVersionZero,
+		append(appns.VersionZeroPrefix, bytes.Repeat([]byte{1}, appns.NamespaceIDSize-len(appns.VersionZeroPrefix))...),
+	)
 
 	tests := []test{
 		{

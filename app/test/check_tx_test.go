@@ -20,7 +20,10 @@ import (
 // assume that the rest of CheckTx is tested by the cosmos-sdk.
 func TestCheckTx(t *testing.T) {
 	encCfg := encoding.MakeConfig(app.ModuleEncodingRegisters...)
-	namespaceOne := bytes.Repeat([]byte{1}, appns.NamespaceSize)
+	namespaceOne := appns.MustNew(
+		appns.NamespaceVersionZero,
+		append(appns.VersionZeroPrefix, bytes.Repeat([]byte{1}, appns.NamespaceIDSize-len(appns.VersionZeroPrefix))...),
+	)
 
 	accs := []string{"a", "b", "c", "d", "e", "f"}
 

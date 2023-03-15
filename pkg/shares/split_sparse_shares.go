@@ -71,7 +71,11 @@ func (sss *SparseShareSplitter) WriteNamespacedPaddedShares(count int) {
 		return
 	}
 	lastBlob := sss.shares[len(sss.shares)-1]
-	sss.shares = append(sss.shares, NamespacePaddingShares(lastBlob.NamespaceID(), count)...)
+	ns, err := lastBlob.Namespace()
+	if err != nil {
+		panic(err)
+	}
+	sss.shares = append(sss.shares, NamespacePaddingShares(ns, count)...)
 }
 
 // Export finalizes and returns the underlying shares.

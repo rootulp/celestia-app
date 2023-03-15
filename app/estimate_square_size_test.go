@@ -126,7 +126,7 @@ func Test_estimatePFBTxSharesUsed(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			blobTxs := generateBlobTxsWithNIDs(t, appns.RandomBlobNamespaces(tt.pfbCount), blobfactory.Repeat([]int{tt.pfbSize}, tt.pfbCount))
+			blobTxs := generateBlobTxsWithNamespaces(t, appns.RandomBlobNamespaces(tt.pfbCount), blobfactory.Repeat([]int{tt.pfbSize}, tt.pfbCount))
 			got := estimatePFBTxSharesUsed(tt.squareSize, blobTxs)
 
 			// check that our estimate is always larger or equal to the number

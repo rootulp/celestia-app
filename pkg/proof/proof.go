@@ -186,8 +186,9 @@ func NewShareInclusionProof(
 			StartRow: uint32(startRow),
 			EndRow:   uint32(endRow),
 		},
-		Data:        rawShares,
-		ShareProofs: shareProofs,
-		NamespaceID: namespace.Bytes(),
+		Data:             rawShares,
+		ShareProofs:      shareProofs,
+		NamespaceId:      namespace.ID,
+		NamespaceVersion: uint32(namespace.Version),
 	}, nil
 }

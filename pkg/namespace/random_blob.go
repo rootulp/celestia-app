@@ -22,10 +22,10 @@ func RandomBlobNamespace() Namespace {
 	}
 }
 
-func RandomBlobNamespaces(count int) [][]byte {
-	namespaces := make([][]byte, count)
+func RandomBlobNamespaces(count int) []Namespace {
+	namespaces := make([]Namespace, count)
 	for i := 0; i < count; i++ {
-		namespaces[i] = RandomBlobNamespace().Bytes()
+		namespaces[i] = RandomBlobNamespace()
 	}
 	return namespaces
 }

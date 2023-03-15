@@ -85,3 +85,15 @@ func (n Namespace) IsParityShares() bool {
 func (n Namespace) IsTailPadding() bool {
 	return bytes.Equal(n.Bytes(), TailPaddingNamespaceID.Bytes())
 }
+
+func (n Namespace) IsReservedPadding() bool {
+	return bytes.Equal(n.Bytes(), ReservedPaddingNamespaceID.Bytes())
+}
+
+func (n Namespace) IsTx() bool {
+	return bytes.Equal(n.Bytes(), TxNamespaceID.Bytes())
+}
+
+func (n Namespace) IsPayForBlob() bool {
+	return bytes.Equal(n.Bytes(), PayForBlobNamespaceID.Bytes())
+}

@@ -224,9 +224,12 @@ func (s *IntegrationTestSuite) TestSubmitPayForBlob() {
 	require := s.Require()
 	assert := s.Assert()
 	val := s.network.Validators[0]
-	namespaceOne := bytes.Repeat([]byte{1}, appns.NamespaceSize)
+	namespaceOne := appns.MustNew(
+		appns.NamespaceVersionZero,
+		append(appns.VersionZeroPrefix, bytes.Repeat([]byte{1}, appns.NamespaceIDSize-len(appns.VersionZeroPrefix))...),
+	)
 
-	mustNewBlob := func(ns, data []byte) *blobtypes.Blob {
+	mustNewBlob := func(ns appns.Namespace, data []byte) *blobtypes.Blob {
 		b, err := blobtypes.NewBlob(ns, data)
 		require.NoError(err)
 		return b

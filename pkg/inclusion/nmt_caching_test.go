@@ -8,6 +8,7 @@ import (
 
 	"github.com/celestiaorg/celestia-app/pkg/appconsts"
 	"github.com/celestiaorg/celestia-app/pkg/da"
+	appns "github.com/celestiaorg/celestia-app/pkg/namespace"
 	"github.com/celestiaorg/celestia-app/pkg/wrapper"
 	"github.com/celestiaorg/nmt"
 	"github.com/celestiaorg/rsmt2d"
@@ -20,8 +21,11 @@ func TestWalkCachedSubTreeRoot(t *testing.T) {
 	strc := newSubTreeRootCacher()
 	squareSize := uint64(8)
 	tr := wrapper.NewErasuredNamespacedMerkleTree(squareSize, 0, nmt.NodeVisitor(strc.Visit))
-	namespaceOne := bytes.Repeat([]byte{1}, appconsts.NamespaceSize)
-	data := append(namespaceOne, []byte("data")...)
+	namespaceOne := appns.MustNew(
+		appns.NamespaceVersionZero,
+		append(appns.VersionZeroPrefix, bytes.Repeat([]byte{1}, appns.NamespaceIDSize-len(appns.VersionZeroPrefix))...),
+	)
+	data := append(namespaceOne.Bytes(), []byte("data")...)
 	for i := 0; i < 8; i++ {
 		tr.Push(data)
 	}

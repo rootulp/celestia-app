@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
+	appns "github.com/celestiaorg/celestia-app/pkg/namespace"
 	"github.com/celestiaorg/celestia-app/testutil/namespace"
 	"github.com/celestiaorg/celestia-app/testutil/testfactory"
 	"github.com/celestiaorg/celestia-app/x/blob/types"
@@ -31,7 +32,11 @@ func CmdTestRandBlob() *cobra.Command {
 
 			nid := namespace.RandomBlobNamespace()
 			coreBlob := testfactory.GenerateBlobsWithNamespace(1, size, nid)
-			blob, err := types.NewBlob(coreBlob[0].NamespaceID, coreBlob[0].Data)
+			ns, err := appns.New(coreBlob[0].NamespaceVersion, coreBlob[0].NamespaceID)
+			if err != nil {
+				return fmt.Errorf("failure to create namespace: %w", err)
+			}
+			blob, err := types.NewBlob(ns, coreBlob[0].Data)
 			if err != nil {
 				return fmt.Errorf("failure on generating random blob: %w", err)
 			}

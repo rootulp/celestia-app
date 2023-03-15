@@ -28,9 +28,9 @@ func TestPrepareProposalBlobSorting(t *testing.T) {
 	accnts := testfactory.GenerateAccounts(6)
 	testApp, kr := testutil.SetupTestAppWithGenesisValSet(accnts...)
 	infos := queryAccountInfo(testApp, accnts, kr)
-	namespaceOne := bytes.Repeat([]byte{1}, appns.NamespaceSize)
-	namespaceTwo := bytes.Repeat([]byte{2}, appns.NamespaceSize)
-	namespaceThree := bytes.Repeat([]byte{3}, appns.NamespaceSize)
+	namespaceOne := appns.MustNew(appns.NamespaceVersionZero, append(appns.VersionZeroPrefix, bytes.Repeat([]byte{1}, appconsts.NamespaceSize-len(appns.VersionZeroPrefix))...))
+	namespaceTwo := appns.MustNew(appns.NamespaceVersionZero, append(appns.VersionZeroPrefix, bytes.Repeat([]byte{2}, appconsts.NamespaceSize-len(appns.VersionZeroPrefix))...))
+	namespaceThree := appns.MustNew(appns.NamespaceVersionZero, append(appns.VersionZeroPrefix, bytes.Repeat([]byte{3}, appconsts.NamespaceSize-len(appns.VersionZeroPrefix))...))
 
 	type test struct {
 		input         abci.RequestPrepareProposal

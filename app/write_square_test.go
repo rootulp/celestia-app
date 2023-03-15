@@ -28,7 +28,7 @@ func Test_finalizeLayout(t *testing.T) {
 		{
 			squareSize:      4,
 			nonreserveStart: 10,
-			blobTxs: generateBlobTxsWithNIDs(
+			blobTxs: generateBlobTxsWithNamespaces(
 				t,
 				[][]byte{ns1},
 				[][]int{{1}},
@@ -38,7 +38,7 @@ func Test_finalizeLayout(t *testing.T) {
 		{
 			squareSize:      4,
 			nonreserveStart: 10,
-			blobTxs: generateBlobTxsWithNIDs(
+			blobTxs: generateBlobTxsWithNamespaces(
 				t,
 				[][]byte{ns1, ns1},
 				blobfactory.Repeat([]int{100}, 2),
@@ -48,7 +48,7 @@ func Test_finalizeLayout(t *testing.T) {
 		{
 			squareSize:      4,
 			nonreserveStart: 10,
-			blobTxs: generateBlobTxsWithNIDs(
+			blobTxs: generateBlobTxsWithNamespaces(
 				t,
 				[][]byte{ns1, ns1, ns1, ns1, ns1, ns1, ns1, ns1, ns1, ns1},
 				blobfactory.Repeat([]int{100}, 10),
@@ -58,7 +58,7 @@ func Test_finalizeLayout(t *testing.T) {
 		{
 			squareSize:      4,
 			nonreserveStart: 7,
-			blobTxs: generateBlobTxsWithNIDs(
+			blobTxs: generateBlobTxsWithNamespaces(
 				t,
 				[][]byte{ns1, ns1, ns1, ns1, ns1, ns1, ns1, ns1, ns1},
 				blobfactory.Repeat([]int{100}, 9),
@@ -68,7 +68,7 @@ func Test_finalizeLayout(t *testing.T) {
 		{
 			squareSize:      4,
 			nonreserveStart: 3,
-			blobTxs: generateBlobTxsWithNIDs(
+			blobTxs: generateBlobTxsWithNamespaces(
 				t,
 				[][]byte{ns1, ns1, ns1},
 				[][]int{{10000}, {10000}, {1000000}},
@@ -78,7 +78,7 @@ func Test_finalizeLayout(t *testing.T) {
 		{
 			squareSize:      64,
 			nonreserveStart: 32,
-			blobTxs: generateBlobTxsWithNIDs(
+			blobTxs: generateBlobTxsWithNamespaces(
 				t,
 				[][]byte{ns1, ns1, ns1},
 				[][]int{{1000}, {10000}, {100000}},
@@ -101,7 +101,7 @@ func Test_finalizeLayout(t *testing.T) {
 		{
 			squareSize:      32,
 			nonreserveStart: 32,
-			blobTxs: generateBlobTxsWithNIDs(
+			blobTxs: generateBlobTxsWithNamespaces(
 				t,
 				[][]byte{ns2, ns1, ns1},
 				[][]int{{100}, {100}, {100}},
@@ -111,7 +111,7 @@ func Test_finalizeLayout(t *testing.T) {
 		{
 			squareSize:      32,
 			nonreserveStart: 32,
-			blobTxs: generateBlobTxsWithNIDs(
+			blobTxs: generateBlobTxsWithNamespaces(
 				t,
 				[][]byte{ns1, ns2, ns1},
 				[][]int{{100}, {1000}, {1000}},
@@ -121,7 +121,7 @@ func Test_finalizeLayout(t *testing.T) {
 		{
 			squareSize:      32,
 			nonreserveStart: 32,
-			blobTxs: generateBlobTxsWithNIDs(
+			blobTxs: generateBlobTxsWithNamespaces(
 				t,
 				[][]byte{ns1, ns2, ns1},
 				[][]int{{100}, {1000}, {1000}},
@@ -131,7 +131,7 @@ func Test_finalizeLayout(t *testing.T) {
 		{
 			squareSize:      4,
 			nonreserveStart: 3,
-			blobTxs: generateBlobTxsWithNIDs(
+			blobTxs: generateBlobTxsWithNamespaces(
 				t,
 				[][]byte{ns1, ns3, ns2},
 				[][]int{{100}, {1000}, {420}},
@@ -141,7 +141,7 @@ func Test_finalizeLayout(t *testing.T) {
 		{
 			squareSize:      4,
 			nonreserveStart: 4,
-			blobTxs: generateBlobTxsWithNIDs(
+			blobTxs: generateBlobTxsWithNamespaces(
 				t,
 				[][]byte{ns1, ns3, ns3, ns2},
 				[][]int{{100}, {1000, 1000}, {420}},
@@ -152,7 +152,7 @@ func Test_finalizeLayout(t *testing.T) {
 			// no blob txs should make it in the square
 			squareSize:      2,
 			nonreserveStart: 4,
-			blobTxs: generateBlobTxsWithNIDs(
+			blobTxs: generateBlobTxsWithNamespaces(
 				t,
 				[][]byte{ns1, ns2, ns3},
 				[][]int{{1000}, {1000}, {1000}},
@@ -163,7 +163,7 @@ func Test_finalizeLayout(t *testing.T) {
 			// only two blob txs should make it in the square
 			squareSize:      4,
 			nonreserveStart: 4,
-			blobTxs: generateBlobTxsWithNIDs(
+			blobTxs: generateBlobTxsWithNamespaces(
 				t,
 				[][]byte{ns1, ns2, ns3},
 				[][]int{{1800}, {1800}, {6000}},
@@ -174,7 +174,7 @@ func Test_finalizeLayout(t *testing.T) {
 			// only one blob tx should make it in the square (after reordering)
 			squareSize:      4,
 			nonreserveStart: 4,
-			blobTxs: generateBlobTxsWithNIDs(
+			blobTxs: generateBlobTxsWithNamespaces(
 				t,
 				[][]byte{ns3, ns2, ns1},
 				[][]int{{2000}, {2000}, {6000}},
@@ -184,7 +184,7 @@ func Test_finalizeLayout(t *testing.T) {
 		{
 			squareSize:      4,
 			nonreserveStart: 4,
-			blobTxs: generateBlobTxsWithNIDs(
+			blobTxs: generateBlobTxsWithNamespaces(
 				t,
 				[][]byte{ns3, ns3, ns2, ns1},
 				[][]int{{1800, 1000}, {6000}, {1800}},
@@ -195,7 +195,7 @@ func Test_finalizeLayout(t *testing.T) {
 		{
 			squareSize:      4,
 			nonreserveStart: 4,
-			blobTxs: generateBlobTxsWithNIDs(
+			blobTxs: generateBlobTxsWithNamespaces(
 				t,
 				[][]byte{ns1, ns3, ns3, ns1, ns2, ns2},
 				[][]int{{100}, {1400, 1000, 200, 200}, {420}},
@@ -205,7 +205,7 @@ func Test_finalizeLayout(t *testing.T) {
 		{
 			squareSize:      4,
 			nonreserveStart: 4,
-			blobTxs: generateBlobTxsWithNIDs(
+			blobTxs: generateBlobTxsWithNamespaces(
 				t,
 				[][]byte{ns1, ns3, ns3, ns1, ns2, ns2},
 				[][]int{{100}, {1000, 1400, 200, 200}, {420}},
