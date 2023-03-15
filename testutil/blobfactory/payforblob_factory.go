@@ -342,7 +342,8 @@ func MultiBlobTx(
 	t *testing.T,
 	enc sdk.TxEncoder,
 	signer *blobtypes.KeyringSigner,
-	sequence, accountNum uint64,
+	sequence uint64,
+	accountNum uint64,
 	blobs ...*tmproto.Blob,
 ) coretypes.Tx {
 	addr, err := signer.GetSignerInfo().GetAddress()

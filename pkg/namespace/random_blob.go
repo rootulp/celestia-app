@@ -1,24 +1,19 @@
 package namespace
 
 import (
-	"bytes"
-
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 )
 
 func RandomBlobNamespace() Namespace {
 	for {
-		randomID := tmrand.Bytes(NamespaceIDSize)
-		randomNs := MustNew(NamespaceVersionZero, randomID)
+		randomID := tmrand.Bytes(NamespaceIDSize - len(VersionZeroPrefix))
+		namespace := MustNewV0(randomID)
 
-		isReservedNS := bytes.Compare(randomNs.Bytes(), MaxReservedNamespace.Bytes()) <= 0
-		isParityNS := bytes.Equal(randomNs.Bytes(), ParitySharesNamespaceID.Bytes())
-		isTailPaddingNS := bytes.Equal(randomNs.Bytes(), TailPaddingNamespaceID.Bytes())
-		if isReservedNS || isParityNS || isTailPaddingNS {
+		if namespace.IsReserved() || namespace.IsParityShares() || namespace.IsTailPadding() {
 			continue
 		}
 
-		return randomNs
+		return namespace
 	}
 }
 

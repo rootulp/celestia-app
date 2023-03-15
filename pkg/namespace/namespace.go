@@ -54,8 +54,8 @@ func MustNewV0(id []byte) Namespace {
 
 // From returns a namespace from the provided byte slice.
 func From(b []byte) (Namespace, error) {
-	if len(b) != NamespaceSize+1 {
-		return Namespace{}, fmt.Errorf("invalid namespace length: %v must be %v", len(b), NamespaceSize+1)
+	if len(b) != NamespaceSize {
+		return Namespace{}, fmt.Errorf("invalid namespace length: %v must be %v", len(b), NamespaceSize)
 	}
 	rawVersion := b[0]
 	rawNamespace := b[1:]
@@ -65,6 +65,23 @@ func From(b []byte) (Namespace, error) {
 // Bytes returns this namespace as a byte slice.
 func (n Namespace) Bytes() []byte {
 	return append([]byte{n.Version}, n.ID...)
+}
+
+// ValidateBlobNamespace returns an error if this namespace is not a valid blob namespace.
+func (n Namespace) ValidateBlobNamespace() error {
+	if n.IsReserved() {
+		return fmt.Errorf("invalid blob namespace: %v cannot use a reserved namespace, want > %v", n.Bytes(), MaxReservedNamespace.Bytes())
+	}
+
+	if n.IsParityShares() {
+		return fmt.Errorf("invalid blob namespace: %v cannot use parity shares namespace", n.Bytes())
+	}
+
+	if n.IsTailPadding() {
+		return fmt.Errorf("invalid blob namespace: %v cannot use tail padding namespace", n.Bytes())
+	}
+
+	return nil
 }
 
 // validateVersion returns an error if the version is not supported.

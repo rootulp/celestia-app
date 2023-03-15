@@ -99,7 +99,7 @@ func (msg *MsgPayForBlobs) ValidateBasic() error {
 		if err != nil {
 			return err
 		}
-		err = ValidateBlobNamespace(ns)
+		err = ns.ValidateBlobNamespace()
 		if err != nil {
 			return err
 		}
@@ -222,7 +222,7 @@ func ValidateBlobs(blobs ...*Blob) error {
 		if err != nil {
 			return err
 		}
-		err = ValidateBlobNamespace(ns)
+		err = ns.ValidateBlobNamespace()
 		if err != nil {
 			return err
 		}
@@ -234,33 +234,6 @@ func ValidateBlobs(blobs ...*Blob) error {
 		if !slices.Contains(appconsts.SupportedShareVersions, uint8(blob.ShareVersion)) {
 			return ErrUnsupportedShareVersion
 		}
-	}
-
-	return nil
-}
-
-// ValidateBlobNamespace returns an error if the provided namespace.ID is an invalid or reserved namespace id.
-func ValidateBlobNamespace(ns appns.Namespace) error {
-	// ensure that the namespace id is of length == NamespaceIDSize
-	if nsLen := len(ns.Bytes()); nsLen != appns.NamespaceSize {
-		return ErrInvalidNamespaceLen.Wrapf("got: %d want: %d",
-			nsLen,
-			NamespaceIDSize,
-		)
-	}
-	// ensure that a reserved namespace is not used
-	if ns.IsReserved() {
-		return ErrReservedNamespace.Wrapf("got namespace: %x, want: > %x", ns.Bytes(), appns.MaxReservedNamespace.Bytes())
-	}
-
-	// ensure that ParitySharesNamespaceID is not used
-	if ns.IsParityShares() {
-		return ErrParitySharesNamespace
-	}
-
-	// ensure that TailPaddingNamespaceID is not used
-	if ns.IsTailPadding() {
-		return ErrTailPaddingNamespace
 	}
 
 	return nil
