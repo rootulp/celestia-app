@@ -20,31 +20,31 @@ var (
 	VersionZeroPrefix = bytes.Repeat([]byte{0}, 22)
 
 	// TxNamespaceID is the namespace reserved for transaction data.
-	TxNamespaceID = MustNew(NamespaceVersionZero, []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1})
+	TxNamespaceID = MustNewV0([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 1})
 
 	// IntermediateStateRootsNamespaceID is the namespace reserved for
 	// intermediate state root data.
-	IntermediateStateRootsNamespaceID = MustNew(NamespaceVersionZero, []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2})
+	IntermediateStateRootsNamespaceID = MustNewV0([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 2})
 
 	// EvidenceNamespaceID is the namespace reserved for evidence.
-	EvidenceNamespaceID = MustNew(NamespaceVersionZero, []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3})
+	EvidenceNamespaceID = MustNewV0([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 3})
 
 	// PayForBlobNamespaceID is the namespace reserved for PayForBlobs transactions.
-	PayForBlobNamespaceID = MustNew(NamespaceVersionZero, []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4})
+	PayForBlobNamespaceID = MustNewV0([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 4})
 
 	// ReservedPaddingNamespaceID is the namespace used for padding after all
 	// reserved namespaces. In practice this padding is after transactions
 	// (ordinary and PFBs) but before blobs.
-	ReservedPaddingNamespaceID = MustNew(NamespaceVersionZero, []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255})
+	ReservedPaddingNamespaceID = MustNewV0([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 255})
 
 	// MaxReservedNamespace is lexicographically the largest namespace that is
 	// reserved for protocol use.
-	MaxReservedNamespace = MustNew(NamespaceVersionZero, []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255})
+	MaxReservedNamespace = MustNewV0([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 255})
 
 	// TailPaddingNamespaceID is the namespace reserved for tail padding. All data
 	// with this namespace will be ignored.
-	TailPaddingNamespaceID = MustNew(NamespaceVersionZero, []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE})
+	TailPaddingNamespaceID = MustNewV0([]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE})
 
 	// ParitySharesNamespaceID is the namespace reserved for erasure coded data.
-	ParitySharesNamespaceID = MustNew(NamespaceVersionZero, []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF})
+	ParitySharesNamespaceID = MustNewV0([]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF})
 )
