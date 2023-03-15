@@ -138,12 +138,19 @@ func ParseNamespace(rawShares []shares.Share, startShare int64, endShare int64) 
 		return appns.Namespace{}, fmt.Errorf("end share %d is higher than block shares %d", endShare, len(rawShares))
 	}
 
-	nID := rawShares[startShare].NamespaceID()
+	startShareNs, err := rawShares[startShare].Namespace()
+	if err != nil {
+		return appns.Namespace{}, err
+	}
 
-	for i, n := range rawShares[startShare:endShare] {
-		if !bytes.Equal(nID, n.NamespaceID()) {
-			return appns.Namespace{}, fmt.Errorf("shares range contain different namespaces: %d and %d at index %d", nID, n.NamespaceID(), i)
+	for i, share := range rawShares[startShare:endShare] {
+		ns, err := share.Namespace()
+		if err != nil {
+			return appns.Namespace{}, err
+		}
+		if !bytes.Equal(startShareNs.Bytes(), ns.Bytes()) {
+			return appns.Namespace{}, fmt.Errorf("shares range contain different namespaces at index %d: %v and %v ", i, startShareNs, ns)
 		}
 	}
-	return nID, nil
+	return startShareNs, nil
 }

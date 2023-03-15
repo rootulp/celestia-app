@@ -26,9 +26,10 @@ func NewBlob(ns appns.Namespace, blob []byte) (*Blob, error) {
 	}
 
 	return &tmproto.Blob{
-		NamespaceId:  ns,
-		Data:         blob,
-		ShareVersion: uint32(appconsts.DefaultShareVersion),
+		NamespaceId:      ns.ID,
+		Data:             blob,
+		ShareVersion:     uint32(appconsts.DefaultShareVersion),
+		NamespaceVersion: uint32(ns.Version),
 	}, nil
 }
 
@@ -71,10 +72,15 @@ func ValidateBlobTx(txcfg client.TxEncodingConfig, bTx tmproto.BlobTx) error {
 		return ErrBlobSizeMismatch.Wrapf("actual %v declared %v", sizes, pfb.BlobSizes)
 	}
 
-	for i := range pfb.NamespaceIds {
+	for i := range pfb.Namespaces {
 		// check that the metadata matches
-		if !bytes.Equal(bTx.Blobs[i].NamespaceId, pfb.NamespaceIds[i]) {
-			return ErrNamespaceMismatch.Wrapf("%v %v", bTx.Blobs[i].NamespaceId, pfb.NamespaceIds[i])
+		blobNs, err := appns.New(bTx.Blobs[i].NamespaceVersion, bTx.Blobs[i].NamespaceId)
+		if err != nil {
+			return err
+		}
+
+		if !bytes.Equal(blobNs.Bytes(), pfb.Namespaces[i]) {
+			return ErrNamespaceMismatch.Wrapf("%v %v", blobNs.Bytes(), pfb.Namespaces[i])
 		}
 	}
 

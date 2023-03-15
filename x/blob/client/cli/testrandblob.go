@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	appns "github.com/celestiaorg/celestia-app/pkg/namespace"
-	"github.com/celestiaorg/celestia-app/testutil/namespace"
 	"github.com/celestiaorg/celestia-app/testutil/testfactory"
 	"github.com/celestiaorg/celestia-app/x/blob/types"
 
@@ -30,12 +29,8 @@ func CmdTestRandBlob() *cobra.Command {
 				return fmt.Errorf("failure to decode blob size: %w", err)
 			}
 
-			nid := namespace.RandomBlobNamespace()
-			coreBlob := testfactory.GenerateBlobsWithNamespace(1, size, nid)
-			ns, err := appns.New(coreBlob[0].NamespaceVersion, coreBlob[0].NamespaceID)
-			if err != nil {
-				return fmt.Errorf("failure to create namespace: %w", err)
-			}
+			ns := appns.RandomBlobNamespace()
+			coreBlob := testfactory.GenerateBlobsWithNamespace(1, size, ns)
 			blob, err := types.NewBlob(ns, coreBlob[0].Data)
 			if err != nil {
 				return fmt.Errorf("failure on generating random blob: %w", err)

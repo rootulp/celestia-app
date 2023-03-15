@@ -24,8 +24,8 @@ func TestShareSequenceRawData(t *testing.T) {
 		{
 			name: "empty share sequence",
 			shareSequence: ShareSequence{
-				NamespaceID: appconsts.TxNamespaceID,
-				Shares:      []Share{},
+				Namespace: appconsts.TxNamespaceID,
+				Shares:    []Share{},
 			},
 			want:    []byte{},
 			wantErr: false,
@@ -33,7 +33,7 @@ func TestShareSequenceRawData(t *testing.T) {
 		{
 			name: "one empty share",
 			shareSequence: ShareSequence{
-				NamespaceID: appconsts.TxNamespaceID,
+				Namespace: appconsts.TxNamespaceID,
 				Shares: []Share{
 					shareWithData(blobNamespace, true, 0, []byte{}),
 				},
@@ -44,7 +44,7 @@ func TestShareSequenceRawData(t *testing.T) {
 		{
 			name: "one share with one byte",
 			shareSequence: ShareSequence{
-				NamespaceID: appconsts.TxNamespaceID,
+				Namespace: appconsts.TxNamespaceID,
 				Shares: []Share{
 					shareWithData(blobNamespace, true, 1, []byte{0x0f}),
 				},
@@ -55,7 +55,7 @@ func TestShareSequenceRawData(t *testing.T) {
 		{
 			name: "removes padding from last share",
 			shareSequence: ShareSequence{
-				NamespaceID: appconsts.TxNamespaceID,
+				Namespace: appconsts.TxNamespaceID,
 				Shares: []Share{
 					shareWithData(blobNamespace, true, appconsts.FirstSparseShareContentSize+1, bytes.Repeat([]byte{0xf}, appconsts.FirstSparseShareContentSize)),
 					shareWithData(blobNamespace, false, 0, []byte{0x0f}),
