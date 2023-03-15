@@ -37,7 +37,7 @@ func NewMsgPayForBlobs(signer string, blobs ...*Blob) (*MsgPayForBlobs, error) {
 	}
 
 	namespaceVersions, namespaceIds, sizes, shareVersions := extractBlobComponents(blobs)
-	namespaces := make([][]byte, len(namespaceVersions))
+	namespaces := []appns.Namespace{}
 	for _, i := range namespaceVersions {
 		if namespaceVersions[i] > math.MaxUint8 {
 			return nil, fmt.Errorf("namespace version %d is too large (max %d)", namespaceVersions[i], math.MaxUint8)
@@ -46,18 +46,26 @@ func NewMsgPayForBlobs(signer string, blobs ...*Blob) (*MsgPayForBlobs, error) {
 		if err != nil {
 			return nil, err
 		}
-		namespaces[i] = namespace.Bytes()
+		namespaces = append(namespaces, namespace)
 	}
 
 	msg := &MsgPayForBlobs{
 		Signer:           signer,
-		Namespaces:       namespaces,
+		Namespaces:       namespacesToBytes(namespaces),
 		ShareCommitments: commitments,
 		BlobSizes:        sizes,
 		ShareVersions:    shareVersions,
 	}
 
 	return msg, msg.ValidateBasic()
+}
+
+func namespacesToBytes(namespaces []appns.Namespace) [][]byte {
+	result := [][]byte{}
+	for _, namespace := range namespaces {
+		result = append(result, namespace.Bytes())
+	}
+	return result
 }
 
 // Route fulfills the sdk.Msg interface
