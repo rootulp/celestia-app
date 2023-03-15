@@ -219,7 +219,7 @@ func TestValidateBasic(t *testing.T) {
 		{
 			name:    "no namespace ids",
 			msg:     noNamespaceIds,
-			wantErr: ErrNoNamespaceIds,
+			wantErr: ErrNoNamespaces,
 		},
 		{
 			name:    "no share versions",

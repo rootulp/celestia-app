@@ -2,6 +2,8 @@ package types
 
 import (
 	"crypto/sha256"
+	fmt "fmt"
+	math "math"
 
 	"github.com/celestiaorg/celestia-app/pkg/appconsts"
 	appns "github.com/celestiaorg/celestia-app/pkg/namespace"
@@ -25,23 +27,34 @@ const (
 var _ sdk.Msg = &MsgPayForBlobs{}
 
 func NewMsgPayForBlobs(signer string, blobs ...*Blob) (*MsgPayForBlobs, error) {
-	nsIDs, sizes, versions := extractBlobComponents(blobs)
 	err := ValidateBlobs(blobs...)
 	if err != nil {
 		return nil, err
 	}
-
 	commitments, err := CreateCommitments(blobs)
 	if err != nil {
 		return nil, err
 	}
 
+	namespaceVersions, namespaceIds, sizes, shareVersions := extractBlobComponents(blobs)
+	namespaces := make([][]byte, len(namespaceVersions))
+	for _, i := range namespaceVersions {
+		if namespaceVersions[i] > math.MaxUint8 {
+			return nil, fmt.Errorf("namespace version %d is too large (max %d)", namespaceVersions[i], math.MaxUint8)
+		}
+		namespace, err := appns.New(uint8(namespaceVersions[i]), namespaceIds[i])
+		if err != nil {
+			return nil, err
+		}
+		namespaces[i] = namespace.Bytes()
+	}
+
 	msg := &MsgPayForBlobs{
 		Signer:           signer,
-		NamespaceIds:     nsIDs,
+		Namespaces:       namespaces,
 		ShareCommitments: commitments,
 		BlobSizes:        sizes,
-		ShareVersions:    versions,
+		ShareVersions:    shareVersions,
 	}
 
 	return msg, msg.ValidateBasic()
@@ -58,8 +71,8 @@ func (msg *MsgPayForBlobs) Type() string {
 // ValidateBasic fulfills the sdk.Msg interface by performing stateless
 // validity checks on the msg that also don't require having the actual blob(s)
 func (msg *MsgPayForBlobs) ValidateBasic() error {
-	if len(msg.NamespaceIds) == 0 {
-		return ErrNoNamespaceIds
+	if len(msg.Namespaces) == 0 {
+		return ErrNoNamespaces
 	}
 
 	if len(msg.ShareVersions) == 0 {
@@ -74,15 +87,19 @@ func (msg *MsgPayForBlobs) ValidateBasic() error {
 		return ErrNoShareCommitments
 	}
 
-	if len(msg.NamespaceIds) != len(msg.ShareVersions) || len(msg.NamespaceIds) != len(msg.BlobSizes) || len(msg.NamespaceIds) != len(msg.ShareCommitments) {
+	if len(msg.Namespaces) != len(msg.ShareVersions) || len(msg.Namespaces) != len(msg.BlobSizes) || len(msg.Namespaces) != len(msg.ShareCommitments) {
 		return ErrMismatchedNumberOfPFBComponent.Wrapf(
-			"namespaces %d blob sizes %d versions %d share commitments %d",
-			len(msg.NamespaceIds), len(msg.BlobSizes), len(msg.ShareVersions), len(msg.ShareCommitments),
+			"namespaces %d blob sizes %d share versions %d share commitments %d",
+			len(msg.Namespaces), len(msg.BlobSizes), len(msg.ShareVersions), len(msg.ShareCommitments),
 		)
 	}
 
-	for _, ns := range msg.NamespaceIds {
-		err := ValidateBlobNamespace(ns)
+	for _, namespace := range msg.Namespaces {
+		ns, err := appns.From(namespace)
+		if err != nil {
+			return err
+		}
+		err = ValidateBlobNamespace(ns)
 		if err != nil {
 			return err
 		}
@@ -198,11 +215,14 @@ func ValidateBlobs(blobs ...*Blob) error {
 	}
 
 	for _, blob := range blobs {
-		ns, err := appns.New(blob.NamespaceVersion, blob.NamespaceId)
+		if blob.NamespaceVersion > math.MaxUint8 {
+			return fmt.Errorf("namespace version %d is too large", blob.NamespaceVersion)
+		}
+		ns, err := appns.New(uint8(blob.NamespaceVersion), blob.NamespaceId)
 		if err != nil {
 			return err
 		}
-		err := ValidateBlobNamespace(ns)
+		err = ValidateBlobNamespace(ns)
 		if err != nil {
 			return err
 		}
@@ -247,20 +267,21 @@ func ValidateBlobNamespace(ns appns.Namespace) error {
 }
 
 // extractBlobComponents separates and returns the components of a slice of
-// blobs in order of blobs of data, their namespaces, their sizes, and their share
-// versions.
-func extractBlobComponents(pblobs []*tmproto.Blob) (nsIDs [][]byte, sizes []uint32, versions []uint32) {
-	nsIDs = make([][]byte, len(pblobs))
+// blobs.
+func extractBlobComponents(pblobs []*tmproto.Blob) (namespaceVersions []uint32, namespaceIds [][]byte, sizes []uint32, shareVersions []uint32) {
+	namespaceVersions = make([]uint32, len(pblobs))
+	namespaceIds = make([][]byte, len(pblobs))
 	sizes = make([]uint32, len(pblobs))
-	versions = make([]uint32, len(pblobs))
+	shareVersions = make([]uint32, len(pblobs))
 
 	for i, pblob := range pblobs {
+		namespaceVersions[i] = pblob.NamespaceVersion
+		namespaceIds[i] = pblob.NamespaceId
 		sizes[i] = uint32(len(pblob.Data))
-		nsIDs[i] = pblob.NamespaceId
-		versions[i] = pblob.ShareVersion
+		shareVersions[i] = pblob.ShareVersion
 	}
 
-	return nsIDs, sizes, versions
+	return namespaceVersions, namespaceIds, sizes, shareVersions
 }
 
 // BlobMinSquareSize returns the minimum square size that blobSize can be included

@@ -74,7 +74,8 @@ func ValidateBlobTx(txcfg client.TxEncodingConfig, bTx tmproto.BlobTx) error {
 
 	for i := range pfb.Namespaces {
 		// check that the metadata matches
-		blobNs, err := appns.New(bTx.Blobs[i].NamespaceVersion, bTx.Blobs[i].NamespaceId)
+		// TODO validate that
+		blobNs, err := appns.New(uint8(bTx.Blobs[i].NamespaceVersion), bTx.Blobs[i].NamespaceId)
 		if err != nil {
 			return err
 		}
