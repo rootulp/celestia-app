@@ -64,8 +64,8 @@ func validateVersion(version uint8) error {
 // validateID returns an error if the provided id does not meet the requirements
 // for the provided version.
 func validateID(version uint8, id []byte) error {
-	if len(id) != NamespaceSize {
-		return fmt.Errorf("unsupported namespace id length: id %v must be %v bytes ", id, NamespaceSize)
+	if len(id) != NamespaceIDSize {
+		return fmt.Errorf("unsupported namespace id length: id %v must be %v bytes ", id, NamespaceIDSize)
 	}
 
 	if version == NamespaceVersionZero && !bytes.HasPrefix(id, VersionZeroPrefix) {
