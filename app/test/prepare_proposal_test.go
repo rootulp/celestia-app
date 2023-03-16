@@ -22,6 +22,8 @@ import (
 	blobtypes "github.com/celestiaorg/celestia-app/x/blob/types"
 )
 
+// TestPrepareProposalBlobSorting tests that blobs in the BlockData.Blobs field
+// are sorted by namespace.
 func TestPrepareProposalBlobSorting(t *testing.T) {
 	encCfg := encoding.MakeConfig(app.ModuleEncodingRegisters...)
 	accnts := testfactory.GenerateAccounts(6)
@@ -101,6 +103,89 @@ func TestPrepareProposalBlobSorting(t *testing.T) {
 		res := testApp.PrepareProposal(tt.input)
 		assert.Equal(t, tt.expectedBlobs, res.BlockData.Blobs)
 		assert.Equal(t, tt.expectedTxs, len(res.BlockData.Txs))
+	}
+}
+
+// TestPrepareProposal_prunesBlobsWithHighestNamespace verifies that blobs with
+// the highest namespace will be pruned from a block. Original data square is
+// 8MB so create 3 blobs each of 4MB. The first 2 blobs will be included and the
+// blob with the highest namespace will be pruned.
+func TestPrepareProposal_prunesBlobsWithHighestNamespace(t *testing.T) {
+	encCfg := encoding.MakeConfig(app.ModuleEncodingRegisters...)
+	accnts := testfactory.GenerateAccounts(6)
+	testApp, kr := testutil.SetupTestAppWithGenesisValSet(accnts...)
+	infos := queryAccountInfo(testApp, accnts, kr)
+	blobSize := 4000000 // 4MB
+
+	type test struct {
+		input         abci.RequestPrepareProposal
+		expectedBlobs []tmproto.Blob
+		expectedTxs   int
+	}
+
+	blobTxs := blobfactory.ManyMultiBlobTx(
+		t,
+		encCfg.TxConfig.TxEncoder(),
+		kr,
+		testutil.ChainID,
+		accnts[:3],
+		infos[:3],
+		[][]*tmproto.Blob{
+			{
+				{
+					NamespaceId: []byte{1, 1, 1, 1, 1, 1, 1, 1},
+					Data:        tmrand.Bytes(blobSize),
+				},
+			},
+			{
+				{
+					NamespaceId: []byte{3, 3, 3, 3, 3, 3, 3, 3},
+					Data:        tmrand.Bytes(blobSize),
+				},
+			},
+			{
+				{
+					NamespaceId: []byte{2, 2, 2, 2, 2, 2, 2, 2},
+					Data:        tmrand.Bytes(blobSize),
+				},
+			},
+		},
+	)
+
+	decodedBlobTxs := make([]tmproto.BlobTx, 0, len(blobTxs))
+	for _, rawBtx := range blobTxs {
+		btx, isbtx := coretypes.UnmarshalBlobTx(rawBtx)
+		if !isbtx {
+			panic("unexpected testing error")
+		}
+		decodedBlobTxs = append(decodedBlobTxs, btx)
+	}
+
+	tests := []test{
+		{
+			input: abci.RequestPrepareProposal{
+				BlockData: &tmproto.Data{
+					Txs: blobTxs,
+				},
+			},
+			expectedBlobs: []tmproto.Blob{
+				{
+					NamespaceId: decodedBlobTxs[0].Blobs[0].NamespaceId,
+					Data:        decodedBlobTxs[0].Blobs[0].Data,
+				},
+				{
+					NamespaceId: decodedBlobTxs[2].Blobs[0].NamespaceId,
+					Data:        decodedBlobTxs[2].Blobs[0].Data,
+				},
+			},
+			expectedTxs: 2,
+		},
+	}
+
+	for _, tt := range tests {
+		res := testApp.PrepareProposal(tt.input)
+		assert.Equal(t, tt.expectedTxs, len(res.BlockData.Txs))
+		assert.Equal(t, tt.expectedBlobs, res.BlockData.Blobs)
 	}
 }
 
