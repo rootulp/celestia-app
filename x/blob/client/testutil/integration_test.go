@@ -134,6 +134,76 @@ func (s *IntegrationTestSuite) TestSubmitWirePayForBlob() {
 	}
 }
 
+func (s *IntegrationTestSuite) TestIntraNamespaceBlobPriority() {
+	require := s.Require()
+	val := s.network.Validators[0]
+
+	hexNamespace := "0102030405060708"
+	hexBlobA := "aa"
+	hexBlobB := "bb"
+	expectedCode := uint32(0)
+	var respType proto.Message
+	respType = &sdk.TxResponse{}
+
+	s.Require().NoError(s.network.WaitForNextBlock())
+	cmd := paycli.CmdPayForBlob()
+	clientCtx := val.ClientCtx
+
+	outA, err := clitestutil.ExecTestCLICmd(clientCtx, cmd, args(hexNamespace, hexBlobA, s.cfg.BondDenom))
+	require.NoError(err)
+
+	outB, err := clitestutil.ExecTestCLICmd(clientCtx, cmd, args(hexNamespace, hexBlobB, s.cfg.BondDenom))
+	require.NoError(err)
+
+	err = clientCtx.Codec.UnmarshalJSON(outA.Bytes(), respType)
+	require.NoError(err)
+	txRespA := respType.(*sdk.TxResponse)
+	require.Equal(expectedCode, txRespA.Code)
+
+	err = clientCtx.Codec.UnmarshalJSON(outB.Bytes(), respType)
+	require.NoError(err)
+	txRespB := respType.(*sdk.TxResponse)
+	require.Equal(expectedCode, txRespB.Code)
+
+	// events := txRespA.Logs[0].GetEvents()
+	// for _, e := range events {
+	// 	switch e.Type {
+	// 	case types.EventTypePayForBlob:
+	// 		signer := e.GetAttributes()[0].GetValue()
+	// 		_, err = sdk.AccAddressFromBech32(signer)
+	// 		require.NoError(err)
+	// 		blob, err := hex.DecodeString(tc.args[1])
+	// 		require.NoError(err)
+	// 		blobSize, err := strconv.ParseInt(e.GetAttributes()[1].GetValue(), 10, 64)
+	// 		require.NoError(err)
+	// 		require.Equal(len(blob), int(blobSize))
+	// 	}
+	// }
+
+	// wait for the tx to be indexed
+	s.Require().NoError(s.network.WaitForNextBlock())
+	s.Require().NoError(s.network.WaitForNextBlock())
+	s.Require().NoError(s.network.WaitForNextBlock())
+	// s.Require().NoError(s.network.WaitForNextBlock())
+	// s.network.WaitForHeight(15)
+
+	// attempt to query for the transaction using the tx's hash
+	res, err := testfactory.QueryWithoutProof(clientCtx, txRespA.TxHash)
+	require.NoError(err)
+	require.Equal(abci.CodeTypeOK, res.TxResult.Code)
+}
+
+func args(hexNamespace string, hexBlob string, bondDenom string) []string {
+	return []string{
+		hexNamespace,
+		hexBlob,
+		fmt.Sprintf("--from=%s", username),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(bondDenom, sdk.NewInt(2))).String()),
+		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+	}
+}
+
 func TestIntegrationTestSuite(t *testing.T) {
 	suite.Run(t, NewIntegrationTestSuite(network.DefaultConfig()))
 }
