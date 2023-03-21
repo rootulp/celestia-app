@@ -226,7 +226,7 @@ func (s *IntegrationTestSuite) TestSubmitPayForBlob() {
 	val := s.network.Validators[0]
 	namespaceOne := appns.MustNew(
 		appns.NamespaceVersionZero,
-		append(appns.VersionZeroPrefix, bytes.Repeat([]byte{1}, appns.NamespaceIDSize-len(appns.VersionZeroPrefix))...),
+		append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{1}, appns.NamespaceIDSize-len(appns.NamespaceVersionZeroPrefix))...),
 	)
 
 	mustNewBlob := func(ns appns.Namespace, data []byte) *blobtypes.Blob {

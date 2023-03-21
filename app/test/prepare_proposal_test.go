@@ -28,9 +28,9 @@ func TestPrepareProposalBlobSorting(t *testing.T) {
 	accnts := testfactory.GenerateAccounts(6)
 	testApp, kr := testutil.SetupTestAppWithGenesisValSet(accnts...)
 	infos := queryAccountInfo(testApp, accnts, kr)
-	namespaceOne := appns.MustNew(appns.NamespaceVersionZero, append(appns.VersionZeroPrefix, bytes.Repeat([]byte{1}, appconsts.NamespaceSize-len(appns.VersionZeroPrefix))...))
-	namespaceTwo := appns.MustNew(appns.NamespaceVersionZero, append(appns.VersionZeroPrefix, bytes.Repeat([]byte{2}, appconsts.NamespaceSize-len(appns.VersionZeroPrefix))...))
-	namespaceThree := appns.MustNew(appns.NamespaceVersionZero, append(appns.VersionZeroPrefix, bytes.Repeat([]byte{3}, appconsts.NamespaceSize-len(appns.VersionZeroPrefix))...))
+	namespaceOne := appns.MustNew(appns.NamespaceVersionZero, append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{1}, appconsts.NamespaceSize-len(appns.NamespaceVersionZeroPrefix))...))
+	namespaceTwo := appns.MustNew(appns.NamespaceVersionZero, append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{2}, appconsts.NamespaceSize-len(appns.NamespaceVersionZeroPrefix))...))
+	namespaceThree := appns.MustNew(appns.NamespaceVersionZero, append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{3}, appconsts.NamespaceSize-len(appns.NamespaceVersionZeroPrefix))...))
 
 	type test struct {
 		input         abci.RequestPrepareProposal

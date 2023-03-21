@@ -15,9 +15,9 @@ import (
 )
 
 func Test_finalizeLayout(t *testing.T) {
-	ns1 := appns.MustNew(appns.NamespaceVersionZero, append(appns.VersionZeroPrefix, bytes.Repeat([]byte{1}, appconsts.NamespaceSize-len(appns.VersionZeroPrefix))...))
-	ns2 := appns.MustNew(appns.NamespaceVersionZero, append(appns.VersionZeroPrefix, bytes.Repeat([]byte{2}, appconsts.NamespaceSize-len(appns.VersionZeroPrefix))...))
-	ns3 := appns.MustNew(appns.NamespaceVersionZero, append(appns.VersionZeroPrefix, bytes.Repeat([]byte{3}, appconsts.NamespaceSize-len(appns.VersionZeroPrefix))...))
+	ns1 := appns.MustNew(appns.NamespaceVersionZero, append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{1}, appconsts.NamespaceSize-len(appns.NamespaceVersionZeroPrefix))...))
+	ns2 := appns.MustNew(appns.NamespaceVersionZero, append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{2}, appconsts.NamespaceSize-len(appns.NamespaceVersionZeroPrefix))...))
+	ns3 := appns.MustNew(appns.NamespaceVersionZero, append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{3}, appconsts.NamespaceSize-len(appns.NamespaceVersionZeroPrefix))...))
 
 	type test struct {
 		squareSize      uint64

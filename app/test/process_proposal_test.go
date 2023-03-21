@@ -114,7 +114,7 @@ func TestProcessProposal(t *testing.T) {
 	}
 	namespaceOne := appns.MustNew(
 		appns.NamespaceVersionZero,
-		append(appns.VersionZeroPrefix, bytes.Repeat([]byte{1}, appns.NamespaceIDSize-len(appns.VersionZeroPrefix))...),
+		append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{1}, appns.NamespaceIDSize-len(appns.NamespaceVersionZeroPrefix))...),
 	)
 
 	tests := []test{

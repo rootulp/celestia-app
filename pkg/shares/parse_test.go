@@ -25,11 +25,11 @@ func TestParseShares(t *testing.T) {
 	start := true
 	blobOneNamespace := appns.MustNew(
 		appns.NamespaceVersionZero,
-		append(appns.VersionZeroPrefix, bytes.Repeat([]byte{1}, appns.NamespaceIDSize-len(appns.VersionZeroPrefix))...),
+		append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{1}, appns.NamespaceIDSize-len(appns.NamespaceVersionZeroPrefix))...),
 	)
 	blobTwoNamespace := appns.MustNew(
 		appns.NamespaceVersionZero,
-		append(appns.VersionZeroPrefix, bytes.Repeat([]byte{2}, appns.NamespaceIDSize-len(appns.VersionZeroPrefix))...),
+		append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{2}, appns.NamespaceIDSize-len(appns.NamespaceVersionZeroPrefix))...),
 	)
 
 	txShares, _, _ := SplitTxs(generateRandomTxs(2, 1000))

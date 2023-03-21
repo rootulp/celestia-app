@@ -41,11 +41,11 @@ func MustNew(version uint8, id []byte) Namespace {
 // MustNewV0 returns a new namespace with version 0 and the provided id. This
 // function panics if the provided id is not exactly 10 bytes.
 func MustNewV0(id []byte) Namespace {
-	if len(id) != NamespaceIDSize-len(VersionZeroPrefix) {
-		panic(fmt.Sprintf("invalid namespace id length: %v must be %v", len(id), NamespaceIDSize-len(VersionZeroPrefix)))
+	if len(id) != NamespaceVersionZeroIDSize {
+		panic(fmt.Sprintf("invalid namespace id length: %v must be %v", len(id), NamespaceVersionZeroIDSize))
 	}
 
-	ns, err := New(NamespaceVersionZero, append(VersionZeroPrefix, id...))
+	ns, err := New(NamespaceVersionZero, append(NamespaceVersionZeroPrefix, id...))
 	if err != nil {
 		panic(err)
 	}
@@ -96,11 +96,11 @@ func validateVersion(version uint8) error {
 // for the provided version.
 func validateID(version uint8, id []byte) error {
 	if len(id) != NamespaceIDSize {
-		return fmt.Errorf("unsupported namespace id length: id %v must be %v bytes ", id, NamespaceIDSize)
+		return fmt.Errorf("unsupported namespace id length: id %v must be %v bytes but it was %v bytes", id, NamespaceIDSize, len(id))
 	}
 
-	if version == NamespaceVersionZero && !bytes.HasPrefix(id, VersionZeroPrefix) {
-		return fmt.Errorf("unsupported namespace id %v must start with prefix %v", id, VersionZeroPrefix)
+	if version == NamespaceVersionZero && !bytes.HasPrefix(id, NamespaceVersionZeroPrefix) {
+		return fmt.Errorf("unsupported namespace id %v must start with prefix %v", id, NamespaceVersionZeroPrefix)
 	}
 	return nil
 }

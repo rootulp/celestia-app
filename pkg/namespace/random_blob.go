@@ -6,7 +6,7 @@ import (
 
 func RandomBlobNamespace() Namespace {
 	for {
-		randomID := tmrand.Bytes(NamespaceIDSize - len(VersionZeroPrefix))
+		randomID := tmrand.Bytes(NamespaceVersionZeroIDSize)
 		namespace := MustNewV0(randomID)
 
 		if namespace.IsReserved() || namespace.IsParityShares() || namespace.IsTailPadding() {

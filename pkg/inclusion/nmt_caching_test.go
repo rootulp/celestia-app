@@ -23,7 +23,7 @@ func TestWalkCachedSubTreeRoot(t *testing.T) {
 	tr := wrapper.NewErasuredNamespacedMerkleTree(squareSize, 0, nmt.NodeVisitor(strc.Visit))
 	namespaceOne := appns.MustNew(
 		appns.NamespaceVersionZero,
-		append(appns.VersionZeroPrefix, bytes.Repeat([]byte{1}, appns.NamespaceIDSize-len(appns.VersionZeroPrefix))...),
+		append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{1}, appns.NamespaceIDSize-len(appns.NamespaceVersionZeroPrefix))...),
 	)
 	data := append(namespaceOne.Bytes(), []byte("data")...)
 	for i := 0; i < 8; i++ {

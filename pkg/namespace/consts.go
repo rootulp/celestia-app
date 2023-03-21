@@ -14,10 +14,18 @@ const (
 
 	// NamespaceVersionZero is the first namespace version.
 	NamespaceVersionZero = uint8(0)
+
+	// NamespaceZeroPrefixSize is the number of `0` bytes that are prefixed to
+	// namespace IDs for version 0.
+	NamespaceVersionZeroPrefixSize = 22
+
+	// NamespaceVersionZeroIDSize is the number of bytes available for
+	// user-specified namespace ID in a namespace ID for version 0.
+	NamespaceVersionZeroIDSize = NamespaceIDSize - NamespaceVersionZeroPrefixSize
 )
 
 var (
-	VersionZeroPrefix = bytes.Repeat([]byte{0}, 22)
+	NamespaceVersionZeroPrefix = bytes.Repeat([]byte{0}, NamespaceVersionZeroPrefixSize)
 
 	// TxNamespaceID is the namespace reserved for transaction data.
 	TxNamespaceID = MustNewV0([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 1})

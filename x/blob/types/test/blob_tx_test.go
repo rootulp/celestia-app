@@ -24,7 +24,7 @@ func TestValidateBlobTx(t *testing.T) {
 	encCfg := encoding.MakeConfig(app.ModuleEncodingRegisters...)
 	acc := "test"
 	signer := types.GenerateKeyringSigner(t, acc)
-	namespaceOne := appns.MustNewV0(bytes.Repeat([]byte{0x01}, 10))
+	namespaceOne := appns.MustNewV0(bytes.Repeat([]byte{0x01}, appns.NamespaceVersionZeroIDSize))
 	signerAddr, err := signer.GetSignerInfo().GetAddress()
 	require.NoError(t, err)
 

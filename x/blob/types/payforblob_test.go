@@ -65,7 +65,7 @@ func Test_merkleMountainRangeHeights(t *testing.T) {
 // TODO: verify the commitment bytes
 func TestCreateCommitment(t *testing.T) {
 	unsupportedShareVersion := uint8(1)
-	namespaceOne := appns.MustNew(appns.NamespaceVersionZero, append(appns.VersionZeroPrefix, bytes.Repeat([]byte{1}, appconsts.NamespaceSize-len(appns.VersionZeroPrefix))...))
+	namespaceOne := appns.MustNew(appns.NamespaceVersionZero, append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{1}, appconsts.NamespaceSize-len(appns.NamespaceVersionZeroPrefix))...))
 
 	type test struct {
 		name         string
@@ -259,16 +259,17 @@ func totalBlobSize(size int) int {
 
 func validMsgPayForBlobs(t *testing.T) *MsgPayForBlobs {
 	signer := GenerateKeyringSigner(t, TestAccName)
-	ns := bytes.Repeat([]byte{1}, appconsts.NamespaceSize)
+	namespaceOne := append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{0x01}, appns.NamespaceVersionZeroIDSize)...)
 	blob := bytes.Repeat([]byte{2}, totalBlobSize(appconsts.ContinuationSparseShareContentSize*12))
 
 	addr, err := signer.GetSignerInfo().GetAddress()
 	require.NoError(t, err)
 
 	pblob := &tmproto.Blob{
-		Data:         blob,
-		NamespaceId:  ns,
-		ShareVersion: uint32(appconsts.ShareVersionZero),
+		Data:             blob,
+		NamespaceId:      namespaceOne,
+		NamespaceVersion: uint32(appns.NamespaceVersionZero),
+		ShareVersion:     uint32(appconsts.ShareVersionZero),
 	}
 
 	pfb, err := NewMsgPayForBlobs(addr.String(), pblob)

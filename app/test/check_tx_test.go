@@ -22,7 +22,7 @@ func TestCheckTx(t *testing.T) {
 	encCfg := encoding.MakeConfig(app.ModuleEncodingRegisters...)
 	namespaceOne := appns.MustNew(
 		appns.NamespaceVersionZero,
-		append(appns.VersionZeroPrefix, bytes.Repeat([]byte{1}, appns.NamespaceIDSize-len(appns.VersionZeroPrefix))...),
+		append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{1}, appns.NamespaceIDSize-len(appns.NamespaceVersionZeroPrefix))...),
 	)
 
 	accs := []string{"a", "b", "c", "d", "e", "f"}

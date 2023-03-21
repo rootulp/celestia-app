@@ -216,7 +216,7 @@ func CreateCommitments(blobs []*Blob) ([][]byte, error) {
 	return commitments, nil
 }
 
-// ValidatePFBComponents performs basic checks over the components of one or more PFBs.
+// ValidateBlobs performs basic checks over the components of one or more PFBs.
 func ValidateBlobs(blobs ...*Blob) error {
 	if len(blobs) == 0 {
 		return ErrNoBlobs

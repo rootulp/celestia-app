@@ -8,9 +8,9 @@ import (
 )
 
 var (
-	validID         = append(VersionZeroPrefix, bytes.Repeat([]byte{1}, NamespaceSize-len(VersionZeroPrefix))...)
-	tooShortID      = append(VersionZeroPrefix, []byte{1}...)
-	tooLongID       = append(VersionZeroPrefix, bytes.Repeat([]byte{1}, NamespaceSize)...)
+	validID         = append(NamespaceVersionZeroPrefix, bytes.Repeat([]byte{1}, NamespaceVersionZeroIDSize)...)
+	tooShortID      = append(NamespaceVersionZeroPrefix, []byte{1}...)
+	tooLongID       = append(NamespaceVersionZeroPrefix, bytes.Repeat([]byte{1}, NamespaceSize)...)
 	invalidPrefixID = bytes.Repeat([]byte{1}, NamespaceSize)
 )
 
@@ -84,7 +84,7 @@ func TestFrom(t *testing.T) {
 	testCases := []testCase{
 		{
 			name:    "valid namespace",
-			bytes:   append([]byte{NamespaceVersionZero}, append(VersionZeroPrefix, bytes.Repeat([]byte{1}, NamespaceSize-len(VersionZeroPrefix))...)...),
+			bytes:   append([]byte{NamespaceVersionZero}, append(NamespaceVersionZeroPrefix, bytes.Repeat([]byte{1}, NamespaceSize-len(NamespaceVersionZeroPrefix))...)...),
 			wantErr: false,
 			want: Namespace{
 				Version: NamespaceVersionZero,
@@ -93,7 +93,7 @@ func TestFrom(t *testing.T) {
 		},
 		{
 			name:    "unsupported version",
-			bytes:   append([]byte{1}, append(VersionZeroPrefix, bytes.Repeat([]byte{1}, NamespaceSize-len(VersionZeroPrefix))...)...),
+			bytes:   append([]byte{1}, append(NamespaceVersionZeroPrefix, bytes.Repeat([]byte{1}, NamespaceSize-len(NamespaceVersionZeroPrefix))...)...),
 			wantErr: true,
 		},
 		{

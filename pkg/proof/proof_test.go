@@ -74,9 +74,9 @@ func TestNewTxInclusionProof(t *testing.T) {
 }
 
 func TestNewShareInclusionProof(t *testing.T) {
-	namespaceOne := appns.MustNew(appns.NamespaceVersionZero, append(appns.VersionZeroPrefix, bytes.Repeat([]byte{1}, appconsts.NamespaceSize-len(appns.VersionZeroPrefix))...))
-	namespaceTwo := appns.MustNew(appns.NamespaceVersionZero, append(appns.VersionZeroPrefix, bytes.Repeat([]byte{2}, appconsts.NamespaceSize-len(appns.VersionZeroPrefix))...))
-	namespaceThree := appns.MustNew(appns.NamespaceVersionZero, append(appns.VersionZeroPrefix, bytes.Repeat([]byte{3}, appconsts.NamespaceSize-len(appns.VersionZeroPrefix))...))
+	namespaceOne := appns.MustNew(appns.NamespaceVersionZero, append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{1}, appconsts.NamespaceSize-len(appns.NamespaceVersionZeroPrefix))...))
+	namespaceTwo := appns.MustNew(appns.NamespaceVersionZero, append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{2}, appconsts.NamespaceSize-len(appns.NamespaceVersionZeroPrefix))...))
+	namespaceThree := appns.MustNew(appns.NamespaceVersionZero, append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{3}, appconsts.NamespaceSize-len(appns.NamespaceVersionZeroPrefix))...))
 
 	blobs := append(
 		testfactory.GenerateBlobsWithNamespace(
