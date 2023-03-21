@@ -70,15 +70,15 @@ func (n Namespace) Bytes() []byte {
 // ValidateBlobNamespace returns an error if this namespace is not a valid blob namespace.
 func (n Namespace) ValidateBlobNamespace() error {
 	if n.IsReserved() {
-		return fmt.Errorf("invalid blob namespace: %v cannot use a reserved namespace, want > %v", n.Bytes(), MaxReservedNamespace.Bytes())
+		return fmt.Errorf("invalid blob namespace: %v cannot use a reserved namespace ID, want > %v", n.Bytes(), MaxReservedNamespace.Bytes())
 	}
 
 	if n.IsParityShares() {
-		return fmt.Errorf("invalid blob namespace: %v cannot use parity shares namespace", n.Bytes())
+		return fmt.Errorf("invalid blob namespace: %v cannot use parity shares namespace ID", n.Bytes())
 	}
 
 	if n.IsTailPadding() {
-		return fmt.Errorf("invalid blob namespace: %v cannot use tail padding namespace", n.Bytes())
+		return fmt.Errorf("invalid blob namespace: %v cannot use tail padding namespace ID", n.Bytes())
 	}
 
 	return nil
