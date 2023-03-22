@@ -137,16 +137,16 @@ func TestRawData(t *testing.T) {
 		want    []byte
 		wantErr bool
 	}
-	sparseNamespaceID := bytes.Repeat([]byte{1}, appconsts.NamespaceSize)
+	sparseNamespaceID := appns.MustNewV0(bytes.Repeat([]byte{0x1}, appns.NamespaceVersionZeroIDSize))
 	firstSparseShare := append(
-		sparseNamespaceID,
+		sparseNamespaceID.Bytes(),
 		[]byte{
 			1,           // info byte
 			0, 0, 0, 10, // sequence len
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 10, // data
 		}...)
 	continuationSparseShare := append(
-		sparseNamespaceID,
+		sparseNamespaceID.Bytes(),
 		[]byte{
 			0,                             // info byte
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 10, // data
