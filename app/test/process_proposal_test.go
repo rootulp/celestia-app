@@ -112,10 +112,8 @@ func TestProcessProposal(t *testing.T) {
 		mutator        func(*core.Data)
 		expectedResult abci.ResponseProcessProposal_Result
 	}
-	namespaceOne := appns.MustNew(
-		appns.NamespaceVersionZero,
-		append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{1}, appns.NamespaceIDSize-len(appns.NamespaceVersionZeroPrefix))...),
-	)
+	namespaceOne := appns.MustNewV0(bytes.Repeat([]byte{1}, appns.NamespaceVersionZeroIDSize))
+	data := []byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
 
 	tests := []test{
 		{
@@ -139,9 +137,9 @@ func TestProcessProposal(t *testing.T) {
 				d.Blobs = append(
 					d.Blobs,
 					core.Blob{
-						NamespaceVersion: uint32(namespaceOne.Version),
 						NamespaceId:      namespaceOne.ID,
-						Data:             []byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+						Data:             data,
+						NamespaceVersion: uint32(namespaceOne.Version),
 					},
 				)
 			},
@@ -152,9 +150,9 @@ func TestProcessProposal(t *testing.T) {
 			input: validData(),
 			mutator: func(d *core.Data) {
 				d.Blobs[0] = core.Blob{
-					NamespaceVersion: uint32(namespaceOne.Version),
 					NamespaceId:      namespaceOne.ID,
-					Data:             []byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+					Data:             data,
+					NamespaceVersion: uint32(namespaceOne.Version),
 				}
 			},
 			expectedResult: abci.ResponseProcessProposal_REJECT,
@@ -163,7 +161,11 @@ func TestProcessProposal(t *testing.T) {
 			name:  "invalid namespace TailPadding",
 			input: validData(),
 			mutator: func(d *core.Data) {
-				d.Blobs[0] = core.Blob{NamespaceId: appns.TailPaddingNamespaceID.ID, Data: []byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
+				d.Blobs[0] = core.Blob{
+					NamespaceId:      appns.TailPaddingNamespaceID.ID,
+					Data:             data,
+					NamespaceVersion: uint32(appns.TailPaddingNamespaceID.Version),
+				}
 			},
 			expectedResult: abci.ResponseProcessProposal_REJECT,
 		},
@@ -171,7 +173,11 @@ func TestProcessProposal(t *testing.T) {
 			name:  "invalid namespace TxNamespace",
 			input: validData(),
 			mutator: func(d *core.Data) {
-				d.Blobs[0] = core.Blob{NamespaceId: appns.TxNamespaceID.ID, Data: []byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
+				d.Blobs[0] = core.Blob{
+					NamespaceId:      appns.TxNamespaceID.ID,
+					Data:             data,
+					NamespaceVersion: uint32(appns.TxNamespaceID.Version),
+				}
 			},
 			expectedResult: abci.ResponseProcessProposal_REJECT,
 		},

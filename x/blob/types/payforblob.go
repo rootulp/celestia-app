@@ -165,21 +165,19 @@ func (msg *MsgPayForBlobs) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{address}
 }
 
-// CreateCommitment generates the commitment bytes for a given namespace,
-// blobData, and shareVersion using a namespace merkle tree and the rules
-// described at [Message layout rationale] and [Non-interactive default rules].
+// CreateCommitment generates the share commitment for a given blob.
+// See [Message layout rationale] and [Non-interactive default rules].
 //
 // [Message layout rationale]: https://github.com/celestiaorg/celestia-specs/blob/e59efd63a2165866584833e91e1cb8a6ed8c8203/src/rationale/message_block_layout.md?plain=1#L12
 // [Non-interactive default rules]: https://github.com/celestiaorg/celestia-specs/blob/e59efd63a2165866584833e91e1cb8a6ed8c8203/src/rationale/message_block_layout.md?plain=1#L36
 func CreateCommitment(blob *Blob) ([]byte, error) {
 	coreblob := coretypes.Blob{
-		NamespaceID:  blob.NamespaceId,
-		Data:         blob.Data,
-		ShareVersion: uint8(blob.ShareVersion),
+		NamespaceID:      blob.NamespaceId,
+		Data:             blob.Data,
+		ShareVersion:     uint8(blob.ShareVersion),
+		NamespaceVersion: uint8(blob.NamespaceVersion),
 	}
 
-	// split into shares that are length delimited and include the namespace in
-	// each share
 	shares, err := appshares.SplitBlobs(0, nil, []coretypes.Blob{coreblob}, false)
 	if err != nil {
 		return nil, err
@@ -201,16 +199,23 @@ func CreateCommitment(blob *Blob) ([]byte, error) {
 	subTreeRoots := make([][]byte, len(leafSets))
 	for i, set := range leafSets {
 		// create the nmt todo(evan) use nmt wrapper
-		tree := nmt.New(sha256.New(), nmt.NamespaceIDSize(appconsts.NamespaceSize))
+		tree := nmt.New(sha256.New(), nmt.NamespaceIDSize(appns.NamespaceSize))
 		for _, leaf := range set {
+			namespace, err := appns.New(uint8(blob.NamespaceVersion), blob.NamespaceId)
+			if err != nil {
+				return nil, err
+			}
 			// the namespace must be added again here even though it is already
 			// included in the leaf to ensure that the hash will match that of
 			// the nmt wrapper (pkg/wrapper). Each namespace is added to keep
 			// the namespace in the share, and therefore the parity data, while
 			// also allowing for the manual addition of the parity namespace to
 			// the parity data.
-			nsLeaf := append(make([]byte, 0), append(blob.NamespaceId, leaf...)...)
-			err := tree.Push(nsLeaf)
+			nsLeaf := make([]byte, 0)
+			nsLeaf = append(nsLeaf, namespace.Bytes()...)
+			nsLeaf = append(nsLeaf, leaf...)
+
+			err = tree.Push(nsLeaf)
 			if err != nil {
 				return nil, err
 			}
