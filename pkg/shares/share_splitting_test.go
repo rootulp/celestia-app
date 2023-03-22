@@ -37,7 +37,7 @@ func TestSplitTxs_forTxShares(t *testing.T) {
 						[]byte{
 							0x1,                // info byte
 							0x0, 0x0, 0x0, 0x2, // 1 byte (unit) + 1 byte (unit length) = 2 bytes sequence length
-							0x0, 0x0, 0x0, 0x29, // reserved bytes
+							0x0, 0x0, 0x0, 0x2a, // reserved bytes
 							0x1, // unit length of first transaction
 							0xa, // data of first transaction
 						}...,
@@ -55,7 +55,7 @@ func TestSplitTxs_forTxShares(t *testing.T) {
 						[]byte{
 							0x1,                // info byte
 							0x0, 0x0, 0x0, 0x4, // 2 bytes (first transaction) + 2 bytes (second transaction) = 4 bytes sequence length
-							0x0, 0x0, 0x0, 0x29, // reserved bytes
+							0x0, 0x0, 0x0, 0x2a, // reserved bytes
 							0x1, // unit length of first transaction
 							0xa, // data of first transaction
 							0x1, // unit length of second transaction
@@ -75,7 +75,7 @@ func TestSplitTxs_forTxShares(t *testing.T) {
 						[]byte{
 							0x1,                // info byte
 							0x0, 0x0, 0x2, 0x2, // 512 (unit) + 2 (unit length) = 514 sequence length
-							0x0, 0x0, 0x0, 0x29, // reserved bytes
+							0x0, 0x0, 0x0, 0x2a, // reserved bytes
 							128, 4, // unit length of transaction is 512
 						}...,
 					),
@@ -90,7 +90,7 @@ func TestSplitTxs_forTxShares(t *testing.T) {
 								0x0, 0x0, 0x0, 0x0, // reserved bytes
 							}...,
 						),
-						bytes.Repeat([]byte{0xc}, 43)..., // continuation data of transaction
+						bytes.Repeat([]byte{0xc}, 44)..., // continuation data of transaction
 					),
 				),
 			},
@@ -105,7 +105,7 @@ func TestSplitTxs_forTxShares(t *testing.T) {
 						[]byte{
 							0x1,                // info byte
 							0x0, 0x0, 0x2, 0x4, // 2 bytes (first transaction) + 514 bytes (second transaction) = 516 bytes sequence length
-							0x0, 0x0, 0x0, 0x29, // reserved bytes
+							0x0, 0x0, 0x0, 0x2a, // reserved bytes
 							1,      // unit length of first transaction
 							0xa,    // data of first transaction
 							128, 4, // unit length of second transaction is 512
@@ -121,7 +121,7 @@ func TestSplitTxs_forTxShares(t *testing.T) {
 								0x0, 0x0, 0x0, 0x0, // reserved bytes
 							}...,
 						),
-						bytes.Repeat([]byte{0xc}, 45)..., // continuation data of second transaction
+						bytes.Repeat([]byte{0xc}, 46)..., // continuation data of second transaction
 					),
 				),
 			},
@@ -136,7 +136,7 @@ func TestSplitTxs_forTxShares(t *testing.T) {
 						[]byte{
 							0x1,                // info byte
 							0x0, 0x0, 0x2, 0x4, // 514 bytes (first transaction) + 2 bytes (second transaction) = 516 bytes sequence length
-							0x0, 0x0, 0x0, 0x29, // reserved bytes
+							0x0, 0x0, 0x0, 0x2a, // reserved bytes
 							128, 4, // unit length of first transaction is 512
 						}...,
 					),
@@ -147,10 +147,10 @@ func TestSplitTxs_forTxShares(t *testing.T) {
 						appns.TxNamespaceID.Bytes(),
 						[]byte{
 							0x0,                 // info byte
-							0x0, 0x0, 0x0, 0x50, // reserved bytes
+							0x0, 0x0, 0x0, 0x52, // reserved bytes
 							0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, // continuation data of first transaction
 							0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, // continuation data of first transaction
-							0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, // continuation data of first transaction
+							0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, // continuation data of first transaction
 							1,   // unit length of second transaction
 							0xa, // data of second transaction
 						}...,
@@ -185,7 +185,7 @@ func TestSplitTxs(t *testing.T) {
 				[]byte{
 					0x1,                // info byte
 					0x0, 0x0, 0x0, 0x2, // 1 byte (unit) + 1 byte (unit length) = 2 bytes sequence length
-					0x0, 0x0, 0x0, 0x29, // reserved bytes
+					0x0, 0x0, 0x0, 0x2a, // reserved bytes
 					0x1, // unit length of first transaction
 					0xa, // data of first transaction
 				}...,
@@ -202,7 +202,7 @@ func TestSplitTxs(t *testing.T) {
 				[]uint8{
 					0x1,               // info byte
 					0x0, 0x0, 0x0, 13, // 1 byte (unit) + 1 byte (unit length) = 2 bytes sequence length
-					0x0, 0x0, 0x0, 0x29, // reserved bytes
+					0x0, 0x0, 0x0, 0x2a, // reserved bytes
 					12,                                                               // unit length of first transaction
 					0xa, 0x1, 0xb, 0x12, 0x1, 0xa, 0x1a, 0x4, 0x49, 0x4e, 0x44, 0x58, // data of first transaction
 				}...,
@@ -217,7 +217,7 @@ func TestSplitTxs(t *testing.T) {
 				[]uint8{
 					0x1,                // info byte
 					0x0, 0x0, 0x2, 0x2, // 512 (unit) + 2 (unit length) = 514 sequence length
-					0x0, 0x0, 0x0, 0x29, // reserved bytes
+					0x0, 0x0, 0x0, 0x2a, // reserved bytes
 					128, 4, // unit length of transaction is 512
 				}...,
 			),
@@ -231,7 +231,7 @@ func TestSplitTxs(t *testing.T) {
 						0x0, 0x0, 0x0, 0x0, // reserved bytes
 					}...,
 				),
-				bytes.Repeat([]byte{0xc}, 43)..., // continuation data of transaction
+				bytes.Repeat([]byte{0xc}, 44)..., // continuation data of transaction
 			),
 		),
 	}
