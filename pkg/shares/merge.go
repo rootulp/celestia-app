@@ -1,7 +1,6 @@
 package shares
 
 import (
-	"github.com/celestiaorg/celestia-app/pkg/appconsts"
 	appns "github.com/celestiaorg/celestia-app/pkg/namespace"
 	"github.com/celestiaorg/rsmt2d"
 	coretypes "github.com/tendermint/tendermint/types"
@@ -26,7 +25,7 @@ func merge(eds *rsmt2d.ExtendedDataSquare) (coretypes.Data, error) {
 
 		for _, share := range row[:squareSize] {
 			// sort the data of that share types via namespace
-			ns, err := appns.From(share[:appconsts.NamespaceSize])
+			ns, err := appns.From(share[:appns.NamespaceSize])
 			if err != nil {
 				return coretypes.Data{}, err
 			}

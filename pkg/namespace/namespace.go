@@ -100,7 +100,7 @@ func validateID(version uint8, id []byte) error {
 	}
 
 	if version == NamespaceVersionZero && !bytes.HasPrefix(id, NamespaceVersionZeroPrefix) {
-		return fmt.Errorf("unsupported namespace id %v must start with prefix %v", id, NamespaceVersionZeroPrefix)
+		return fmt.Errorf("unsupported namespace id with version %v. ID %v must start with %v leading zeros", version, id, len(NamespaceVersionZeroPrefix))
 	}
 	return nil
 }

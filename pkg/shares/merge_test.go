@@ -39,6 +39,8 @@ func Test_merge_randomData(t *testing.T) {
 	}
 
 	tests := []test{
+		{"just one tx", 1, 0, 40},
+		{"just one blob", 0, 1, 40},
 		{"one of each random small size", 1, 1, 40},
 		{"one of each random large size", 1, 1, 400},
 		{"many of each random large size", 10, 10, 40},
@@ -73,6 +75,7 @@ func Test_merge_randomData(t *testing.T) {
 // https://github.com/celestiaorg/celestia-node/blob/a27f8488a4d732b00a9ae2ff8b212040111151c7/state/integration_test.go#L119-L121
 func Test_merge_sampleBlock(t *testing.T) {
 	var pb tmproto.Block
+	// TODO update sampleBlock
 	err := json.Unmarshal([]byte(sampleBlock), &pb)
 	require.NoError(t, err)
 

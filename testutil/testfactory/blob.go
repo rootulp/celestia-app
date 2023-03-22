@@ -1,6 +1,7 @@
 package testfactory
 
 import (
+	"bytes"
 	"sort"
 
 	"github.com/celestiaorg/celestia-app/pkg/appconsts"
@@ -47,11 +48,12 @@ func GenerateBlobsWithNamespace(count int, blobSize int, ns appns.Namespace) typ
 	return blobs
 }
 
-func GenerateRandomBlob(size int) types.Blob {
+func GenerateRandomBlob(dataSize int) types.Blob {
 	blob := types.Blob{
-		NamespaceID:  tmrand.Bytes(appconsts.NamespaceSize),
-		Data:         tmrand.Bytes(size),
-		ShareVersion: appconsts.ShareVersionZero,
+		NamespaceVersion: appns.NamespaceVersionZero,
+		NamespaceID:      append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{0x1}, appns.NamespaceVersionZeroIDSize)...),
+		Data:             tmrand.Bytes(dataSize),
+		ShareVersion:     appconsts.ShareVersionZero,
 	}
 	return blob
 }
