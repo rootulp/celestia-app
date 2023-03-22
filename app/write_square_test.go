@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/celestiaorg/celestia-app/pkg/appconsts"
 	appns "github.com/celestiaorg/celestia-app/pkg/namespace"
 	"github.com/celestiaorg/celestia-app/pkg/shares"
 	"github.com/celestiaorg/celestia-app/testutil/blobfactory"
@@ -15,9 +14,9 @@ import (
 )
 
 func Test_finalizeLayout(t *testing.T) {
-	ns1 := appns.MustNew(appns.NamespaceVersionZero, append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{1}, appconsts.NamespaceSize-len(appns.NamespaceVersionZeroPrefix))...))
-	ns2 := appns.MustNew(appns.NamespaceVersionZero, append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{2}, appconsts.NamespaceSize-len(appns.NamespaceVersionZeroPrefix))...))
-	ns3 := appns.MustNew(appns.NamespaceVersionZero, append(appns.NamespaceVersionZeroPrefix, bytes.Repeat([]byte{3}, appconsts.NamespaceSize-len(appns.NamespaceVersionZeroPrefix))...))
+	ns1 := appns.MustNewV0(bytes.Repeat([]byte{1}, appns.NamespaceVersionZeroIDSize))
+	ns2 := appns.MustNewV0(bytes.Repeat([]byte{2}, appns.NamespaceVersionZeroIDSize))
+	ns3 := appns.MustNewV0(bytes.Repeat([]byte{3}, appns.NamespaceVersionZeroIDSize))
 
 	type test struct {
 		squareSize      uint64
