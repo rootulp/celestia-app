@@ -80,11 +80,15 @@ func TestFrom(t *testing.T) {
 		wantErr bool
 		want    Namespace
 	}
+	validNamespace := []byte{}
+	validNamespace = append(validNamespace, NamespaceVersionZero)
+	validNamespace = append(validNamespace, NamespaceVersionZeroPrefix...)
+	validNamespace = append(validNamespace, bytes.Repeat([]byte{0x1}, NamespaceVersionZeroIDSize)...)
 
 	testCases := []testCase{
 		{
 			name:    "valid namespace",
-			bytes:   append([]byte{NamespaceVersionZero}, append(NamespaceVersionZeroPrefix, bytes.Repeat([]byte{1}, NamespaceSize-len(NamespaceVersionZeroPrefix))...)...),
+			bytes:   validNamespace,
 			wantErr: false,
 			want: Namespace{
 				Version: NamespaceVersionZero,
