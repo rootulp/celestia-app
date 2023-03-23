@@ -382,6 +382,11 @@ func TestNewMsgPayForBlobs(t *testing.T) {
 
 			for i, blob := range tc.blobs {
 				assert.Equal(t, uint32(len(blob.Data)), msgPFB.BlobSizes[i])
+				ns, err := appns.From(msgPFB.Namespaces[i])
+				assert.NoError(t, err)
+				assert.Equal(t, ns.ID, blob.NamespaceId)
+				assert.Equal(t, uint32(ns.Version), blob.NamespaceVersion)
+
 				expectedCommitment, err := CreateCommitment(blob)
 				require.NoError(t, err)
 				assert.Equal(t, expectedCommitment, msgPFB.ShareCommitments[i])
