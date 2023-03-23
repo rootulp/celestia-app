@@ -3,7 +3,6 @@ package wrapper
 import (
 	"bytes"
 	"crypto/sha256"
-	"fmt"
 	"sort"
 	"testing"
 
@@ -132,7 +131,6 @@ func generateRandNamespacedRawData(count int) (result [][]byte) {
 	}
 
 	sortByteArrays(result)
-	fmt.Printf("result: %v", result)
 	return result
 }
 
