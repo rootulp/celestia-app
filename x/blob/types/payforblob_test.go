@@ -272,11 +272,10 @@ func validMsgPayForBlobs(t *testing.T) *MsgPayForBlobs {
 }
 
 func TestNewMsgPayForBlobs(t *testing.T) {
-	type test struct {
+	type testCase struct {
+		name        string
 		signer      string
-		namespaces  []appns.Namespace
-		blobs       [][]byte
-		versions    []uint8
+		blobs       []*tmproto.Blob
 		expectedErr bool
 	}
 
@@ -285,66 +284,109 @@ func TestNewMsgPayForBlobs(t *testing.T) {
 	require.NoError(t, err)
 	addr, err := rec.GetAddress()
 	require.NoError(t, err)
+	ns1 := appns.MustNewV0(bytes.Repeat([]byte{1}, appns.NamespaceVersionZeroIDSize))
+	ns2 := appns.MustNewV0(bytes.Repeat([]byte{2}, appns.NamespaceVersionZeroIDSize))
 
-	tests := []test{
+	testCases := []testCase{
 		{
-			signer:      addr.String(),
-			namespaces:  []appns.Namespace{appns.RandomBlobNamespace()},
-			blobs:       [][]byte{{1}},
-			versions:    make([]uint8, 1),
-			expectedErr: false,
-		},
-		{
-			signer:      addr.String(),
-			namespaces:  []appns.Namespace{appns.RandomBlobNamespace()},
-			blobs:       [][]byte{tmrand.Bytes(1000000)},
-			versions:    make([]uint8, 1),
-			expectedErr: false,
-		},
-		{
+			name:   "valid msg PFB with small blob",
 			signer: addr.String(),
-			namespaces: []appns.Namespace{
+			blobs: []*tmproto.Blob{
 				{
-					Version: appns.NamespaceVersionZero,
-					ID:      []byte{1, 2, 3, 4, 5, 6, 7},
+					NamespaceVersion: uint32(ns1.Version),
+					NamespaceId:      ns1.ID,
+					Data:             []byte{1},
+					ShareVersion:     uint32(appconsts.ShareVersionZero),
 				},
 			},
-			blobs:       [][]byte{tmrand.Bytes(100)},
-			versions:    make([]uint8, 1),
+			expectedErr: false,
+		},
+		{
+			name:   "valid msg PFB with large blob",
+			signer: addr.String(),
+			blobs: []*tmproto.Blob{
+				{
+					NamespaceVersion: uint32(ns1.Version),
+					NamespaceId:      ns1.ID,
+					Data:             tmrand.Bytes(1000000),
+					ShareVersion:     uint32(appconsts.ShareVersionZero),
+				},
+			},
+			expectedErr: false,
+		},
+		{
+			name:   "valid msg PFB with two blobs",
+			signer: addr.String(),
+			blobs: []*tmproto.Blob{
+				{
+					NamespaceVersion: uint32(ns1.Version),
+					NamespaceId:      ns1.ID,
+					Data:             []byte{1},
+					ShareVersion:     uint32(appconsts.ShareVersionZero),
+				},
+				{
+					NamespaceVersion: uint32(ns2.Version),
+					NamespaceId:      ns2.ID,
+					Data:             []byte{2},
+					ShareVersion:     uint32(appconsts.ShareVersionZero),
+				},
+			},
+		},
+		{
+			name:   "unsupported share version returns an error",
+			signer: addr.String(),
+			blobs: []*tmproto.Blob{
+				{
+					NamespaceVersion: uint32(ns1.Version),
+					NamespaceId:      ns1.ID,
+					Data:             tmrand.Bytes(1000000),
+					ShareVersion:     uint32(10), // unsupported share version
+				},
+			},
 			expectedErr: true,
 		},
 		{
-			signer:      addr.String(),
-			namespaces:  []appns.Namespace{appns.TxNamespaceID},
-			blobs:       [][]byte{tmrand.Bytes(100)},
-			versions:    make([]uint8, 1),
+			name:   "msg PFB with tx namespace returns an error",
+			signer: addr.String(),
+			blobs: []*tmproto.Blob{
+				{
+					NamespaceVersion: uint32(appns.TxNamespaceID.Version),
+					NamespaceId:      appns.TxNamespaceID.ID,
+					Data:             tmrand.Bytes(1000000),
+					ShareVersion:     uint32(appconsts.ShareVersionZero),
+				},
+			},
 			expectedErr: true,
 		},
 		{
-			signer:      addr.String()[:10],
-			namespaces:  []appns.Namespace{appns.RandomBlobNamespace()},
-			blobs:       [][]byte{tmrand.Bytes(100)},
-			versions:    make([]uint8, 1),
+			name:   "msg PFB with invalid signer returns an error",
+			signer: addr.String()[:10],
+			blobs: []*tmproto.Blob{
+				{
+					NamespaceVersion: uint32(ns1.Version),
+					NamespaceId:      ns1.ID,
+					Data:             []byte{1},
+					ShareVersion:     uint32(appconsts.ShareVersionZero),
+				},
+			},
 			expectedErr: true,
 		},
 	}
-	for _, tt := range tests {
-		blob := &Blob{
-			NamespaceId:      tt.namespaces[0].ID,
-			Data:             tt.blobs[0],
-			ShareVersion:     uint32(appconsts.DefaultShareVersion),
-			NamespaceVersion: uint32(tt.namespaces[0].Version),
-		}
-		mpfb, err := NewMsgPayForBlobs(tt.signer, blob)
-		if tt.expectedErr {
-			assert.Error(t, err)
-			continue
-		}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			msgPFB, err := NewMsgPayForBlobs(tc.signer, tc.blobs...)
+			if tc.expectedErr {
+				assert.Error(t, err)
+				return
+			}
 
-		expectedCommitment, err := CreateCommitment(blob)
-		require.NoError(t, err)
-		assert.Equal(t, expectedCommitment, mpfb.ShareCommitments[0])
-		assert.Equal(t, uint32(len(tt.blobs[0])), mpfb.BlobSizes[0])
+			for i, blob := range tc.blobs {
+				assert.Equal(t, uint32(len(blob.Data)), msgPFB.BlobSizes[i])
+				expectedCommitment, err := CreateCommitment(blob)
+				require.NoError(t, err)
+				assert.Equal(t, expectedCommitment, msgPFB.ShareCommitments[i])
+			}
+		})
 	}
 }
 
