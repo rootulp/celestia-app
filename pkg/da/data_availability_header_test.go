@@ -2,10 +2,12 @@ package da
 
 import (
 	"bytes"
+	"sort"
 	"strings"
 	"testing"
 
 	"github.com/celestiaorg/celestia-app/pkg/appconsts"
+	appns "github.com/celestiaorg/celestia-app/pkg/namespace"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -39,22 +41,16 @@ func TestNewDataAvailabilityHeader(t *testing.T) {
 
 	tests := []test{
 		{
-			name: "typical",
-			expectedHash: []byte{
-				0x71, 0x3d, 0x9, 0x9c, 0x2e, 0xd1, 0xfe, 0xed, 0x64, 0x8d, 0xb0, 0x6f, 0xb0, 0xf2, 0x4b, 0xe,
-				0xcd, 0x86, 0x37, 0x53, 0xb5, 0x40, 0x6c, 0x72, 0x3d, 0xf5, 0xa7, 0xe2, 0x90, 0xb4, 0x70, 0x32,
-			},
-			squareSize: 2,
-			shares:     generateShares(4, 1),
+			name:         "typical",
+			expectedHash: []byte{0xeb, 0xfd, 0xb5, 0xc5, 0x52, 0x59, 0xd6, 0xe, 0x72, 0x6b, 0xde, 0x58, 0x7, 0x9a, 0x58, 0xd2, 0x18, 0x7b, 0xc9, 0x44, 0x7, 0x6e, 0xbe, 0x74, 0x47, 0x67, 0x45, 0xa3, 0xb7, 0x3a, 0x52, 0x47},
+			squareSize:   2,
+			shares:       generateShares(4),
 		},
 		{
-			name: "max square size",
-			expectedHash: []byte{
-				0xe2, 0x47, 0xdc, 0x2b, 0xa4, 0xac, 0x57, 0xb8, 0x27, 0xc6, 0xb5, 0xc0, 0x2c, 0x7a, 0xed, 0xfb,
-				0x30, 0x25, 0xe8, 0xa7, 0x8b, 0xde, 0x75, 0xb4, 0xc0, 0xd4, 0xaf, 0xe8, 0x10, 0xa1, 0xd9, 0xc4,
-			},
-			squareSize: appconsts.DefaultMaxSquareSize,
-			shares:     generateShares(appconsts.DefaultMaxSquareSize*appconsts.DefaultMaxSquareSize, 99),
+			name:         "max square size",
+			expectedHash: []byte{0x48, 0x28, 0xa9, 0xef, 0x79, 0xc2, 0x12, 0x12, 0xc, 0x53, 0x83, 0x27, 0x55, 0x7d, 0x42, 0xdd, 0x64, 0x74, 0xad, 0x4e, 0x82, 0xcb, 0xa0, 0x43, 0xed, 0x14, 0x2, 0x54, 0x0, 0x3b, 0xf6, 0x11},
+			squareSize:   appconsts.DefaultMaxSquareSize,
+			shares:       generateShares(appconsts.DefaultMaxSquareSize * appconsts.DefaultMaxSquareSize),
 		},
 	}
 
@@ -83,13 +79,13 @@ func TestExtendShares(t *testing.T) {
 			name:        "too large square size",
 			expectedErr: true,
 			squareSize:  appconsts.DefaultMaxSquareSize + 1,
-			shares:      generateShares((appconsts.DefaultMaxSquareSize+1)*(appconsts.DefaultMaxSquareSize+1), 1),
+			shares:      generateShares((appconsts.DefaultMaxSquareSize + 1) * (appconsts.DefaultMaxSquareSize + 1)),
 		},
 		{
 			name:        "invalid number of shares",
 			expectedErr: true,
 			squareSize:  2,
-			shares:      generateShares(5, 1),
+			shares:      generateShares(5),
 		},
 	}
 
@@ -111,7 +107,7 @@ func TestDataAvailabilityHeaderProtoConversion(t *testing.T) {
 		dah  DataAvailabilityHeader
 	}
 
-	shares := generateShares(appconsts.DefaultMaxSquareSize*appconsts.DefaultMaxSquareSize, 1)
+	shares := generateShares(appconsts.DefaultMaxSquareSize * appconsts.DefaultMaxSquareSize)
 	eds, err := ExtendShares(appconsts.DefaultMaxSquareSize, shares)
 	require.NoError(t, err)
 	bigdah := NewDataAvailabilityHeader(eds)
@@ -146,7 +142,7 @@ func Test_DAHValidateBasic(t *testing.T) {
 		errStr    string
 	}
 
-	shares := generateShares(appconsts.DefaultMaxSquareSize*appconsts.DefaultMaxSquareSize, 1)
+	shares := generateShares(appconsts.DefaultMaxSquareSize * appconsts.DefaultMaxSquareSize)
 	eds, err := ExtendShares(appconsts.DefaultMaxSquareSize, shares)
 	require.NoError(t, err)
 	bigdah := NewDataAvailabilityHeader(eds)
@@ -217,10 +213,28 @@ func Test_DAHValidateBasic(t *testing.T) {
 	}
 }
 
-func generateShares(count int, repeatByte byte) [][]byte {
-	shares := make([][]byte, count)
+// generateShares generates count number of shares with a constant namespace and
+// share contents.
+func generateShares(count int) (shares [][]byte) {
+	ns1 := appns.MustNewV0(bytes.Repeat([]byte{1}, appns.NamespaceVersionZeroIDSize))
+
 	for i := 0; i < count; i++ {
-		shares[i] = bytes.Repeat([]byte{repeatByte}, appconsts.ShareSize)
+		share := generateShare(ns1.Bytes())
+		shares = append(shares, share)
 	}
+	sortByteArrays(shares)
 	return shares
+}
+
+func generateShare(namespace []byte) (share []byte) {
+	remainder := bytes.Repeat([]byte{0xFF}, appconsts.ShareSize-len(namespace))
+	share = append(share, namespace...)
+	share = append(share, remainder...)
+	return share
+}
+
+func sortByteArrays(arr [][]byte) {
+	sort.Slice(arr, func(i, j int) bool {
+		return bytes.Compare(arr[i], arr[j]) < 0
+	})
 }
