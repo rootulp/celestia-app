@@ -108,7 +108,9 @@ func TestCheckTx(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		resp := testApp.CheckTx(abci.RequestCheckTx{Type: tt.checkType, Tx: tt.getTx()})
-		assert.Equal(t, tt.expectedABCICode, resp.Code, tt.name, resp.Log)
+		t.Run(tt.name, func(t *testing.T) {
+			resp := testApp.CheckTx(abci.RequestCheckTx{Type: tt.checkType, Tx: tt.getTx()})
+			assert.Equal(t, tt.expectedABCICode, resp.Code, tt.name, resp.Log)
+		})
 	}
 }

@@ -72,15 +72,18 @@ func ValidateBlobTx(txcfg client.TxEncodingConfig, bTx tmproto.BlobTx) error {
 		return ErrBlobSizeMismatch.Wrapf("actual %v declared %v", sizes, pfb.BlobSizes)
 	}
 
-	for i := range pfb.Namespaces {
-		// check that the metadata matches
-		// TODO validate that
+	for i, ns := range pfb.Namespaces {
+		pfbNamespace, err := appns.From(ns)
+		if err != nil {
+			return err
+		}
+
 		blobNs, err := appns.New(uint8(bTx.Blobs[i].NamespaceVersion), bTx.Blobs[i].NamespaceId)
 		if err != nil {
 			return err
 		}
 
-		if !bytes.Equal(blobNs.Bytes(), pfb.Namespaces[i]) {
+		if !bytes.Equal(blobNs.Bytes(), pfbNamespace.Bytes()) {
 			return ErrNamespaceMismatch.Wrapf("%v %v", blobNs.Bytes(), pfb.Namespaces[i])
 		}
 	}
