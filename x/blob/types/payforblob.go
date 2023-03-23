@@ -38,7 +38,7 @@ func NewMsgPayForBlobs(signer string, blobs ...*Blob) (*MsgPayForBlobs, error) {
 
 	namespaceVersions, namespaceIds, sizes, shareVersions := extractBlobComponents(blobs)
 	namespaces := []appns.Namespace{}
-	for _, i := range namespaceVersions {
+	for i := range namespaceVersions {
 		if namespaceVersions[i] > math.MaxUint8 {
 			return nil, fmt.Errorf("namespace version %d is too large (max %d)", namespaceVersions[i], math.MaxUint8)
 		}
