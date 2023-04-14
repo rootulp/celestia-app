@@ -7,6 +7,7 @@ import (
 	"github.com/celestiaorg/celestia-app/app"
 	"github.com/celestiaorg/celestia-app/app/encoding"
 	"github.com/celestiaorg/celestia-app/testutil"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
@@ -78,6 +79,8 @@ func TestPrepareProposalConsistency(t *testing.T) {
 							Txs: coretypes.Txs(txs).ToSliceOfBytes(),
 						},
 					})
+					// No Blobs make it into the BlockData because signature verification fails
+					assert.Len(t, resp.BlockData.Blobs, tt.blobCount)
 					res := testApp.ProcessProposal(abci.RequestProcessProposal{
 						BlockData: resp.BlockData,
 						Header: core.Header{
