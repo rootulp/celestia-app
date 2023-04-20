@@ -9,6 +9,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
+	"github.com/cosmos/cosmos-sdk/x/distribution"
 	distrclient "github.com/cosmos/cosmos-sdk/x/distribution/client"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
@@ -126,4 +127,25 @@ func getLegacyProposalHandlers() (result []govclient.ProposalHandler) {
 	)
 
 	return result
+}
+
+func newDistModule() distModule {
+	return distModule{distribution.AppModuleBasic{}}
+}
+
+// govModule is a custom wrapper around the x/distribution module's AppModuleBasic
+// implementation to provide custom default genesis state.
+type distModule struct {
+	distribution.AppModuleBasic
+}
+
+// DefaultGenesis returns custom x/distribution module genesis state.
+func (d distModule) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
+	genState := d.DefaultGenesis(cdc)
+	genState.DistributionParams.BonusProposerReward = 0
+	// genParams.DistributionParams.BaseProposerReward = sdk.MustNewDecFromStr("0.01")
+	// genParams.DistributionParams.BonusProposerReward = sdk.MustNewDecFromStr("0.04")
+	// genState.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(BondDenom, sdk.NewInt(10000000)))
+
+	return cdc.MustMarshalJSON(genState)
 }
