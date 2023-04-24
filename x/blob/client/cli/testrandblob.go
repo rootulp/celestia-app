@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	appns "github.com/celestiaorg/celestia-app/pkg/namespace"
-	"github.com/celestiaorg/celestia-app/testutil/testfactory"
+	"github.com/celestiaorg/celestia-app/test/util/testfactory"
 	"github.com/celestiaorg/celestia-app/x/blob/types"
 
 	"github.com/spf13/cobra"

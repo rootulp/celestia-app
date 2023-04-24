@@ -18,8 +18,8 @@ import (
 	"github.com/celestiaorg/celestia-app/x/blob/types"
 
 	appns "github.com/celestiaorg/celestia-app/pkg/namespace"
-	"github.com/celestiaorg/celestia-app/testutil/network"
-	"github.com/celestiaorg/celestia-app/testutil/testfactory"
+	"github.com/celestiaorg/celestia-app/test/util/network"
+	"github.com/celestiaorg/celestia-app/test/util/testfactory"
 	paycli "github.com/celestiaorg/celestia-app/x/blob/client/cli"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
