@@ -1,8 +1,11 @@
 package types
 
 import (
+	fmt "fmt"
+
 	"github.com/celestiaorg/celestia-app/app/encoding"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
@@ -12,10 +15,15 @@ import (
 var ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgPayForBlobs{}, URLMsgPayForBlobs, nil)
+	fmt.Printf("Inside RegisterLegacyAminoCodec\n")
+	fmt.Printf("Registering %v\n", URLMsgPayForBlobs)
+	legacy.RegisterAminoMsg(cdc, &MsgPayForBlobs{}, URLMsgPayForBlobs)
+	// cdc.RegisterConcrete(&MsgPayForBlobs{}, URLMsgPayForBlobs, nil)
 }
 
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+	fmt.Printf("Inside RegisterInterfaces\n")
+	fmt.Printf("Registering %v\n", &MsgPayForBlobs{})
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgPayForBlobs{},
 	)
