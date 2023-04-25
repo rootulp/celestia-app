@@ -1,8 +1,6 @@
 syntax = "proto3";
 package celestia.blob.v1;
 
-import "cosmos_proto/cosmos.proto";
-import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 
 option go_package = "github.com/celestiaorg/celestia-app/x/blob/types";
@@ -17,7 +15,7 @@ service Msg {
 
 // MsgPayForBlobs pays for the inclusion of a blob in the block.
 message MsgPayForBlobs {
-  string signer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string signer = 1;
   // namespaces is a list of namespaces that the blobs are associated with. A
   // namespace is a byte slice of length 33 where the first byte is the
   // namespaceVersion and the subsequent 32 bytes are the namespaceId.
