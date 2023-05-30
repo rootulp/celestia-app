@@ -52,6 +52,26 @@ func MustNewV0(id []byte) Namespace {
 	return ns
 }
 
+// NewV0 returns a new namespace with version 0 and id based on subID. subID
+// must be <= 10 bytes.
+//
+// Note: the namespace ID will be right-padded with 0s if subID is < 10 bytes.
+func NewV0(subID []byte) (Namespace, error) {
+	if lenSubID := len(subID); lenSubID > NamespaceVersionZeroIDSize {
+		return Namespace{}, fmt.Errorf("subID must be <= %v, but it was %v bytes", NamespaceVersionZeroIDSize, lenSubID)
+	}
+
+	id := make([]byte, NamespaceIDSize)
+	copy(id[NamespaceVersionZeroPrefixSize:], subID)
+
+	ns, err := New(NamespaceVersionZero, id)
+	if err != nil {
+		return Namespace{}, err
+	}
+
+	return ns, nil
+}
+
 // From returns a namespace from the provided byte slice.
 func From(b []byte) (Namespace, error) {
 	if len(b) != NamespaceSize {
