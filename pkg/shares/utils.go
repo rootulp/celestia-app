@@ -94,7 +94,9 @@ func AvailableBytesFromSparseShares(n int) int {
 }
 
 // MaxBlobBytes returns an upper bound for the maximum number of blob bytes that
-// can fit in a square of size `squareSize`.
+// can fit in a square of size `squareSize`. Note this is an upper bound because
+// if we assume the square contains only one big blob, at least one share will
+// be occupied by the PFB transaction that paid for the blob.
 func MaxBlobBytes(squareSize int) int {
 	return AvailableBytesFromSparseShares(squareSize * squareSize)
 }
