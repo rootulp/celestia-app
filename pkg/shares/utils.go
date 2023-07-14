@@ -92,3 +92,9 @@ func AvailableBytesFromSparseShares(n int) int {
 	}
 	return (n-1)*appconsts.ContinuationSparseShareContentSize + appconsts.FirstSparseShareContentSize
 }
+
+// MaxBlobBytes returns an upper bound for the maximum number of blob bytes that
+// can fit in a square of size `squareSize`.
+func MaxBlobBytes(squareSize int) int {
+	return AvailableBytesFromCompactShares(squareSize * squareSize)
+}
