@@ -89,7 +89,9 @@ func (app *App) ProcessProposal(req abci.RequestProcessProposal) (resp abci.Resp
 		// - that the sizes match
 		// - that the namespaces match between blob and PFB
 		// - that the share commitment is correct
-		if err := blobtypes.ValidateBlobTx(app.txConfig, blobTx); err != nil {
+		// - that the size of each blob does not exceed maxBlobSize
+		maxBlobSize := app.MaxBlobSize(sdkCtx)
+		if err := blobtypes.ValidateBlobTx(app.txConfig, blobTx, maxBlobSize); err != nil {
 			logInvalidPropBlockError(app.Logger(), req.Header, fmt.Sprintf("invalid blob tx %d", idx), err)
 			return reject()
 		}

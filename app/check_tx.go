@@ -6,6 +6,7 @@ import (
 	blobtypes "github.com/celestiaorg/celestia-app/x/blob/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	coretypes "github.com/tendermint/tendermint/types"
 )
 
@@ -36,7 +37,10 @@ func (app *App) CheckTx(req abci.RequestCheckTx) abci.ResponseCheckTx {
 	switch req.Type {
 	// new transactions must be checked in their entirety
 	case abci.CheckTxType_New:
-		err := blobtypes.ValidateBlobTx(app.txConfig, btx)
+		// HACKHACK: how do I construct a valid context here?
+		ctx := app.NewContext(true, tmproto.Header{})
+		maxBlobSize := app.MaxBlobSize(ctx)
+		err := blobtypes.ValidateBlobTx(app.txConfig, btx, maxBlobSize)
 		if err != nil {
 			return sdkerrors.ResponseCheckTxWithEvents(err, 0, 0, []abci.Event{}, false)
 		}

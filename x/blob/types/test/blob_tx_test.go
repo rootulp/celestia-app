@@ -31,6 +31,7 @@ func TestValidateBlobTx(t *testing.T) {
 		name        string
 		getTx       func() tmproto.BlobTx
 		expectedErr error
+		maxBlobSize int
 	}
 
 	validRawBtx := func() []byte {
@@ -241,7 +242,7 @@ func TestValidateBlobTx(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := types.ValidateBlobTx(encCfg.TxConfig, tt.getTx())
+			err := types.ValidateBlobTx(encCfg.TxConfig, tt.getTx(), tt.maxBlobSize)
 			if tt.expectedErr != nil {
 				assert.ErrorIs(t, err, tt.expectedErr, tt.name)
 			}

@@ -444,6 +444,7 @@ func TestValidateBlobs(t *testing.T) {
 	type test struct {
 		name        string
 		blob        *Blob
+		maxBlobSize int
 		expectError bool
 	}
 
@@ -491,7 +492,7 @@ func TestValidateBlobs(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		err := ValidateBlobs(tt.blob)
+		err := ValidateBlobs(tt.maxBlobSize, tt.blob)
 		if tt.expectError {
 			assert.Error(t, err)
 		} else {

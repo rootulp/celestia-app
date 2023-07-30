@@ -49,7 +49,11 @@ const (
 var _ legacytx.LegacyMsg = &MsgPayForBlobs{}
 
 func NewMsgPayForBlobs(signer string, blobs ...*Blob) (*MsgPayForBlobs, error) {
-	err := ValidateBlobs(blobs...)
+	// HACKHACK since this function doesn't have access to app so it can't
+	// determine the current max blob size. In order to remove this HACKHACK, we
+	// may consider adding a versioned constant that bounds the max blob size.
+	maxBlobSize := 10_000
+	err := ValidateBlobs(maxBlobSize, blobs...)
 	if err != nil {
 		return nil, err
 	}
@@ -301,7 +305,7 @@ func CreateCommitments(blobs []*Blob) ([][]byte, error) {
 }
 
 // ValidateBlobs performs basic checks over the components of one or more PFBs.
-func ValidateBlobs(blobs ...*Blob) error {
+func ValidateBlobs(maxBlobSize int, blobs ...*Blob) error {
 	if len(blobs) == 0 {
 		return ErrNoBlobs
 	}
@@ -325,6 +329,10 @@ func ValidateBlobs(blobs ...*Blob) error {
 
 		if !slices.Contains(appconsts.SupportedShareVersions, uint8(blob.ShareVersion)) {
 			return ErrUnsupportedShareVersion
+		}
+
+		if len(blob.Data) > maxBlobSize {
+			return fmt.Errorf("blob size %d exceeds max blob size %d", len(blob.Data), maxBlobSize)
 		}
 	}
 

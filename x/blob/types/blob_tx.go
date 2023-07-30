@@ -39,7 +39,7 @@ func NewBlob(ns appns.Namespace, blob []byte, shareVersion uint8) (*Blob, error)
 
 // ValidateBlobTx performs stateless checks on the BlobTx to ensure that the
 // blobs attached to the transaction are valid.
-func ValidateBlobTx(txcfg client.TxEncodingConfig, bTx tmproto.BlobTx) error {
+func ValidateBlobTx(txcfg client.TxEncodingConfig, bTx tmproto.BlobTx, maxBlobSize int) error {
 	sdkTx, err := txcfg.TxDecoder()(bTx.Tx)
 	if err != nil {
 		return err
@@ -66,7 +66,7 @@ func ValidateBlobTx(txcfg client.TxEncodingConfig, bTx tmproto.BlobTx) error {
 	for i, pblob := range bTx.Blobs {
 		sizes[i] = uint32(len(pblob.Data))
 	}
-	err = ValidateBlobs(bTx.Blobs...)
+	err = ValidateBlobs(maxBlobSize, bTx.Blobs...)
 	if err != nil {
 		return err
 	}
