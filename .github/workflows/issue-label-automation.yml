@@ -44,4 +44,4 @@ jobs:
         uses: andymckay/labeler@master
         with:
           add-labels: "bot"
-          repo-token: ${{ secrets.GHTOKEN }}
+          repo-token: ${{ secrets.GH_TOKEN }}
