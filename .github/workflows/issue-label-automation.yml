@@ -18,14 +18,14 @@ jobs:
       - name: Debug log environment variables
         run: echo IS_BOT=$IS_BOT and IS_HUMAN=$IS_HUMAN
 
-      # - name: Check if issue or PR was created by external contributor
-      #   if: env.IS_HUMAN
-      #   uses: tspascoal/get-user-teams-membership@v2
-      #   id: teamCheck
-      #   with:
-      #     username: ${{ github.actor }}
-      #     team: "celestia-core"
-      #     GITHUB_TOKEN: ${{ secrets.PAT_TEAM_CHECK }}
+      - name: Check if issue or PR was created by external contributor
+        if: env.IS_HUMAN == 'true'
+        uses: tspascoal/get-user-teams-membership@v2
+        id: teamCheck
+        with:
+          username: ${{ github.actor }}
+          team: "celestia-core"
+          GITHUB_TOKEN: ${{ secrets.PAT_TEAM_CHECK }}
 
       # If an issue was unlabeled add `needs:triage`.
       - name: Maybe label issue with `needs:triage`
@@ -39,7 +39,7 @@ jobs:
       # If an issue or PR was created by someone that isn't part of
       # celestia-core, add the `external` label.
       - name: Maybe label issue or PR with `external`
-        if: env.IS_HUMAN && steps.teamCheck.outputs.isTeamMember == 'false'
+        if: env.IS_HUMAN == 'true' && steps.teamCheck.outputs.isTeamMember == 'false'
         uses: andymckay/labeler@master
         with:
           add-labels: "external"
@@ -47,7 +47,7 @@ jobs:
 
       # If a PR was created by dependabot or mergify add the `bot` label.
       - name: Maybe label PR with `bot`
-        if: ${{ (github.actor == 'dependabot[bot]' || github.actor == 'mergify[bot]') }}
+        if: env.IS_BOT == 'true'
         uses: andymckay/labeler@master
         with:
           add-labels: "bot"
