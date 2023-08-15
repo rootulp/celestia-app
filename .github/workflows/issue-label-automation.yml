@@ -18,14 +18,14 @@ jobs:
       - name: Debug log environment variables
         run: echo IS_BOT=$IS_BOT and IS_HUMAN=$IS_HUMAN
 
-      - name: Check if issue or PR was created by external contributor
-        if: env.IS_HUMAN
-        uses: tspascoal/get-user-teams-membership@v2
-        id: teamCheck
-        with:
-          username: ${{ github.actor }}
-          team: "celestia-core"
-          GITHUB_TOKEN: ${{ secrets.PAT_TEAM_CHECK }}
+      # - name: Check if issue or PR was created by external contributor
+      #   if: env.IS_HUMAN
+      #   uses: tspascoal/get-user-teams-membership@v2
+      #   id: teamCheck
+      #   with:
+      #     username: ${{ github.actor }}
+      #     team: "celestia-core"
+      #     GITHUB_TOKEN: ${{ secrets.PAT_TEAM_CHECK }}
 
       # If an issue was unlabeled add `needs:triage`.
       - name: Maybe label issue with `needs:triage`
