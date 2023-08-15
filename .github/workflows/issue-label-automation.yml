@@ -11,8 +11,8 @@ jobs:
       issues: write
       pull-requests: write
     env:
-      IS_BOT: (github.actor == 'dependabot[bot]' || github.actor == 'mergify[bot]')
-      IS_HUMAN: !(github.actor == 'dependabot[bot]' || github.actor == 'mergify[bot]')
+      IS_BOT: ${{ (github.actor == 'dependabot[bot]' || github.actor == 'mergify[bot]') }}
+      IS_HUMAN: ${{ !(github.actor == 'dependabot[bot]' || github.actor == 'mergify[bot]') }}
     steps:
 
       - name: Debug log environment variables
@@ -47,7 +47,7 @@ jobs:
 
       # If a PR was created by dependabot or mergify add the `bot` label.
       - name: Maybe label PR with `bot`
-        if: env.IS_BOT
+        if: ${{ (github.actor == 'dependabot[bot]' || github.actor == 'mergify[bot]') }}
         uses: andymckay/labeler@master
         with:
           add-labels: "bot"
