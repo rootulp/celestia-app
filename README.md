@@ -115,7 +115,3 @@ Package-specific READMEs aim to explain implementation details for developers th
 - [pkg/wrapper](./pkg/wrapper/README.md)
 - [x/blob](./x/blob/README.md)
 - [x/qgb](./x/qgb/README.md)
-
-## Careers
-
-We are hiring Go engineers! Join us in building the future of blockchain scaling and interoperability. [Apply here](https://jobs.lever.co/celestia).
