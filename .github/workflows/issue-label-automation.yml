@@ -11,8 +11,8 @@ jobs:
       issues: write
       pull-requests: write
     env:
-      IS_BOT: ${{ (github.actor == 'dependabot[bot]' || github.actor == 'mergify[bot]') }}
-      IS_HUMAN: ${{ !(github.actor == 'dependabot[bot]' || github.actor == 'mergify[bot]') }}
+      IS_BOT: (github.actor == 'dependabot[bot]' || github.actor == 'mergify[bot]')
+      IS_HUMAN: !(github.actor == 'dependabot[bot]' || github.actor == 'mergify[bot]')
     steps:
 
       - name: Debug log environment variables
