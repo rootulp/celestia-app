@@ -7,3 +7,4 @@ pull_request_rules:
       backport:
         branches:
           - v1.x
+          - v2.x
