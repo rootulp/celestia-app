@@ -27,7 +27,7 @@ jobs:
         with:
           add-labels: "needs:triage"
           ignore-if-labeled: true
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.GH_TOKEN }}
 
       # If an issue or PR was created by someone that isn't part of
       # celestia-core, add the `external` label.
@@ -36,7 +36,7 @@ jobs:
         uses: andymckay/labeler@master
         with:
           add-labels: "external"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.GH_TOKEN }}
 
       # If a PR was created by dependabot add the `bot` label.
       - name: Maybe label PR with `bot`
@@ -44,4 +44,4 @@ jobs:
         uses: andymckay/labeler@master
         with:
           add-labels: "bot"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.GHTOKEN }}
