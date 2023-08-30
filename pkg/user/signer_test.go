@@ -75,3 +75,8 @@ func (s *SignerTestSuite) ConfirmTxTimeout() {
 	require.Error(s.T(), err)
 	require.Equal(s.T(), err, context.DeadlineExceeded)
 }
+
+func (s *SignerTestSuite) TestSignerAddress() {
+	address := s.signer.Address()
+	require.Contains(s.T(), address.String(), "celestia") // passes
+}
