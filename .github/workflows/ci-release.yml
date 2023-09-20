@@ -31,6 +31,9 @@ jobs:
   lint:
     uses: ./.github/workflows/lint.yml
 
+  markdown-linter:
+    uses: ./.github/workflows/markdown-linter.yml
+
   test:
     uses: ./.github/workflows/test.yml
 
