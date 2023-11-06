@@ -84,3 +84,16 @@ func TestTailPaddingShares(t *testing.T) {
 		}
 	})
 }
+
+func FuzzTailPaddingShares(f *testing.F) {
+	f.Add(7)
+	f.Fuzz(func(t *testing.T, n int) {
+		if n <= 0 {
+			return
+		}
+		shares := TailPaddingShares(n)
+		for _, share := range shares {
+			assert.Equal(t, tailPadding, share.ToBytes())
+		}
+	})
+}
