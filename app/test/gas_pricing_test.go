@@ -1,6 +1,7 @@
 package app_test
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 	"testing"
@@ -97,6 +98,12 @@ func (s *GasPricingSuite) TestGasPricing() {
 			txOptions:    blobfactory.DefaultTxOpts(),
 			expectedCode: abci.CodeTypeOK,
 			wantGasUsed:  77004,
+			// When auth.TxSizeCostPerByte = 10, gasUsed by tx size is 3170.
+			// So fixed cost = 77004 - 3170 = 73834
+			// When auth.TxSizeCostPerByte = 100, gasUsed by tx size is 31700.
+			// So total cost is 73734 + 31700 = 105434
+			// When auth.TxSizeCostPerByte = 1000, gasUsed by tx size is 317000.
+			// So total cost is 73734 + 317000 = 320734
 		},
 		{
 			name: "send 1 utia with 256 character memo",
@@ -112,6 +119,7 @@ func (s *GasPricingSuite) TestGasPricing() {
 			txOptions:    memoOptions,
 			expectedCode: abci.CodeTypeOK,
 			wantGasUsed:  79594,
+			// gasUsed by tx size is 5760
 		},
 	}
 
@@ -121,6 +129,7 @@ func (s *GasPricingSuite) TestGasPricing() {
 			addr := testfactory.GetAddress(s.cctx.Keyring, account)
 			signer, err := user.SetupSigner(s.cctx.GoContext(), s.cctx.Keyring, s.cctx.GRPCClient, addr, s.ecfg)
 			require.NoError(t, err)
+			fmt.Printf("submitting %v\n", tc.name)
 			res, err := signer.SubmitTx(s.cctx.GoContext(), msgs, tc.txOptions...)
 			if tc.expectedCode != abci.CodeTypeOK {
 				require.Error(t, err)
