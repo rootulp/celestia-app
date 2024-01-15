@@ -119,7 +119,12 @@ func (s *GasPricingSuite) TestGasPricing() {
 			txOptions:    memoOptions,
 			expectedCode: abci.CodeTypeOK,
 			wantGasUsed:  79594,
-			// gasUsed by tx size is 5760
+			// When auth.TxSizeCostPerByte = 10, gasUsed by tx size is 5760.
+			// So fixed cost = 79594 - 5760 = 73834
+			// When auth.TxSizeCostPerByte = 100, gasUsed by tx size is 57600.
+			// So total cost is 73734 + 57600 = 131334
+			// When auth.TxSizeCostPerByte = 1000, gasUsed by tx size is 576000.
+			// So total cost is 73734 + 576000 = 649734
 		},
 	}
 
