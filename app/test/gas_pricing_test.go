@@ -5,6 +5,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/celestiaorg/celestia-app/app"
 	"github.com/celestiaorg/celestia-app/app/encoding"
@@ -14,6 +15,8 @@ import (
 	"github.com/celestiaorg/celestia-app/test/util/testnode"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -34,6 +37,10 @@ type GasPricingSuite struct {
 	cfg      *testnode.Config
 	cctx     testnode.Context
 	ecfg     encoding.Config
+	app      *app.App
+
+	sourcePort    string
+	sourceChannel string
 
 	mut            sync.Mutex
 	accountCounter int
@@ -47,6 +54,22 @@ func (s *GasPricingSuite) SetupSuite() {
 	s.cfg = testnode.DefaultConfig().WithFundedAccounts(s.accounts...)
 	s.cctx, _, _ = testnode.NewNetwork(t, s.cfg)
 	s.ecfg = encoding.MakeConfig(app.ModuleEncodingRegisters...)
+
+	// Create a new IBC client
+	// clientID, err := s.app.IBCKeeper.ClientKeeper.CreateClient(s.ctx, clienttypes.NewClientState("localhost", clienttypes.Localhost), nil)
+	// require.NoError(s.T(), err)
+
+	// Create a new IBC connection
+	// connectionID, err := s.app.IBCKeeper.ConnectionKeeper.InitConnection(s.ctx, clientID, "test", &connectiontypes.ConnectionEnd{})
+	// require.NoError(s.T(), err)
+
+	// Create a new IBC channel
+	// channelID, err := s.app.IBCKeeper.ChannelKeeper.InitChannel(s.ctx, ibctransfertypes.ModuleName, "test", connectionID, "test", channeltypes.NewChannel(channeltypes.UNORDERED, channeltypes.ORDERED), []byte("test"))
+	// require.NoError(s.T(), err)
+
+	// Set the source port and source channel
+	// s.sourcePort = ibctransfertypes.ModuleName
+	// s.sourceChannel = channelID
 }
 
 func (s *GasPricingSuite) unusedAccount() string {
@@ -98,12 +121,10 @@ func (s *GasPricingSuite) TestGasPricing() {
 			txOptions:    blobfactory.DefaultTxOpts(),
 			expectedCode: abci.CodeTypeOK,
 			wantGasUsed:  77004,
-			// When auth.TxSizeCostPerByte = 10, gasUsed by tx size is 3170.
-			// So fixed cost = 77004 - 3170 = 73834
-			// When auth.TxSizeCostPerByte = 100, gasUsed by tx size is 31700.
-			// So total cost is 73734 + 31700 = 105434
-			// When auth.TxSizeCostPerByte = 1000, gasUsed by tx size is 317000.
-			// So total cost is 73734 + 317000 = 320734
+			// When auth.TxSizeCostPerByte = 10, gasUsed by tx size is 3170. So fixed cost = 77004 - 3170 = 73834.
+			// When auth.TxSizeCostPerByte = 16, gasUsed by tx size is 5072. So fixed cost = 73734 + 5072 = 78806.
+			// When auth.TxSizeCostPerByte = 100, gasUsed by tx size is 31700. So total cost is 73734 + 31700 = 105434.
+			// When auth.TxSizeCostPerByte = 1000, gasUsed by tx size is 317000. So total cost is 73734 + 317000 = 320734.
 		},
 		{
 			name: "send 1 utia with 256 character memo",
@@ -119,13 +140,68 @@ func (s *GasPricingSuite) TestGasPricing() {
 			txOptions:    memoOptions,
 			expectedCode: abci.CodeTypeOK,
 			wantGasUsed:  79594,
-			// When auth.TxSizeCostPerByte = 10, gasUsed by tx size is 5760.
-			// So fixed cost = 79594 - 5760 = 73834
-			// When auth.TxSizeCostPerByte = 100, gasUsed by tx size is 57600.
-			// So total cost is 73734 + 57600 = 131334
-			// When auth.TxSizeCostPerByte = 1000, gasUsed by tx size is 576000.
-			// So total cost is 73734 + 576000 = 649734
+			// When auth.TxSizeCostPerByte = 10, gasUsed by tx size is 5760. So fixed cost = 79594 - 5760 = 73834.
+			// When auth.TxSizeCostPerByte = 10, gasUsed by tx size is 9216. So fixed cost = 73734 + 9216 = 82950.
+			// When auth.TxSizeCostPerByte = 100, gasUsed by tx size is 57600. So total cost is 73734 + 57600 = 131334.
+			// When auth.TxSizeCostPerByte = 1000, gasUsed by tx size is 576000. So total cost is 73734 + 576000 = 649734.
 		},
+		{
+			name: "tx without IBC memo",
+			msgFunc: func() (msgs []sdk.Msg, signer string) {
+				token := sdk.NewCoin(app.BondDenom, sdk.NewInt(1))
+				account1, account2 := s.unusedAccount(), s.unusedAccount()
+				sender := testfactory.GetAddress(s.cctx.Keyring, account1).String()
+				receiver := testfactory.GetAddress(s.cctx.Keyring, account2).String()
+
+				timeoutHeight := clienttypes.NewHeight(0, 100)
+				timeoutTimestamp := uint64(time.Now().Add(time.Hour).Unix())
+				memo := ""
+				send := ibctransfertypes.NewMsgTransfer(
+					"sourcePort",
+					"sourceChannel",
+					token,
+					sender,
+					receiver,
+					timeoutHeight,
+					timeoutTimestamp,
+					memo,
+				)
+				return []sdk.Msg{send}, account1
+			},
+			txOptions:    blobfactory.DefaultTxOpts(),
+			expectedCode: 3, // this tx will fail because no IBC connection is set up
+			wantGasUsed:  66259,
+		},
+		{
+			name: "tx with 256 character memo",
+			msgFunc: func() (msgs []sdk.Msg, signer string) {
+				token := sdk.NewCoin(app.BondDenom, sdk.NewInt(1))
+				account1, account2 := s.unusedAccount(), s.unusedAccount()
+				sender := testfactory.GetAddress(s.cctx.Keyring, account1).String()
+				receiver := testfactory.GetAddress(s.cctx.Keyring, account2).String()
+
+				timeoutHeight := clienttypes.NewHeight(0, 100)
+				timeoutTimestamp := uint64(time.Now().Add(time.Hour).Unix())
+				memo := strings.Repeat("a", 256)
+				send := ibctransfertypes.NewMsgTransfer(
+					"sourcePort",
+					"sourceChannel",
+					token,
+					sender,
+					receiver,
+					timeoutHeight,
+					timeoutTimestamp,
+					memo,
+				)
+				return []sdk.Msg{send}, account1
+			},
+			txOptions:    blobfactory.DefaultTxOpts(),
+			expectedCode: 3, // this tx will fail because no IBC connection is set up
+			wantGasUsed:  68849,
+		},
+		// No IBC memo = 66259
+		// 256 character IBC memo = 68849 gas
+		// 68849 - 66259 = 2590 which is roughly equivalent to 256 * 10 (auth.TxSizeCostPerByte)
 	}
 
 	for _, tc := range testCases {
