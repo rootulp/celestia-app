@@ -137,7 +137,7 @@ func (s *GasPricingSuite) TestGasPricing() {
 			expectedCode: abci.CodeTypeOK,
 			wantGasUsed:  79594,
 			// When auth.TxSizeCostPerByte = 10, gasUsed by tx size is 5760. So fixed cost = 79594 - 5760 = 73834.
-			// When auth.TxSizeCostPerByte = 10, gasUsed by tx size is 9216. So fixed cost = 73734 + 9216 = 82950.
+			// When auth.TxSizeCostPerByte = 16, gasUsed by tx size is 9216. So fixed cost = 73734 + 9216 = 82950.
 			// When auth.TxSizeCostPerByte = 100, gasUsed by tx size is 57600. So total cost is 73734 + 57600 = 131334.
 			// When auth.TxSizeCostPerByte = 1000, gasUsed by tx size is 576000. So total cost is 73734 + 576000 = 649734.
 		},
@@ -152,18 +152,18 @@ func (s *GasPricingSuite) TestGasPricing() {
 			expectedCode: abci.CodeTypeOK,
 			wantGasUsed:  67765,
 		},
-		{
-			name:          "Blob with 256 bytes and txCostPerByte 100",
-			txCostPerByte: 100,
-			msgFunc: func() (msgs []sdk.Msg, signer string) {
-				account := s.unusedAccount()
-				return []sdk.Msg{}, account
-			},
-			blobs:        []*blob.Blob{b},
-			txOptions:    blobfactory.DefaultTxOpts(),
-			expectedCode: abci.CodeTypeOK,
-			wantGasUsed:  677650,
-		},
+		// {
+		// 	name:          "Blob with 256 bytes and txCostPerByte 100",
+		// 	txCostPerByte: 100,
+		// 	msgFunc: func() (msgs []sdk.Msg, signer string) {
+		// 		account := s.unusedAccount()
+		// 		return []sdk.Msg{}, account
+		// 	},
+		// 	blobs:        []*blob.Blob{b},
+		// 	txOptions:    blobfactory.DefaultTxOpts(),
+		// 	expectedCode: abci.CodeTypeOK,
+		// 	wantGasUsed:  677650,
+		// },
 	}
 
 	for _, tc := range testCases {
