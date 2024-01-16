@@ -54,22 +54,6 @@ func (s *GasPricingSuite) SetupSuite() {
 	s.cfg = testnode.DefaultConfig().WithFundedAccounts(s.accounts...)
 	s.cctx, _, _ = testnode.NewNetwork(t, s.cfg)
 	s.ecfg = encoding.MakeConfig(app.ModuleEncodingRegisters...)
-
-	// Create a new IBC client
-	// clientID, err := s.app.IBCKeeper.ClientKeeper.CreateClient(s.ctx, clienttypes.NewClientState("localhost", clienttypes.Localhost), nil)
-	// require.NoError(s.T(), err)
-
-	// Create a new IBC connection
-	// connectionID, err := s.app.IBCKeeper.ConnectionKeeper.InitConnection(s.ctx, clientID, "test", &connectiontypes.ConnectionEnd{})
-	// require.NoError(s.T(), err)
-
-	// Create a new IBC channel
-	// channelID, err := s.app.IBCKeeper.ChannelKeeper.InitChannel(s.ctx, ibctransfertypes.ModuleName, "test", connectionID, "test", channeltypes.NewChannel(channeltypes.UNORDERED, channeltypes.ORDERED), []byte("test"))
-	// require.NoError(s.T(), err)
-
-	// Set the source port and source channel
-	// s.sourcePort = ibctransfertypes.ModuleName
-	// s.sourceChannel = channelID
 }
 
 func (s *GasPricingSuite) unusedAccount() string {
