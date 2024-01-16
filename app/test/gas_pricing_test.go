@@ -9,10 +9,14 @@ import (
 
 	"github.com/celestiaorg/celestia-app/app"
 	"github.com/celestiaorg/celestia-app/app/encoding"
+	"github.com/celestiaorg/celestia-app/pkg/appconsts"
+	"github.com/celestiaorg/celestia-app/pkg/blob"
+	"github.com/celestiaorg/celestia-app/pkg/namespace"
 	"github.com/celestiaorg/celestia-app/pkg/user"
 	"github.com/celestiaorg/celestia-app/test/util/blobfactory"
 	"github.com/celestiaorg/celestia-app/test/util/testfactory"
 	"github.com/celestiaorg/celestia-app/test/util/testnode"
+	blobtypes "github.com/celestiaorg/celestia-app/x/blob/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -21,6 +25,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 )
 
 func TestGasPricingSuite(t *testing.T) {
@@ -85,10 +90,14 @@ func (s *GasPricingSuite) TestGasPricing() {
 	type testCase struct {
 		name         string
 		msgFunc      func() (msgs []sdk.Msg, signer string)
+		blobs        []*blob.Blob
 		txOptions    []user.TxOption
 		expectedCode uint32
 		wantGasUsed  int64
 	}
+
+	b, err := blobtypes.NewBlob(namespace.RandomNamespace(), tmrand.Bytes(256), appconsts.ShareVersionZero)
+	require.NoError(t, err)
 
 	testCases := []testCase{
 		{
@@ -124,6 +133,21 @@ func (s *GasPricingSuite) TestGasPricing() {
 			txOptions:    memoOptions,
 			expectedCode: abci.CodeTypeOK,
 			wantGasUsed:  79594,
+			// When auth.TxSizeCostPerByte = 10, gasUsed by tx size is 5760. So fixed cost = 79594 - 5760 = 73834.
+			// When auth.TxSizeCostPerByte = 10, gasUsed by tx size is 9216. So fixed cost = 73734 + 9216 = 82950.
+			// When auth.TxSizeCostPerByte = 100, gasUsed by tx size is 57600. So total cost is 73734 + 57600 = 131334.
+			// When auth.TxSizeCostPerByte = 1000, gasUsed by tx size is 576000. So total cost is 73734 + 576000 = 649734.
+		},
+		{
+			name: "Blob with 256 bytes",
+			msgFunc: func() (msgs []sdk.Msg, signer string) {
+				account := s.unusedAccount()
+				return []sdk.Msg{}, account
+			},
+			blobs:        []*blob.Blob{b},
+			txOptions:    blobfactory.DefaultTxOpts(),
+			expectedCode: abci.CodeTypeOK,
+			wantGasUsed:  67765,
 			// When auth.TxSizeCostPerByte = 10, gasUsed by tx size is 5760. So fixed cost = 79594 - 5760 = 73834.
 			// When auth.TxSizeCostPerByte = 10, gasUsed by tx size is 9216. So fixed cost = 73734 + 9216 = 82950.
 			// When auth.TxSizeCostPerByte = 100, gasUsed by tx size is 57600. So total cost is 73734 + 57600 = 131334.
@@ -195,7 +219,13 @@ func (s *GasPricingSuite) TestGasPricing() {
 			signer, err := user.SetupSigner(s.cctx.GoContext(), s.cctx.Keyring, s.cctx.GRPCClient, addr, s.ecfg)
 			require.NoError(t, err)
 			fmt.Printf("submitting %v\n", tc.name)
-			res, err := signer.SubmitTx(s.cctx.GoContext(), msgs, tc.txOptions...)
+			var res *sdk.TxResponse
+			if tc.blobs != nil {
+				res, err = signer.SubmitPayForBlob(s.cctx.GoContext(), tc.blobs, tc.txOptions...)
+			} else {
+				res, err = signer.SubmitTx(s.cctx.GoContext(), msgs, tc.txOptions...)
+			}
+
 			if tc.expectedCode != abci.CodeTypeOK {
 				require.Error(t, err)
 			} else {
