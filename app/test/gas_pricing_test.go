@@ -95,7 +95,6 @@ func (s *GasPricingSuite) TestGasPricing() {
 		msgFunc       func() (msgs []sdk.Msg, signer string)
 		blobs         []*blob.Blob
 		txOptions     []user.TxOption
-		expectedCode  uint32
 		wantGasUsed   int64
 	}
 
@@ -114,9 +113,8 @@ func (s *GasPricingSuite) TestGasPricing() {
 				)
 				return []sdk.Msg{msgSend}, account1
 			},
-			txOptions:    blobfactory.DefaultTxOpts(),
-			expectedCode: abci.CodeTypeOK,
-			wantGasUsed:  77004,
+			txOptions:   blobfactory.DefaultTxOpts(),
+			wantGasUsed: 77004,
 			// When auth.TxSizeCostPerByte = 10, gasUsed by tx size is 3170. So fixed cost = 77004 - 3170 = 73834.
 			// When auth.TxSizeCostPerByte = 16, gasUsed by tx size is 5072. So fixed cost = 73734 + 5072 = 78806.
 			// When auth.TxSizeCostPerByte = 100, gasUsed by tx size is 31700. So total cost is 73734 + 31700 = 105434.
@@ -133,9 +131,8 @@ func (s *GasPricingSuite) TestGasPricing() {
 				)
 				return []sdk.Msg{msgSend}, account1
 			},
-			txOptions:    memoOptions,
-			expectedCode: abci.CodeTypeOK,
-			wantGasUsed:  79594,
+			txOptions:   memoOptions,
+			wantGasUsed: 79594,
 			// When auth.TxSizeCostPerByte = 10, gasUsed by tx size is 5760. So fixed cost = 79594 - 5760 = 73834.
 			// When auth.TxSizeCostPerByte = 16, gasUsed by tx size is 9216. So fixed cost = 73734 + 9216 = 82950.
 			// When auth.TxSizeCostPerByte = 100, gasUsed by tx size is 57600. So total cost is 73734 + 57600 = 131334.
@@ -147,10 +144,9 @@ func (s *GasPricingSuite) TestGasPricing() {
 				account := s.unusedAccount()
 				return []sdk.Msg{}, account
 			},
-			blobs:        []*blob.Blob{b},
-			txOptions:    blobfactory.DefaultTxOpts(),
-			expectedCode: abci.CodeTypeOK,
-			wantGasUsed:  67765,
+			blobs:       []*blob.Blob{b},
+			txOptions:   blobfactory.DefaultTxOpts(),
+			wantGasUsed: 67765,
 		},
 		// {
 		// 	name:          "Blob with 256 bytes and txCostPerByte 100",
@@ -183,13 +179,8 @@ func (s *GasPricingSuite) TestGasPricing() {
 				res, err = signer.SubmitTx(s.cctx.GoContext(), msgs, tc.txOptions...)
 			}
 
-			if tc.expectedCode != abci.CodeTypeOK {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-			}
+			require.NoError(t, err)
 			require.NotNil(t, res)
-			assert.Equal(t, tc.expectedCode, res.Code, res.RawLog)
 			assert.Equal(t, tc.wantGasUsed, res.GasUsed)
 		})
 	}
