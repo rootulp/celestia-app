@@ -1,0 +1,12 @@
+{
+  "title": "AppVersion param change",
+  "description": "description",
+  "changes": [
+    {
+      "subspace": "baseapp",
+      "key": "VersionParams",
+      "value": {"app_version": "3"}
+    }
+  ],
+  "deposit": "10000000000utia"
+}

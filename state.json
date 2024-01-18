@@ -1,0 +1,523 @@
+{
+    "app_hash": "",
+    "app_state": {
+        "auth": {
+            "accounts": [
+                {
+                    "@type": "/cosmos.auth.v1beta1.BaseAccount",
+                    "account_number": "0",
+                    "address": "celestia1ga4l85nls68g3x2w7jdv0mxhawahmpd6q8kak5",
+                    "pub_key": {
+                        "@type": "/cosmos.crypto.secp256k1.PubKey",
+                        "key": "AtaSoEsooJw0Q8dTrDFpQYswK6rDU9nryGatHft4lxdC"
+                    },
+                    "sequence": "3"
+                },
+                {
+                    "@type": "/cosmos.auth.v1beta1.ModuleAccount",
+                    "base_account": {
+                        "account_number": "3",
+                        "address": "celestia1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3y3clr6",
+                        "pub_key": null,
+                        "sequence": "0"
+                    },
+                    "name": "bonded_tokens_pool",
+                    "permissions": [
+                        "burner",
+                        "staking"
+                    ]
+                },
+                {
+                    "@type": "/cosmos.auth.v1beta1.ModuleAccount",
+                    "base_account": {
+                        "account_number": "4",
+                        "address": "celestia1tygms3xhhs3yv487phx3dw4a95jn7t7ls3yw4w",
+                        "pub_key": null,
+                        "sequence": "0"
+                    },
+                    "name": "not_bonded_tokens_pool",
+                    "permissions": [
+                        "burner",
+                        "staking"
+                    ]
+                },
+                {
+                    "@type": "/cosmos.auth.v1beta1.ModuleAccount",
+                    "base_account": {
+                        "account_number": "5",
+                        "address": "celestia10d07y265gmmuvt4z0w9aw880jnsr700jtgz4v7",
+                        "pub_key": null,
+                        "sequence": "0"
+                    },
+                    "name": "gov",
+                    "permissions": [
+                        "burner"
+                    ]
+                },
+                {
+                    "@type": "/cosmos.auth.v1beta1.ModuleAccount",
+                    "base_account": {
+                        "account_number": "2",
+                        "address": "celestia1jv65s3grqf6v6jl3dp4t6c9t9rk99cd8k44vnj",
+                        "pub_key": null,
+                        "sequence": "0"
+                    },
+                    "name": "distribution",
+                    "permissions": []
+                },
+                {
+                    "@type": "/cosmos.auth.v1beta1.ModuleAccount",
+                    "base_account": {
+                        "account_number": "6",
+                        "address": "celestia1m3h30wlvsf8llruxtpukdvsy0km2kum8emkgad",
+                        "pub_key": null,
+                        "sequence": "0"
+                    },
+                    "name": "mint",
+                    "permissions": [
+                        "minter"
+                    ]
+                },
+                {
+                    "@type": "/cosmos.auth.v1beta1.ModuleAccount",
+                    "base_account": {
+                        "account_number": "1",
+                        "address": "celestia17xpfvakm2amg962yls6f84z3kell8c5lpnjs3s",
+                        "pub_key": null,
+                        "sequence": "0"
+                    },
+                    "name": "fee_collector",
+                    "permissions": []
+                }
+            ],
+            "params": {
+                "max_memo_characters": "256",
+                "sig_verify_cost_ed25519": "590",
+                "sig_verify_cost_secp256k1": "1000",
+                "tx_sig_limit": "7",
+                "tx_size_cost_per_byte": "10"
+            }
+        },
+        "authz": {
+            "authorization": []
+        },
+        "bank": {
+            "balances": [
+                {
+                    "address": "celestia1ga4l85nls68g3x2w7jdv0mxhawahmpd6q8kak5",
+                    "coins": [
+                        {
+                            "amount": "999994999980000",
+                            "denom": "utia"
+                        }
+                    ]
+                },
+                {
+                    "address": "celestia1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3y3clr6",
+                    "coins": [
+                        {
+                            "amount": "5000000000",
+                            "denom": "utia"
+                        }
+                    ]
+                },
+                {
+                    "address": "celestia1jv65s3grqf6v6jl3dp4t6c9t9rk99cd8k44vnj",
+                    "coins": [
+                        {
+                            "amount": "895802819",
+                            "denom": "utia"
+                        }
+                    ]
+                }
+            ],
+            "denom_metadata": [
+                {
+                    "base": "utia",
+                    "denom_units": [
+                        {
+                            "aliases": [
+                                "microtia"
+                            ],
+                            "denom": "utia",
+                            "exponent": 0
+                        },
+                        {
+                            "aliases": [],
+                            "denom": "TIA",
+                            "exponent": 6
+                        }
+                    ],
+                    "description": "The native token of the Celestia network.",
+                    "display": "TIA",
+                    "name": "TIA",
+                    "symbol": "TIA",
+                    "uri": "",
+                    "uri_hash": ""
+                }
+            ],
+            "params": {
+                "default_send_enabled": true,
+                "send_enabled": []
+            },
+            "supply": [
+                {
+                    "amount": "1000000895782819",
+                    "denom": "utia"
+                }
+            ]
+        },
+        "blob": {
+            "params": {
+                "gas_per_blob_byte": 8,
+                "gov_max_square_size": "64"
+            }
+        },
+        "capability": {
+            "index": "2",
+            "owners": [
+                {
+                    "index": "1",
+                    "index_owners": {
+                        "owners": [
+                            {
+                                "module": "ibc",
+                                "name": "ports/transfer"
+                            },
+                            {
+                                "module": "transfer",
+                                "name": "ports/transfer"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "crisis": {
+            "constant_fee": {
+                "amount": "1000",
+                "denom": "utia"
+            }
+        },
+        "distribution": {
+            "delegator_starting_infos": [
+                {
+                    "delegator_address": "celestia1ga4l85nls68g3x2w7jdv0mxhawahmpd6q8kak5",
+                    "starting_info": {
+                        "height": "0",
+                        "previous_period": "1",
+                        "stake": "5000000000.000000000000000000"
+                    },
+                    "validator_address": "celestiavaloper1ga4l85nls68g3x2w7jdv0mxhawahmpd69c5yqj"
+                }
+            ],
+            "delegator_withdraw_infos": [],
+            "fee_pool": {
+                "community_pool": [
+                    {
+                        "amount": "17916056.380000000000000000",
+                        "denom": "utia"
+                    }
+                ]
+            },
+            "outstanding_rewards": [
+                {
+                    "outstanding_rewards": [
+                        {
+                            "amount": "877886762.620000000000000000",
+                            "denom": "utia"
+                        }
+                    ],
+                    "validator_address": "celestiavaloper1ga4l85nls68g3x2w7jdv0mxhawahmpd69c5yqj"
+                }
+            ],
+            "params": {
+                "base_proposer_reward": "0.000000000000000000",
+                "bonus_proposer_reward": "0.000000000000000000",
+                "community_tax": "0.020000000000000000",
+                "withdraw_addr_enabled": true
+            },
+            "previous_proposer": "celestiavalcons1mge4v3n35ztqn7q60rjzyp5l803u0pk037d2ty",
+            "validator_accumulated_commissions": [
+                {
+                    "accumulated": {
+                        "commission": [
+                            {
+                                "amount": "87788676.262000000000000000",
+                                "denom": "utia"
+                            }
+                        ]
+                    },
+                    "validator_address": "celestiavaloper1ga4l85nls68g3x2w7jdv0mxhawahmpd69c5yqj"
+                }
+            ],
+            "validator_current_rewards": [
+                {
+                    "rewards": {
+                        "period": "2",
+                        "rewards": [
+                            {
+                                "amount": "790098086.358000000000000000",
+                                "denom": "utia"
+                            }
+                        ]
+                    },
+                    "validator_address": "celestiavaloper1ga4l85nls68g3x2w7jdv0mxhawahmpd69c5yqj"
+                }
+            ],
+            "validator_historical_rewards": [
+                {
+                    "period": "1",
+                    "rewards": {
+                        "cumulative_reward_ratio": [],
+                        "reference_count": 2
+                    },
+                    "validator_address": "celestiavaloper1ga4l85nls68g3x2w7jdv0mxhawahmpd69c5yqj"
+                }
+            ],
+            "validator_slash_events": []
+        },
+        "evidence": {
+            "evidence": []
+        },
+        "feegrant": {
+            "allowances": []
+        },
+        "genutil": {
+            "gen_txs": []
+        },
+        "gov": {
+            "deposit_params": {
+                "max_deposit_period": "120s",
+                "min_deposit": [
+                    {
+                        "amount": "10000000000",
+                        "denom": "utia"
+                    }
+                ]
+            },
+            "deposits": [],
+            "proposals": [
+                {
+                    "deposit_end_time": "2024-01-18T20:46:29.463373Z",
+                    "final_tally_result": {
+                        "abstain_count": "0",
+                        "no_count": "0",
+                        "no_with_veto_count": "0",
+                        "yes_count": "5000000000"
+                    },
+                    "id": "1",
+                    "messages": [
+                        {
+                            "@type": "/cosmos.gov.v1.MsgExecLegacyContent",
+                            "authority": "celestia10d07y265gmmuvt4z0w9aw880jnsr700jtgz4v7",
+                            "content": {
+                                "@type": "/cosmos.params.v1beta1.ParameterChangeProposal",
+                                "changes": [
+                                    {
+                                        "key": "VersionParams",
+                                        "subspace": "baseapp",
+                                        "value": "{\"app_version\": \"3\"}"
+                                    }
+                                ],
+                                "description": "description",
+                                "title": "AppVersion param change"
+                            }
+                        }
+                    ],
+                    "metadata": "",
+                    "status": "PROPOSAL_STATUS_PASSED",
+                    "submit_time": "2024-01-18T20:44:29.463373Z",
+                    "total_deposit": [
+                        {
+                            "amount": "10000000000",
+                            "denom": "utia"
+                        }
+                    ],
+                    "voting_end_time": "2024-01-18T20:46:29.463373Z",
+                    "voting_start_time": "2024-01-18T20:44:29.463373Z"
+                }
+            ],
+            "starting_proposal_id": "2",
+            "tally_params": {
+                "quorum": "0.334000000000000000",
+                "threshold": "0.500000000000000000",
+                "veto_threshold": "0.334000000000000000"
+            },
+            "votes": [],
+            "voting_params": {
+                "voting_period": "120s"
+            }
+        },
+        "ibc": {
+            "channel_genesis": {
+                "ack_sequences": [],
+                "acknowledgements": [],
+                "channels": [],
+                "commitments": [],
+                "next_channel_sequence": "0",
+                "receipts": [],
+                "recv_sequences": [],
+                "send_sequences": []
+            },
+            "client_genesis": {
+                "clients": [],
+                "clients_consensus": [],
+                "clients_metadata": [],
+                "create_localhost": false,
+                "next_client_sequence": "0",
+                "params": {
+                    "allowed_clients": [
+                        "06-solomachine",
+                        "07-tendermint"
+                    ]
+                }
+            },
+            "connection_genesis": {
+                "client_connection_paths": [],
+                "connections": [],
+                "next_connection_sequence": "0",
+                "params": {
+                    "max_expected_time_per_block": "75000000000"
+                }
+            }
+        },
+        "mint": {
+            "bond_denom": "utia"
+        },
+        "params": null,
+        "qgb": {
+            "params": {
+                "data_commitment_window": "400"
+            }
+        },
+        "slashing": {
+            "missed_blocks": [
+                {
+                    "address": "celestiavalcons1mge4v3n35ztqn7q60rjzyp5l803u0pk037d2ty",
+                    "missed_blocks": []
+                }
+            ],
+            "params": {
+                "downtime_jail_duration": "60s",
+                "min_signed_per_window": "0.750000000000000000",
+                "signed_blocks_window": "5000",
+                "slash_fraction_double_sign": "0.020000000000000000",
+                "slash_fraction_downtime": "0.000000000000000000"
+            },
+            "signing_infos": [
+                {
+                    "address": "celestiavalcons1mge4v3n35ztqn7q60rjzyp5l803u0pk037d2ty",
+                    "validator_signing_info": {
+                        "address": "celestiavalcons1mge4v3n35ztqn7q60rjzyp5l803u0pk037d2ty",
+                        "index_offset": "32",
+                        "jailed_until": "1970-01-01T00:00:00Z",
+                        "missed_blocks_counter": "0",
+                        "start_height": "0",
+                        "tombstoned": false
+                    }
+                }
+            ]
+        },
+        "staking": {
+            "delegations": [
+                {
+                    "delegator_address": "celestia1ga4l85nls68g3x2w7jdv0mxhawahmpd6q8kak5",
+                    "shares": "5000000000.000000000000000000",
+                    "validator_address": "celestiavaloper1ga4l85nls68g3x2w7jdv0mxhawahmpd69c5yqj"
+                }
+            ],
+            "exported": true,
+            "last_total_power": "5000",
+            "last_validator_powers": [
+                {
+                    "address": "celestiavaloper1ga4l85nls68g3x2w7jdv0mxhawahmpd69c5yqj",
+                    "power": "5000"
+                }
+            ],
+            "params": {
+                "bond_denom": "utia",
+                "historical_entries": 10000,
+                "max_entries": 7,
+                "max_validators": 100,
+                "min_commission_rate": "0.050000000000000000",
+                "unbonding_time": "1814400s"
+            },
+            "redelegations": [],
+            "unbonding_delegations": [],
+            "validators": [
+                {
+                    "commission": {
+                        "commission_rates": {
+                            "max_change_rate": "0.010000000000000000",
+                            "max_rate": "0.200000000000000000",
+                            "rate": "0.100000000000000000"
+                        },
+                        "update_time": "2024-01-18T20:44:18.063295Z"
+                    },
+                    "consensus_pubkey": {
+                        "@type": "/cosmos.crypto.ed25519.PubKey",
+                        "key": "sjKsDK+FHwsXX3tg8eOPvTSGRwIWrpkkIrsr2rBrByI="
+                    },
+                    "delegator_shares": "5000000000.000000000000000000",
+                    "description": {
+                        "details": "",
+                        "identity": "",
+                        "moniker": "private",
+                        "security_contact": "",
+                        "website": ""
+                    },
+                    "jailed": false,
+                    "min_self_delegation": "1",
+                    "operator_address": "celestiavaloper1ga4l85nls68g3x2w7jdv0mxhawahmpd69c5yqj",
+                    "status": "BOND_STATUS_BONDED",
+                    "tokens": "5000000000",
+                    "unbonding_height": "0",
+                    "unbonding_time": "1970-01-01T00:00:00Z"
+                }
+            ]
+        },
+        "transfer": {
+            "denom_traces": [],
+            "params": {
+                "receive_enabled": true,
+                "send_enabled": true
+            },
+            "port_id": "transfer"
+        },
+        "upgrade": {},
+        "vesting": {}
+    },
+    "chain_id": "private",
+    "consensus_params": {
+        "block": {
+            "max_bytes": "1974272",
+            "max_gas": "-1",
+            "time_iota_ms": "1"
+        },
+        "evidence": {
+            "max_age_duration": "1814400000000000",
+            "max_age_num_blocks": "120961",
+            "max_bytes": "1048576"
+        },
+        "validator": {
+            "pub_key_types": [
+                "ed25519"
+            ]
+        },
+        "version": {}
+    },
+    "genesis_time": "2024-01-18T20:44:18.063295Z",
+    "initial_height": "34",
+    "validators": [
+        {
+            "address": "DA33564671A09609F81A78E422069F3BE3C786CF",
+            "name": "private",
+            "power": "5000",
+            "pub_key": {
+                "type": "tendermint/PubKeyEd25519",
+                "value": "sjKsDK+FHwsXX3tg8eOPvTSGRwIWrpkkIrsr2rBrByI="
+            }
+        }
+    ]
+}
