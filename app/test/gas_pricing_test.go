@@ -90,16 +90,11 @@ func (s *GasPricingSuite) TestGasPricing() {
 	memoOptions = append(memoOptions, user.SetMemo(strings.Repeat("a", 256)))
 
 	type testCase struct {
-		name          string
-		txCostPerByte uint64
-		msgFunc       func() (msgs []sdk.Msg, signer string)
-		blobs         []*blob.Blob
-		txOptions     []user.TxOption
-		wantGasUsed   int64
+		name        string
+		msgFunc     func() (msgs []sdk.Msg, signer string)
+		txOptions   []user.TxOption
+		wantGasUsed int64
 	}
-
-	b, err := blobtypes.NewBlob(namespace.RandomNamespace(), tmrand.Bytes(256), appconsts.ShareVersionZero)
-	require.NoError(t, err)
 
 	testCases := []testCase{
 		{
@@ -115,10 +110,11 @@ func (s *GasPricingSuite) TestGasPricing() {
 			},
 			txOptions:   blobfactory.DefaultTxOpts(),
 			wantGasUsed: 77004,
+			// tx size is 317 bytes
 			// When auth.TxSizeCostPerByte = 10, gasUsed by tx size is 3170. So fixed cost = 77004 - 3170 = 73834.
-			// When auth.TxSizeCostPerByte = 16, gasUsed by tx size is 5072. So fixed cost = 73734 + 5072 = 78806.
-			// When auth.TxSizeCostPerByte = 100, gasUsed by tx size is 31700. So total cost is 73734 + 31700 = 105434.
-			// When auth.TxSizeCostPerByte = 1000, gasUsed by tx size is 317000. So total cost is 73734 + 317000 = 320734.
+			// When auth.TxSizeCostPerByte = 16, gasUsed by tx size is 5072. So total cost = 73834 + 5072 = 78906.
+			// When auth.TxSizeCostPerByte = 100, gasUsed by tx size is 31700. So total cost is 73834 + 31700 = 105534.
+			// When auth.TxSizeCostPerByte = 1000, gasUsed by tx size is 317000. So total cost is 73834 + 317000 = 390834.
 		},
 		{
 			name: "send 1 utia with 256 character memo",
@@ -133,51 +129,65 @@ func (s *GasPricingSuite) TestGasPricing() {
 			},
 			txOptions:   memoOptions,
 			wantGasUsed: 79594,
+			// tx size is 576 bytes
 			// When auth.TxSizeCostPerByte = 10, gasUsed by tx size is 5760. So fixed cost = 79594 - 5760 = 73834.
-			// When auth.TxSizeCostPerByte = 16, gasUsed by tx size is 9216. So fixed cost = 73734 + 9216 = 82950.
-			// When auth.TxSizeCostPerByte = 100, gasUsed by tx size is 57600. So total cost is 73734 + 57600 = 131334.
-			// When auth.TxSizeCostPerByte = 1000, gasUsed by tx size is 576000. So total cost is 73734 + 576000 = 649734.
+			// When auth.TxSizeCostPerByte = 16, gasUsed by tx size is 9216. So total cost = 73834 + 9216 = 83050.
+			// When auth.TxSizeCostPerByte = 100, gasUsed by tx size is 57600. So total cost is 73834 + 57600 = 131434.
+			// When auth.TxSizeCostPerByte = 1000, gasUsed by tx size is 576000. So total cost is 73834 + 576000 = 649834.
 		},
-		{
-			name: "Blob with 256 bytes",
-			msgFunc: func() (msgs []sdk.Msg, signer string) {
-				account := s.unusedAccount()
-				return []sdk.Msg{}, account
-			},
-			blobs:       []*blob.Blob{b},
-			txOptions:   blobfactory.DefaultTxOpts(),
-			wantGasUsed: 67765,
-		},
-		// {
-		// 	name:          "Blob with 256 bytes and txCostPerByte 100",
-		// 	txCostPerByte: 100,
-		// 	msgFunc: func() (msgs []sdk.Msg, signer string) {
-		// 		account := s.unusedAccount()
-		// 		return []sdk.Msg{}, account
-		// 	},
-		// 	blobs:        []*blob.Blob{b},
-		// 	txOptions:    blobfactory.DefaultTxOpts(),
-		// 	expectedCode: abci.CodeTypeOK,
-		// 	wantGasUsed:  677650,
-		// },
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			if tc.txCostPerByte != 0 {
-				s.setTxCostPerByte(t, tc.txCostPerByte)
-			}
 			msgs, account := tc.msgFunc()
 			addr := testfactory.GetAddress(s.cctx.Keyring, account)
 			signer, err := user.SetupSigner(s.cctx.GoContext(), s.cctx.Keyring, s.cctx.GRPCClient, addr, s.ecfg)
 			require.NoError(t, err)
 			fmt.Printf("submitting %v\n", tc.name)
-			var res *sdk.TxResponse
-			if tc.blobs != nil {
-				res, err = signer.SubmitPayForBlob(s.cctx.GoContext(), tc.blobs, tc.txOptions...)
-			} else {
-				res, err = signer.SubmitTx(s.cctx.GoContext(), msgs, tc.txOptions...)
-			}
+			res, err := signer.SubmitTx(s.cctx.GoContext(), msgs, tc.txOptions...)
+
+			require.NoError(t, err)
+			require.NotNil(t, res)
+			assert.Equal(t, tc.wantGasUsed, res.GasUsed)
+		})
+	}
+}
+
+func (s *GasPricingSuite) TestGasPricingBlobTx() {
+	t := s.T()
+
+	type testCase struct {
+		name        string
+		blobs       []*blob.Blob
+		txOptions   []user.TxOption
+		wantGasUsed int64
+	}
+
+	b, err := blobtypes.NewBlob(namespace.RandomNamespace(), tmrand.Bytes(256), appconsts.ShareVersionZero)
+	require.NoError(t, err)
+
+	testCases := []testCase{
+		{
+			name:        "Blob with 256 bytes",
+			blobs:       []*blob.Blob{b},
+			txOptions:   blobfactory.DefaultTxOpts(),
+			wantGasUsed: 67765,
+			// tx size is 333 bytes
+			// When auth.TxSizeCostPerByte = 10, gasUsed by tx size is 3330. So fixed cost = 67765 - 3330 = 64435.
+			// When auth.TxSizeCostPerByte = 16, gasUsed by tx size is 5328. So total cost = 64435 + 5328 = 69763.
+			// When auth.TxSizeCostPerByte = 100, gasUsed by tx size is 33300. So total cost is 64435 + 33300 = 97735.
+			// When auth.TxSizeCostPerByte = 1000, gasUsed by tx size is 333000. So total cost is 64435 + 333000 = 397435.
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			account := s.unusedAccount()
+			addr := testfactory.GetAddress(s.cctx.Keyring, account)
+			signer, err := user.SetupSigner(s.cctx.GoContext(), s.cctx.Keyring, s.cctx.GRPCClient, addr, s.ecfg)
+			require.NoError(t, err)
+			fmt.Printf("submitting %v\n", tc.name)
+			res, err := signer.SubmitPayForBlob(s.cctx.GoContext(), tc.blobs, tc.txOptions...)
 
 			require.NoError(t, err)
 			require.NotNil(t, res)
