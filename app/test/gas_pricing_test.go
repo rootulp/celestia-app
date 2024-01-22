@@ -85,9 +85,13 @@ func (s *GasPricingSuite) getValidatorAccount() sdk.ValAddress {
 
 func (s *GasPricingSuite) TestGasPricing() {
 	t := s.T()
-	memoOptions := []user.TxOption{}
-	memoOptions = append(memoOptions, blobfactory.DefaultTxOpts()...)
-	memoOptions = append(memoOptions, user.SetMemo(strings.Repeat("a", 256)))
+	bigMemoOptions := []user.TxOption{}
+	bigMemoOptions = append(bigMemoOptions, blobfactory.DefaultTxOpts()...)
+	bigMemoOptions = append(bigMemoOptions, user.SetMemo(strings.Repeat("a", 256)))
+
+	smallMemoOptions := []user.TxOption{}
+	smallMemoOptions = append(smallMemoOptions, blobfactory.DefaultTxOpts()...)
+	smallMemoOptions = append(smallMemoOptions, user.SetMemo("a"))
 
 	type testCase struct {
 		name        string
@@ -127,13 +131,27 @@ func (s *GasPricingSuite) TestGasPricing() {
 				)
 				return []sdk.Msg{msgSend}, account1
 			},
-			txOptions:   memoOptions,
+			txOptions:   bigMemoOptions,
 			wantGasUsed: 79594,
 			// tx size is 576 bytes
 			// When auth.TxSizeCostPerByte = 10, gasUsed by tx size is 5760. So fixed cost = 79594 - 5760 = 73834.
 			// When auth.TxSizeCostPerByte = 16, gasUsed by tx size is 9216. So total cost = 73834 + 9216 = 83050.
 			// When auth.TxSizeCostPerByte = 100, gasUsed by tx size is 57600. So total cost is 73834 + 57600 = 131434.
 			// When auth.TxSizeCostPerByte = 1000, gasUsed by tx size is 576000. So total cost is 73834 + 576000 = 649834.
+		},
+		{
+			name: "send 1 utia with 1 character memo",
+			msgFunc: func() (msgs []sdk.Msg, signer string) {
+				account1, account2 := s.unusedAccount(), s.unusedAccount()
+				msgSend := banktypes.NewMsgSend(
+					testfactory.GetAddress(s.cctx.Keyring, account1),
+					testfactory.GetAddress(s.cctx.Keyring, account2),
+					sdk.NewCoins(sdk.NewCoin(app.BondDenom, sdk.NewInt(1))),
+				)
+				return []sdk.Msg{msgSend}, account1
+			},
+			txOptions:   smallMemoOptions,
+			wantGasUsed: 77034,
 		},
 	}
 
@@ -163,13 +181,16 @@ func (s *GasPricingSuite) TestGasPricingBlobTx() {
 		wantGasUsed int64
 	}
 
-	b, err := blobtypes.NewBlob(namespace.RandomNamespace(), tmrand.Bytes(256), appconsts.ShareVersionZero)
+	bigBlob, err := blobtypes.NewBlob(namespace.RandomNamespace(), tmrand.Bytes(256), appconsts.ShareVersionZero)
+	require.NoError(t, err)
+
+	smallBlob, err := blobtypes.NewBlob(namespace.RandomNamespace(), tmrand.Bytes(1), appconsts.ShareVersionZero)
 	require.NoError(t, err)
 
 	testCases := []testCase{
 		{
 			name:        "Blob with 256 bytes",
-			blobs:       []*blob.Blob{b},
+			blobs:       []*blob.Blob{bigBlob},
 			txOptions:   blobfactory.DefaultTxOpts(),
 			wantGasUsed: 67765,
 			// tx size is 333 bytes
@@ -177,6 +198,12 @@ func (s *GasPricingSuite) TestGasPricingBlobTx() {
 			// When auth.TxSizeCostPerByte = 16, gasUsed by tx size is 5328. So total cost = 64435 + 5328 = 69763.
 			// When auth.TxSizeCostPerByte = 100, gasUsed by tx size is 33300. So total cost is 64435 + 33300 = 97735.
 			// When auth.TxSizeCostPerByte = 1000, gasUsed by tx size is 333000. So total cost is 64435 + 333000 = 397435.
+		},
+		{
+			name:        "Blob with 1 byte",
+			blobs:       []*blob.Blob{smallBlob},
+			txOptions:   blobfactory.DefaultTxOpts(),
+			wantGasUsed: 67755,
 		},
 	}
 
