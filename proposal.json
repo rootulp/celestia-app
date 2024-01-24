@@ -1,0 +1,17 @@
+{
+    "title": "Discourage memo usage",
+    "description": "See CIP-15",
+    "changes": [
+        {
+            "subspace": "auth",
+            "key": "MaxMemoCharacters",
+            "value": "16"
+        },
+        {
+            "subspace": "auth",
+            "key": "TxSizeCostPerByte",
+            "value": "16"
+        }
+    ],
+    "deposit": "10000000000utia"
+}
