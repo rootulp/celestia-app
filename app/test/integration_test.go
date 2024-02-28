@@ -70,57 +70,59 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 func (s *IntegrationTestSuite) TestMaxBlockSize() {
 	t := s.T()
-
-	singleBlobTxGen := func(c client.Context) []coretypes.Tx {
-		return blobfactory.RandBlobTxsWithAccounts(
-			s.ecfg,
-			tmrand.NewRand(),
-			s.cctx.Keyring,
-			c.GRPCClient,
-			600*kibibyte,
-			1,
-			false,
-			s.accounts[:20],
-		)
-	}
-
-	// This tx generator generates txs that contain 3 blobs each of 200 KiB so
-	// 600 KiB total per transaction.
-	multiBlobTxGen := func(c client.Context) []coretypes.Tx {
-		return blobfactory.RandBlobTxsWithAccounts(
-			s.ecfg,
-			tmrand.NewRand(),
-			s.cctx.Keyring,
-			c.GRPCClient,
-			200*kibibyte,
-			3,
-			false,
-			s.accounts[20:40],
-		)
-	}
-
-	randomTxGen := func(c client.Context) []coretypes.Tx {
-		return blobfactory.RandBlobTxsWithAccounts(
-			s.ecfg,
-			tmrand.NewRand(),
-			s.cctx.Keyring,
-			c.GRPCClient,
-			50*kibibyte,
-			8,
-			true,
-			s.accounts[40:120],
-		)
-	}
-
-	type testCase struct {
+	testCases := []struct {
 		name        string
 		txGenerator func(clientCtx client.Context) []coretypes.Tx
+	}{
+		{
+			name: "singleBlobTxGen",
+			txGenerator: func(c client.Context) []coretypes.Tx {
+				return blobfactory.RandBlobTxsWithAccounts(
+					s.ecfg,
+					tmrand.NewRand(),
+					s.cctx.Keyring,
+					c.GRPCClient,
+					600*kibibyte,
+					1,
+					false,
+					s.accounts[:20],
+				)
+			},
+		},
+		{
+			name: "multiBlobTxGen",
+			// This tx generator generates txs that contain 3 blobs each of 200 KiB so
+			// 600 KiB total per transaction.
+			txGenerator: func(c client.Context) []coretypes.Tx {
+				return blobfactory.RandBlobTxsWithAccounts(
+					s.ecfg,
+					tmrand.NewRand(),
+					s.cctx.Keyring,
+					c.GRPCClient,
+					200*kibibyte,
+					3,
+					false,
+					s.accounts[20:40],
+				)
+			},
+		},
+		{
+			name: "randomTxGen",
+			txGenerator: func(c client.Context) []coretypes.Tx {
+				return blobfactory.RandBlobTxsWithAccounts(
+					s.ecfg,
+					tmrand.NewRand(),
+					s.cctx.Keyring,
+					c.GRPCClient,
+					50*kibibyte,
+					8,
+					true,
+					s.accounts[40:120],
+				)
+			},
+		},
 	}
-	testCases := []testCase{
-		{"singleBlobTxGen", singleBlobTxGen},
-		{"multiBlobTxGen", multiBlobTxGen},
-		{"randomTxGen", randomTxGen},
-	}
+
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			txs := tc.txGenerator(s.cctx.Context)
