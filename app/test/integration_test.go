@@ -68,7 +68,9 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	}
 }
 
-func (s *IntegrationTestSuite) TestMaxBlockSize() {
+// TestMaxSquareSize simulates a bunch of tx submissions and verifies that at
+// least one block uses the max square size.
+func (s *IntegrationTestSuite) TestMaxSquareSize() {
 	t := s.T()
 
 	singleBlobTxGen := func(c client.Context) []coretypes.Tx {
