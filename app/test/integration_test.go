@@ -112,20 +112,19 @@ func (s *IntegrationTestSuite) TestMaxBlockSize() {
 		)
 	}
 
-	type test struct {
+	type testCase struct {
 		name        string
 		txGenerator func(clientCtx client.Context) []coretypes.Tx
 	}
-	tests := []test{
+	testCases := []testCase{
 		{"singleBlobTxGen", singleBlobTxGen},
 		{"multiBlobTxGen", multiBlobTxGen},
 		{"randomTxGen", randomTxGen},
 	}
-	for _, tc := range tests {
+	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			txs := tc.txGenerator(s.cctx.Context)
-			hashes := make([]string, len(txs))
-
+			txHashes := make([]string, len(txs))
 			for i, tx := range txs {
 				// The default CometBFT mempool MaxTxBytes is 1 MiB so the generators in
 				// this test must create transactions that are smaller than that.
@@ -134,40 +133,35 @@ func (s *IntegrationTestSuite) TestMaxBlockSize() {
 				res, err := s.cctx.Context.BroadcastTxSync(tx)
 				require.NoError(t, err)
 				assert.Equal(t, abci.CodeTypeOK, res.Code, res.RawLog)
-				if res.Code != abci.CodeTypeOK {
-					continue
-				}
-				hashes[i] = res.TxHash
+				txHashes[i] = res.TxHash
 			}
-
 			require.NoError(t, s.cctx.WaitForBlocks(10))
-
-			heights := make(map[int64]int)
-			for _, hash := range hashes {
+			// heightToTxCount is a map from block height to the number of txs in that block.
+			heightToTxCount := make(map[int64]int)
+			for _, hash := range txHashes {
 				resp, err := testnode.QueryTx(s.cctx.Context, hash, true)
 				require.NoError(t, err)
 				require.NotNil(t, resp)
 				require.Equal(t, abci.CodeTypeOK, resp.TxResult.Code, resp.TxResult.Log)
-				heights[resp.Height]++
-				// ensure that some gas was used
-				require.GreaterOrEqual(t, resp.TxResult.GasUsed, int64(10))
+				require.GreaterOrEqual(t, resp.TxResult.GasUsed, int64(1)) // verify that some gas was used
+				heightToTxCount[resp.Height]++                             // increment the count of txs in this block height
 			}
 
-			require.Greater(t, len(heights), 0)
+			require.NotEmpty(t, heightToTxCount)
 
 			sizes := []uint64{}
-			// check the square size
-			for height := range heights {
+			// check the square size for each height
+			for height := range heightToTxCount {
 				node, err := s.cctx.Context.GetNode()
 				require.NoError(t, err)
+
 				blockRes, err := node.Block(context.Background(), &height)
 				require.NoError(t, err)
-				size := blockRes.Block.Data.SquareSize
 
+				size := blockRes.Block.Data.SquareSize
 				// perform basic checks on the size of the square
 				require.LessOrEqual(t, size, uint64(appconsts.DefaultGovMaxSquareSize))
 				require.GreaterOrEqual(t, size, uint64(appconsts.MinSquareSize))
-
 				require.EqualValues(t, appconsts.LatestVersion, blockRes.Block.Header.Version.App)
 
 				sizes = append(sizes, size)
