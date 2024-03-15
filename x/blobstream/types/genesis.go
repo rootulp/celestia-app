@@ -3,8 +3,6 @@ package types
 import (
 	"fmt"
 
-	"github.com/celestiaorg/celestia-app/pkg/appconsts"
-
 	"cosmossdk.io/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
@@ -55,6 +53,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 }
 
 func validateDataCommitmentWindow(i interface{}) error {
+	fmt.Printf("inside validate data commitment window")
 	val, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -65,11 +64,11 @@ func validateDataCommitmentWindow(i interface{}) error {
 			MinimumDataCommitmentWindow,
 		))
 	}
-	if val > uint64(appconsts.DataCommitmentBlocksLimit) {
+	if val > uint64(2048) {
 		return errors.Wrap(ErrInvalidDataCommitmentWindow, fmt.Sprintf(
 			"data commitment window %v must be <= data commitment blocks limit %v",
 			val,
-			appconsts.DataCommitmentBlocksLimit,
+			2048,
 		))
 	}
 	return nil
