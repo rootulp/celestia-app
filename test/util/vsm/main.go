@@ -20,6 +20,8 @@ type BlockResult struct {
 type BlockService struct{}
 
 func (t *BlockService) GetBlockResult(block *coretypes.Block, result *BlockResult) error {
+	// spin up a new test app for each request that way test cases don't
+	// interact with each other in version compatability test.
 	fmt.Printf("GetBlockResult %v\n", block)
 	*result = BlockResult{
 		AppVersion: 1,
