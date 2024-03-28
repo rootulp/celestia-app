@@ -10,6 +10,10 @@ NODE_NAME="node-name"
 SEEDS="e6116822e1a5e283d8a85d3ec38f4d232274eaf3@consensus-full-seed-1.celestia-bootstrap.net:26656,cf7ac8b19ff56a9d47c75551bd4864883d1e24b5@consensus-full-seed-2.celestia-bootstrap.net:26656"
 CELESTIA_APP_HOME="${HOME}/.celestia-app"
 CELESTIA_APP_VERSION=$(celestia-appd version 2>&1)
+RPC_SERVERS="https://rpc.lunaroasis.net:26657,https://public-celestia-rpc.numia.xyz:26657"
+RPC_RESPONSE=$(curl -s https://rpc.lunaroasis.net/status?)
+TRUST_HEIGHT=$(echo $RPC_RESPONSE | jq -r '.result.sync_info.latest_block_height')
+TRUST_HASH=$(echo $RPC_RESPONSE | jq -r '.result.sync_info.latest_block_hash')
 
 echo "celestia-app home: ${CELESTIA_APP_HOME}"
 echo "celestia-app version: ${CELESTIA_APP_VERSION}"
@@ -34,6 +38,14 @@ celestia-appd init ${NODE_NAME} --chain-id ${CHAIN_ID} > /dev/null 2>&1 # Hide o
 
 echo "Settings seeds in config.toml..."
 sed -i.bak -e "s/^seeds *=.*/seeds = \"$SEEDS\"/" $CELESTIA_APP_HOME/config/config.toml
+echo "Enabling state sync..."
+sed -i.bak -e "s/^enable = false/enable = true/" $CELESTIA_APP_HOME/config/config.toml
+echo "Setting RPC servers..."
+sed -i.bak -e "s|^rpc_servers *=.*|rpc_servers = \"$RPC_SERVERS\"|" $CELESTIA_APP_HOME/config/config.toml
+echo "Setting trust height to $TRUST_HEIGHT..."
+sed -i.bak -e "s/^trust_height = 0/trust_height = $TRUST_HEIGHT/" $CELESTIA_APP_HOME/config/config.toml
+echo "Setting trust hash to $TRUST_HASH..."
+sed -i.bak -e "s/^trust_hash = \"\"/trust_hash = \"$TRUST_HASH\"/" $CELESTIA_APP_HOME/config/config.toml
 
 echo "Downloading genesis file..."
 celestia-appd download-genesis ${CHAIN_ID} > /dev/null 2>&1 # Hide output to reduce terminal noise
