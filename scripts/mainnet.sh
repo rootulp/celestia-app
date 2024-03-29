@@ -1,19 +1,16 @@
 #!/bin/sh
 
-# Stop script execution if an error is encountered
-set -o errexit
-# Stop script execution if an undefined variable is used
-set -o nounset
+# Start a celestia-app consensus full node on mainnet using snap sync. Partially
+# inspired by https://polkachu.com/state_sync/celestia
+
+set -o errexit # Stop script execution if an error is encountered
+set -o nounset # Stop script execution if an undefined variable is used
 
 CHAIN_ID="celestia"
 NODE_NAME="node-name"
-SEEDS="e6116822e1a5e283d8a85d3ec38f4d232274eaf3@consensus-full-seed-1.celestia-bootstrap.net:26656,cf7ac8b19ff56a9d47c75551bd4864883d1e24b5@consensus-full-seed-2.celestia-bootstrap.net:26656"
+
 CELESTIA_APP_HOME="${HOME}/.celestia-app"
 CELESTIA_APP_VERSION=$(celestia-appd version 2>&1)
-RPC_SERVERS="https://rpc.lunaroasis.net:26657,https://public-celestia-rpc.numia.xyz:26657"
-RPC_RESPONSE=$(curl -s https://rpc.lunaroasis.net/status?)
-TRUST_HEIGHT=$(echo $RPC_RESPONSE | jq -r '.result.sync_info.latest_block_height')
-TRUST_HASH=$(echo $RPC_RESPONSE | jq -r '.result.sync_info.latest_block_hash')
 
 echo "celestia-app home: ${CELESTIA_APP_HOME}"
 echo "celestia-app version: ${CELESTIA_APP_VERSION}"
@@ -37,15 +34,22 @@ echo "Initializing config files..."
 celestia-appd init ${NODE_NAME} --chain-id ${CHAIN_ID} > /dev/null 2>&1 # Hide output to reduce terminal noise
 
 echo "Settings seeds in config.toml..."
+SEEDS=$(curl -sL https://raw.githubusercontent.com/celestiaorg/networks/master/celestia/seeds.txt | tr '\n' ',')
 sed -i.bak -e "s/^seeds *=.*/seeds = \"$SEEDS\"/" $CELESTIA_APP_HOME/config/config.toml
+
+echo "Setting peers in config.toml..."
+PERSISTENT_PEERS=$(curl -sL https://raw.githubusercontent.com/celestiaorg/networks/master/celestia/peers.txt | tr '\n' ',')
+sed -i.bak -e "s/^persistent_peers *=.*/persistent_peers = \"$PERSISTENT_PEERS\"/" $CELESTIA_APP_HOME/config/config.toml
+
 echo "Enabling state sync..."
-sed -i.bak -e "s/^enable = false/enable = true/" $CELESTIA_APP_HOME/config/config.toml
-echo "Setting RPC servers..."
-sed -i.bak -e "s|^rpc_servers *=.*|rpc_servers = \"$RPC_SERVERS\"|" $CELESTIA_APP_HOME/config/config.toml
-echo "Setting trust height to $TRUST_HEIGHT..."
-sed -i.bak -e "s/^trust_height = 0/trust_height = $TRUST_HEIGHT/" $CELESTIA_APP_HOME/config/config.toml
-echo "Setting trust hash to $TRUST_HASH..."
-sed -i.bak -e "s/^trust_hash = \"\"/trust_hash = \"$TRUST_HASH\"/" $CELESTIA_APP_HOME/config/config.toml
+SNAP_RPC="https://celestia-rpc.polkachu.com:443"
+LATEST_HEIGHT=$(curl -s $SNAP_RPC/block | jq -r .result.block.header.height); \
+BLOCK_HEIGHT=$((LATEST_HEIGHT - 2000)); \
+TRUST_HASH=$(curl -s "$SNAP_RPC/block?height=$BLOCK_HEIGHT" | jq -r .result.block_id.hash)
+sed -i.bak -E "s|^(enable[[:space:]]+=[[:space:]]+).*$|\1true| ; \
+s|^(rpc_servers[[:space:]]+=[[:space:]]+).*$|\1\"$SNAP_RPC,$SNAP_RPC\"| ; \
+s|^(trust_height[[:space:]]+=[[:space:]]+).*$|\1$BLOCK_HEIGHT| ; \
+s|^(trust_hash[[:space:]]+=[[:space:]]+).*$|\1\"$TRUST_HASH\"|" $CELESTIA_APP_HOME/config/config.toml
 
 echo "Downloading genesis file..."
 celestia-appd download-genesis ${CHAIN_ID} > /dev/null 2>&1 # Hide output to reduce terminal noise
