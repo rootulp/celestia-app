@@ -1,4 +1,4 @@
-package interchaintest_test
+package interchain
 
 import (
 	"github.com/strangelove-ventures/interchaintest/v6"

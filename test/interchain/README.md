@@ -1,4 +1,4 @@
-# Interchaintest
+# Interchain
 
 This folder contains tests that use [interchaintest](https://github.com/strangelove-ventures/interchaintest) to assert IBC features work as expected. Candidates for testing include:
 

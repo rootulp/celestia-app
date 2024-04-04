@@ -45,7 +45,7 @@ mod:
 	@echo "--> Updating go.mod in ./test/testground"
 	@(cd ./test/testground && go mod tidy)
 	@echo "--> Updating go.mod in ./test/interchaintest"
-	@(cd ./test/interchaintest && go mod tidy)
+	@(cd ./test/interchain && go mod tidy)
 .PHONY: mod
 
 ## mod-verify: Verify dependencies have expected content.
@@ -170,7 +170,7 @@ test-fuzz:
 ## test-interchain: Run interchain tests in verbose mode. Requires Docker.
 test-interchain:
 	@echo "--> Running interchain tests"
-	@go test ./test/interchaintest -v
+	@go test ./test/interchain -v
 .PHONY: test-interchain
 
 # Add an alias so that test-ic invokes test-interchain.

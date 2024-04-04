@@ -1,4 +1,4 @@
-package interchaintest_test
+package interchain
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"

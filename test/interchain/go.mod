@@ -1,4 +1,4 @@
-module github.com/celestiaorg/celestia-app/test/interchaintest
+module github.com/celestiaorg/celestia-app/test/interchain
 
 go 1.22.2
 
