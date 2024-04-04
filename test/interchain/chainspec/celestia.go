@@ -1,4 +1,4 @@
-package interchain
+package chainspec
 
 import (
 	"github.com/strangelove-ventures/interchaintest/v6"
@@ -11,7 +11,7 @@ const (
 	celestiaDockerTag        = "pr-3182"
 )
 
-var celestiaSpec = &interchaintest.ChainSpec{
+var Celestia = &interchaintest.ChainSpec{
 	Name: "celestia",
 	ChainConfig: ibc.ChainConfig{
 		Type:                "cosmos",

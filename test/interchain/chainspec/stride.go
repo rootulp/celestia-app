@@ -1,4 +1,4 @@
-package interchain
+package chainspec
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 	"github.com/icza/dyno"
 )
 
-var strideSpec = &interchaintest.ChainSpec{
+var Stride = &interchaintest.ChainSpec{
 	Name:          "stride",
 	ChainName:     "stride",
 	NumValidators: numValidators(),

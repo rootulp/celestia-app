@@ -1,4 +1,4 @@
-package interchain
+package chainspec
 
 import (
 	"github.com/strangelove-ventures/interchaintest/v6"
@@ -10,7 +10,7 @@ const (
 	cosmosDockerVersion    = "v14.2.0"
 )
 
-var cosmosSpec = &interchaintest.ChainSpec{
+var Cosmos = &interchaintest.ChainSpec{
 	Name: "gaia",
 	ChainConfig: ibc.ChainConfig{
 		Type:           "cosmos",
