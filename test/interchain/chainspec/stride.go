@@ -11,20 +11,15 @@ import (
 )
 
 var Stride = &interchaintest.ChainSpec{
-	Name:          "stride",
-	ChainName:     "stride",
-	NumValidators: numValidators(),
-	NumFullNodes:  numFullNodes(),
+	Name: "stride",
 	ChainConfig: ibc.ChainConfig{
 		Type:    "cosmos",
 		Name:    "stride",
 		ChainID: "stride-1",
 		Images: []ibc.DockerImage{{
 			Repository: "ghcr.io/strangelove-ventures/heighliner/stride",
-			// TODO: Update this to the latest version
-			// See https://github.com/cosmos/relayer/issues/1432
-			Version: "v19.0.0",
-			UidGid:  "1025:1025",
+			Version:    "v21.0.0",
+			UidGid:     "1025:1025",
 		}},
 		Bin:            "strided",
 		Bech32Prefix:   "stride",
@@ -34,6 +29,8 @@ var Stride = &interchaintest.ChainSpec{
 		GasAdjustment:  1.1,
 		ModifyGenesis:  ModifyGenesisStride(),
 	},
+	NumFullNodes:  numFullNodes(),
+	NumValidators: numValidators(),
 }
 
 const (
