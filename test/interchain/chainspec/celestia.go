@@ -8,7 +8,10 @@ import (
 
 const (
 	celestiaDockerRepository = "ghcr.io/celestiaorg/celestia-app"
-	celestiaDockerTag        = "pr-3182"
+	// celestiaDockerTag is the docker tag for a Celestia image with ICA enabled.
+	// https://github.com/celestiaorg/celestia-app/commit/21f53b3f7ea118a03d5c2928cd586cc4c62751ad
+	// https://github.com/celestiaorg/celestia-app/pkgs/container/celestia-app/200172087?tag=21f53b3
+	celestiaDockerTag = "21f53b3"
 )
 
 var Celestia = &interchaintest.ChainSpec{
