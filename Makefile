@@ -8,7 +8,7 @@ DOCKER_PROTO_BUILDER := docker run -v $(shell pwd):/workspace --workdir /workspa
 PROJECTNAME=$(shell basename "$(PWD)")
 HTTPS_GIT := https://github.com/celestiaorg/celestia-app.git
 PACKAGE_NAME          := github.com/celestiaorg/celestia-app/v2
-GOLANG_CROSS_VERSION  ?= v1.22.1
+GOLANG_CROSS_VERSION  ?= v1.22.2
 GH_COMMIT := $(shell git rev-parse --short HEAD)
 
 # process linker flags
