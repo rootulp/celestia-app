@@ -12,9 +12,9 @@ import (
 
 // getChains returns two chains for testing: celestia and stride.
 func getChains(t *testing.T) (celestia *cosmos.CosmosChain, stride *cosmos.CosmosChain) {
-	chainSpecs := []*interchaintest.ChainSpec{chainspec.Celestia, chainspec.Stride}
-	chainFactory := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), chainSpecs)
-	chains, err := chainFactory.Chains(t.Name())
+	factory := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{chainspec.Celestia, chainspec.Stride})
+	chains, err := factory.Chains(t.Name())
 	require.NoError(t, err)
+
 	return chains[0].(*cosmos.CosmosChain), chains[1].(*cosmos.CosmosChain)
 }
