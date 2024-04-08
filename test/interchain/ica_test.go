@@ -6,12 +6,10 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/client"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/strangelove-ventures/interchaintest/v6"
 	"github.com/strangelove-ventures/interchaintest/v6/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v6/ibc"
-	"github.com/strangelove-ventures/interchaintest/v6/relayer"
 	"github.com/strangelove-ventures/interchaintest/v6/testreporter"
 	"github.com/strangelove-ventures/interchaintest/v6/testutil"
 	"github.com/stretchr/testify/require"
@@ -31,20 +29,19 @@ func TestICA(t *testing.T) {
 	}
 
 	client, network := interchaintest.DockerSetup(t)
-	celestia, stride := getChains(t)
+	celestia, icad := getChains(t)
 
 	relayer := interchaintest.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
 		zaptest.NewLogger(t),
-		relayer.RelayerOptionExtraStartFlags{Flags: []string{"-p", "events", "-b", "100"}},
 	).Build(t, client, network)
 	ic := interchaintest.NewInterchain().
 		AddChain(celestia).
-		AddChain(stride).
+		AddChain(icad).
 		AddRelayer(relayer, relayerName).
 		AddLink(interchaintest.InterchainLink{
 			Chain1:  celestia,
-			Chain2:  stride,
+			Chain2:  icad,
 			Relayer: relayer,
 			Path:    path,
 		})
@@ -62,7 +59,7 @@ func TestICA(t *testing.T) {
 	err = relayer.CreateClients(ctx, reporter, path, ibc.CreateClientOptions{TrustingPeriod: "330h"})
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 2, celestia, stride)
+	err = testutil.WaitForBlocks(ctx, 2, celestia, icad)
 	require.NoError(t, err)
 
 	err = relayer.CreateConnections(ctx, reporter, path)
@@ -71,84 +68,58 @@ func TestICA(t *testing.T) {
 	err = relayer.StartRelayer(ctx, reporter, path)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 2, celestia, stride)
+	err = testutil.WaitForBlocks(ctx, 2, celestia, icad)
 	require.NoError(t, err)
 
 	connections, err := relayer.GetConnections(ctx, reporter, celestia.Config().ChainID)
 	require.NoError(t, err)
 	require.Len(t, connections, 1)
 
-	connections, err = relayer.GetConnections(ctx, reporter, stride.Config().ChainID)
+	connections, err = relayer.GetConnections(ctx, reporter, icad.Config().ChainID)
 	require.NoError(t, err)
 	require.Len(t, connections, 1)
 
 	amount := math.NewIntFromUint64(uint64(10_000_000_000))
-	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), amount, celestia, stride)
+	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), amount, celestia, icad)
 
-	celestiaUser, strideUser := users[0], users[1]
+	celestiaUser, icadUser := users[0], users[1]
 	celestiaAddr := celestiaUser.(*cosmos.CosmosWallet).FormattedAddressWithPrefix(celestia.Config().Bech32Prefix)
-	strideAddr := strideUser.(*cosmos.CosmosWallet).FormattedAddressWithPrefix(stride.Config().Bech32Prefix)
-	fmt.Printf("celestiaAddr: %s, strideAddr: %v\n", celestiaAddr, strideAddr)
+	icadAddr := icadUser.(*cosmos.CosmosWallet).FormattedAddressWithPrefix(icad.Config().Bech32Prefix)
+
+	fmt.Printf("celestiaAddr: %s, icadAddr: %v\n", celestiaAddr, icadAddr)
 
 	registerICA := []string{
-		"strided", "tx", "interchain-accounts", "controller", "register", connections[0].ID,
-		"--chain-id", stride.Config().ChainID,
-		"--home", stride.HomeDir(),
-		"--node", stride.GetRPCAddress(),
+		icad.Config().Bin, "tx", "intertx", "register",
+		"--from", icadAddr,
+		"--connection-id", connections[0].ID,
+		"--chain-id", icad.Config().ChainID,
+		"--home", icad.HomeDir(),
+		"--node", icad.GetRPCAddress(),
+		"--keyring-backend", keyring.BackendTest,
+		"-y",
 	}
-	stdout, _, err := stride.Exec(ctx, registerICA, nil)
+	stdout, stderr, err := icad.Exec(ctx, registerICA, nil)
 	require.NoError(t, err)
-	t.Log(stdout)
-	// version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
-	// msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, strideAddr, version)
-	// txResp := BroadcastMessages(t, ctx, celestia, stride, strideUser, msgRegisterInterchainAccount)
-	// fmt.Printf("txResp %v\n", txResp)
+	require.Empty(t, stderr)
+	t.Log(string(stdout))
 
 	// celestiaHeight, err := celestia.Height(ctx)
 	// require.NoError(t, err)
-
-	// isChannelOpen := func(found *chantypes.MsgChannelOpenConfirm) bool {
-	// 	return found.PortId == "icahost"
-	// }
-	// _, err = cosmos.PollForMessage(ctx, celestia, cosmos.DefaultEncoding().InterfaceRegistry, celestiaHeight, celestiaHeight+30, isChannelOpen)
+	// // Wait for channel open confirm
+	// isChannelFound := func(found *chantypes.MsgChannelOpenConfirm) bool { return found.PortId == "icahost" }
+	// _, err = cosmos.PollForMessage(ctx, celestia, cosmos.DefaultEncoding().InterfaceRegistry, celestiaHeight, celestiaHeight+30, isChannelFound)
 	// require.NoError(t, err)
-}
-
-func BroadcastMessages(t *testing.T, ctx context.Context, celestia ibc.Chain, gaia ibc.Chain, user ibc.Wallet, msgs ...sdk.Msg) sdk.TxResponse {
-	cosmosChain, ok := gaia.(*cosmos.CosmosChain)
-	require.True(t, ok, "BroadcastMessages expects a cosmos.CosmosChain")
-
-	broadcaster := cosmos.NewBroadcaster(t, cosmosChain)
-	// broadcaster.ConfigureFactoryOptions(func(factory tx.Factory) tx.Factory {
-	// 	return factory.WithGas(DefaultGasValue)
-	// })
-
-	broadcaster.ConfigureClientContextOptions(func(clientContext client.Context) client.Context {
-		// use a codec with all the types our tests care about registered.
-		// BroadcastTx will deserialize the response and will not be able to otherwise.
-		cdc := cosmosChain.Config().EncodingConfig.Codec
-		fmt.Printf("cdc %#v\n", cdc)
-		// cosmosChain.Config().EncodingConfig.TxConfig
-		return clientContext.WithCodec(cdc)
-	})
-	// broadcaster.ConfigureClientContextOptions(func(clientContext client.Context) client.Context {
-	// 	// use a codec with all the types our tests care about registered.
-	// 	// BroadcastTx will deserialize the response and will not be able to otherwise.
-	// 	cdc := Codec()
-	// 	return clientContext.WithCodec(cdc).WithTxConfig(authtx.NewTxConfig(cdc, []signingtypes.SignMode{signingtypes.SignMode_SIGN_MODE_DIRECT}))
-	// })
-
-	txResp, err := cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
+	err = testutil.WaitForBlocks(ctx, 10, celestia, icad)
 	require.NoError(t, err)
-	fmt.Printf("txResp %v\n", txResp)
-	require.Equal(t, uint32(0), txResp.Code)
-	require.NotEmpty(t, txResp.TxHash)
-	require.NotEqual(t, int64(0), txResp.GasUsed)
-	require.NotEqual(t, int64(0), txResp.GasWanted)
-	require.NotEmpty(t, txResp.Events)
-	require.NotEmpty(t, txResp.Data)
 
-	err = testutil.WaitForBlocks(ctx, 2, celestia, gaia)
+	queryICA := []string{
+		icad.Config().Bin, "query", "intertx", "interchainaccounts", connections[0].ID, icadAddr,
+		"--chain-id", icad.Config().ChainID,
+		"--home", icad.HomeDir(),
+		"--node", icad.GetRPCAddress(),
+	}
+	stdout, stderr, err = icad.Exec(ctx, queryICA, nil)
 	require.NoError(t, err)
-	return txResp
+	require.Empty(t, stderr)
+	t.Log(string(stdout))
 }
