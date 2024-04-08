@@ -7,23 +7,24 @@ import (
 
 const (
 	cosmosDockerRepository = "ghcr.io/strangelove-ventures/heighliner/gaia"
-	cosmosDockerVersion    = "v14.2.0"
+	cosmosDockerVersion    = "v15.1.0"
 )
 
 var Cosmos = &interchaintest.ChainSpec{
 	Name: "gaia",
 	ChainConfig: ibc.ChainConfig{
-		Type:           "cosmos",
-		Name:           "gaia",
-		ChainID:        "cosmoshub-4",
-		Bin:            "gaiad",
-		Bech32Prefix:   "cosmos",
-		Denom:          "uatom",
-		GasPrices:      "0.01uatom",
-		GasAdjustment:  1.3,
-		TrustingPeriod: "504hours",
-		NoHostMount:    false,
-		Images:         cosmosDockerImages(),
+		Type:                   "cosmos",
+		Name:                   "gaia",
+		ChainID:                "cosmoshub-4",
+		Bin:                    "gaiad",
+		Bech32Prefix:           "cosmos",
+		Denom:                  "uatom",
+		GasPrices:              "0.01uatom",
+		GasAdjustment:          100.0,
+		TrustingPeriod:         "504hours",
+		NoHostMount:            false,
+		UsingNewGenesisCommand: true,
+		Images:                 cosmosDockerImages(),
 	},
 	NumValidators: numValidators(),
 	NumFullNodes:  numFullNodes(),
