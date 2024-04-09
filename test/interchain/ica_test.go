@@ -7,22 +7,12 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/celestiaorg/celestia-app/test/interchain/chainspec"
-	"github.com/cosmos/cosmos-sdk/client"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/strangelove-ventures/interchaintest/v6"
 	"github.com/strangelove-ventures/interchaintest/v6/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v6/ibc"
-	"github.com/strangelove-ventures/interchaintest/v6/relayer"
 	"github.com/strangelove-ventures/interchaintest/v6/testreporter"
 	"github.com/strangelove-ventures/interchaintest/v6/testutil"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
-)
-
-const (
-	relayerName     = "relayerName"
-	path            = "path"
-	DefaultGasValue = 500_000_0000
 )
 
 // TestICA verifies that Interchain Accounts work as expected.
@@ -34,21 +24,17 @@ func TestICA(t *testing.T) {
 	client, network := interchaintest.DockerSetup(t)
 	celestia := chainspec.GetCelestia(t)
 	cosmosHub := chainspec.GetCosmosHub(t)
-
-	relayer := interchaintest.NewBuiltinRelayerFactory(
-		ibc.CosmosRly,
-		zaptest.NewLogger(t),
-		relayer.RelayerOptionExtraStartFlags{Flags: []string{"-p", "events", "-b", "100"}},
-	).Build(t, client, network)
+	relayer := getRelayerFactory(t).Build(t, client, network)
+	pathName := fmt.Sprintf("%s-to-%s", celestia.Config().Name, cosmosHub.Config().Name)
 	ic := interchaintest.NewInterchain().
 		AddChain(celestia).
 		AddChain(cosmosHub).
-		AddRelayer(relayer, relayerName).
+		AddRelayer(relayer, getRelayerName()).
 		AddLink(interchaintest.InterchainLink{
 			Chain1:  celestia,
 			Chain2:  cosmosHub,
 			Relayer: relayer,
-			Path:    path,
+			Path:    pathName,
 		})
 
 	ctx := context.Background()
@@ -61,16 +47,16 @@ func TestICA(t *testing.T) {
 	require.NoError(t, err)
 	// t.Cleanup(func() { _ = ic.Close() })
 
-	err = relayer.CreateClients(ctx, reporter, path, ibc.CreateClientOptions{TrustingPeriod: "330h"})
+	err = relayer.CreateClients(ctx, reporter, pathName, ibc.CreateClientOptions{TrustingPeriod: "330h"})
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 2, celestia, cosmosHub)
 	require.NoError(t, err)
 
-	err = relayer.CreateConnections(ctx, reporter, path)
+	err = relayer.CreateConnections(ctx, reporter, pathName)
 	require.NoError(t, err)
 
-	err = relayer.StartRelayer(ctx, reporter, path)
+	err = relayer.StartRelayer(ctx, reporter, pathName)
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 2, celestia, cosmosHub)
@@ -118,43 +104,4 @@ func TestICA(t *testing.T) {
 	// }
 	// _, err = cosmos.PollForMessage(ctx, celestia, cosmos.DefaultEncoding().InterfaceRegistry, celestiaHeight, celestiaHeight+30, isChannelOpen)
 	// require.NoError(t, err)
-}
-
-func BroadcastMessages(t *testing.T, ctx context.Context, celestia ibc.Chain, gaia ibc.Chain, user ibc.Wallet, msgs ...sdk.Msg) sdk.TxResponse {
-	cosmosChain, ok := gaia.(*cosmos.CosmosChain)
-	require.True(t, ok, "BroadcastMessages expects a cosmos.CosmosChain")
-
-	broadcaster := cosmos.NewBroadcaster(t, cosmosChain)
-	// broadcaster.ConfigureFactoryOptions(func(factory tx.Factory) tx.Factory {
-	// 	return factory.WithGas(DefaultGasValue)
-	// })
-
-	broadcaster.ConfigureClientContextOptions(func(clientContext client.Context) client.Context {
-		// use a codec with all the types our tests care about registered.
-		// BroadcastTx will deserialize the response and will not be able to otherwise.
-		cdc := cosmosChain.Config().EncodingConfig.Codec
-		fmt.Printf("cdc %#v\n", cdc)
-		// cosmosChain.Config().EncodingConfig.TxConfig
-		return clientContext.WithCodec(cdc)
-	})
-	// broadcaster.ConfigureClientContextOptions(func(clientContext client.Context) client.Context {
-	// 	// use a codec with all the types our tests care about registered.
-	// 	// BroadcastTx will deserialize the response and will not be able to otherwise.
-	// 	cdc := Codec()
-	// 	return clientContext.WithCodec(cdc).WithTxConfig(authtx.NewTxConfig(cdc, []signingtypes.SignMode{signingtypes.SignMode_SIGN_MODE_DIRECT}))
-	// })
-
-	txResp, err := cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
-	require.NoError(t, err)
-	fmt.Printf("txResp %v\n", txResp)
-	require.Equal(t, uint32(0), txResp.Code)
-	require.NotEmpty(t, txResp.TxHash)
-	require.NotEqual(t, int64(0), txResp.GasUsed)
-	require.NotEqual(t, int64(0), txResp.GasWanted)
-	require.NotEmpty(t, txResp.Events)
-	require.NotEmpty(t, txResp.Data)
-
-	err = testutil.WaitForBlocks(ctx, 2, celestia, gaia)
-	require.NoError(t, err)
-	return txResp
 }
