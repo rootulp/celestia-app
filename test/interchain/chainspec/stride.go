@@ -55,6 +55,16 @@ func ModifyGenesisStride() func(ibc.ChainConfig, []byte) ([]byte, error) {
 			return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
 		}
 
+		// Example of how to override some config
+		// DayEpochIndex := 1
+		// DayEpochLen := "100s"
+		// if err := dyno.Set(genesis, DayEpochLen, "app_state", "epochs", "epochs", DayEpochIndex, "duration"); err != nil {
+		// 	return nil, err
+		// }
+
+		// TODO: override the genesis file based on how stride/cmd/consumer.go does it.
+		// The add consumer section makes this diff to the genesis.json: https://www.diffchecker.com/OUcyGRYB/
+
 		result, err := json.Marshal(genesis)
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
