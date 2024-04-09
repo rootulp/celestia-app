@@ -33,7 +33,7 @@ func TestICA(t *testing.T) {
 
 	client, network := interchaintest.DockerSetup(t)
 	celestia := chainspec.GetCelestia(t)
-	stride := chainspec.GetStride(t)
+	cosmosHub := chainspec.GetCosmosHub(t)
 
 	relayer := interchaintest.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
@@ -42,11 +42,11 @@ func TestICA(t *testing.T) {
 	).Build(t, client, network)
 	ic := interchaintest.NewInterchain().
 		AddChain(celestia).
-		AddChain(stride).
+		AddChain(cosmosHub).
 		AddRelayer(relayer, relayerName).
 		AddLink(interchaintest.InterchainLink{
 			Chain1:  celestia,
-			Chain2:  stride,
+			Chain2:  cosmosHub,
 			Relayer: relayer,
 			Path:    path,
 		})
@@ -64,7 +64,7 @@ func TestICA(t *testing.T) {
 	err = relayer.CreateClients(ctx, reporter, path, ibc.CreateClientOptions{TrustingPeriod: "330h"})
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 2, celestia, stride)
+	err = testutil.WaitForBlocks(ctx, 2, celestia, cosmosHub)
 	require.NoError(t, err)
 
 	err = relayer.CreateConnections(ctx, reporter, path)
@@ -73,36 +73,38 @@ func TestICA(t *testing.T) {
 	err = relayer.StartRelayer(ctx, reporter, path)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 2, celestia, stride)
+	err = testutil.WaitForBlocks(ctx, 2, celestia, cosmosHub)
 	require.NoError(t, err)
 
-	connections, err := relayer.GetConnections(ctx, reporter, celestia.Config().ChainID)
+	celestiaConnections, err := relayer.GetConnections(ctx, reporter, celestia.Config().ChainID)
 	require.NoError(t, err)
-	require.Len(t, connections, 1)
+	require.Len(t, celestiaConnections, 1)
 
-	connections, err = relayer.GetConnections(ctx, reporter, stride.Config().ChainID)
+	cosmosConnections, err := relayer.GetConnections(ctx, reporter, cosmosHub.Config().ChainID)
 	require.NoError(t, err)
-	require.Len(t, connections, 1)
+	require.Len(t, cosmosConnections, 1)
+	cosmosConnection := cosmosConnections[0]
 
 	amount := math.NewIntFromUint64(uint64(10_000_000_000))
-	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), amount, celestia, stride)
+	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), amount, celestia, cosmosHub)
 
 	celestiaUser, strideUser := users[0], users[1]
 	celestiaAddr := celestiaUser.(*cosmos.CosmosWallet).FormattedAddressWithPrefix(celestia.Config().Bech32Prefix)
-	strideAddr := strideUser.(*cosmos.CosmosWallet).FormattedAddressWithPrefix(stride.Config().Bech32Prefix)
+	strideAddr := strideUser.(*cosmos.CosmosWallet).FormattedAddressWithPrefix(cosmosHub.Config().Bech32Prefix)
 	fmt.Printf("celestiaAddr: %s, strideAddr: %v\n", celestiaAddr, strideAddr)
 
 	registerICA := []string{
-		"strided", "tx", "interchain-accounts", "controller", "register", connections[0].ID,
-		"--chain-id", stride.Config().ChainID,
-		"--home", stride.HomeDir(),
-		"--node", stride.GetRPCAddress(),
+		cosmosHub.Config().Bin, "tx", "interchain-accounts", "controller", "register", cosmosConnection.ID,
+		"--chain-id", cosmosHub.Config().ChainID,
+		"--home", cosmosHub.HomeDir(),
+		"--node", cosmosHub.GetRPCAddress(),
 	}
-	stdout, _, err := stride.Exec(ctx, registerICA, nil)
+	stdout, _, err := cosmosHub.Exec(ctx, registerICA, nil)
 	require.NoError(t, err)
 	t.Log(stdout)
 
-	err = testutil.WaitForBlocks(ctx, 100, celestia, stride)
+	err = testutil.WaitForBlocks(ctx, 100, celestia, cosmosHub)
+	require.NoError(t, err)
 	// version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 	// msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, strideAddr, version)
 	// txResp := BroadcastMessages(t, ctx, celestia, stride, strideUser, msgRegisterInterchainAccount)
