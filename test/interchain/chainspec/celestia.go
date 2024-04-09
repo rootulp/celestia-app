@@ -34,7 +34,7 @@ var celestia = &interchaintest.ChainSpec{
 		Bech32Prefix:        "celestia",
 		Denom:               "utia",
 		GasPrices:           "0.002utia",
-		GasAdjustment:       1.5,
+		GasAdjustment:       1.9,
 		TrustingPeriod:      "336hours",
 		Images:              celestiaDockerImages(),
 		ConfigFileOverrides: celestiaConfigFileOverrides(),

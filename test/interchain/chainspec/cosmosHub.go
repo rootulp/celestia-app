@@ -33,7 +33,7 @@ var cosmosHub = &interchaintest.ChainSpec{
 		Bech32Prefix:           "cosmos",
 		Denom:                  "uatom",
 		GasPrices:              "0.01uatom",
-		GasAdjustment:          1.3,
+		GasAdjustment:          1.9,
 		TrustingPeriod:         "504hours",
 		NoHostMount:            false,
 		Images:                 cosmosDockerImages(),
