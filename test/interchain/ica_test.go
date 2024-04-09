@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
+	"github.com/celestiaorg/celestia-app/test/interchain/chainspec"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/strangelove-ventures/interchaintest/v6"
@@ -31,7 +32,8 @@ func TestICA(t *testing.T) {
 	}
 
 	client, network := interchaintest.DockerSetup(t)
-	celestia, stride := getChains(t)
+	celestia := chainspec.GetCelestia(t)
+	stride := chainspec.GetStride(t)
 
 	relayer := interchaintest.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
@@ -57,7 +59,7 @@ func TestICA(t *testing.T) {
 		NetworkID: network,
 	})
 	require.NoError(t, err)
-	t.Cleanup(func() { _ = ic.Close() })
+	// t.Cleanup(func() { _ = ic.Close() })
 
 	err = relayer.CreateClients(ctx, reporter, path, ibc.CreateClientOptions{TrustingPeriod: "330h"})
 	require.NoError(t, err)
@@ -99,6 +101,8 @@ func TestICA(t *testing.T) {
 	stdout, _, err := stride.Exec(ctx, registerICA, nil)
 	require.NoError(t, err)
 	t.Log(stdout)
+
+	err = testutil.WaitForBlocks(ctx, 100, celestia, stride)
 	// version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 	// msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, strideAddr, version)
 	// txResp := BroadcastMessages(t, ctx, celestia, stride, strideUser, msgRegisterInterchainAccount)

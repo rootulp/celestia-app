@@ -1,9 +1,14 @@
 package chainspec
 
 import (
+	"testing"
+
 	"github.com/strangelove-ventures/interchaintest/v6"
+	"github.com/strangelove-ventures/interchaintest/v6/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v6/ibc"
 	"github.com/strangelove-ventures/interchaintest/v6/testutil"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
 )
 
 const (
@@ -11,7 +16,15 @@ const (
 	celestiaDockerTag        = "pr-3182"
 )
 
-var Celestia = &interchaintest.ChainSpec{
+// GetCelestia returns a CosmosChain for Celestia.
+func GetCelestia(t *testing.T) *cosmos.CosmosChain {
+	factory := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{celestia})
+	chains, err := factory.Chains(t.Name())
+	require.NoError(t, err)
+	return chains[0].(*cosmos.CosmosChain)
+}
+
+var celestia = &interchaintest.ChainSpec{
 	Name: "celestia",
 	ChainConfig: ibc.ChainConfig{
 		Type:                "cosmos",
