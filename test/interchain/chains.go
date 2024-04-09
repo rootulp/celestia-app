@@ -10,9 +10,9 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-// getChains returns two chains for testing: Celestia and ICAD.
-func getChains(t *testing.T) (celestia *cosmos.CosmosChain, simd *cosmos.CosmosChain) {
-	factory := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{chainspec.Celestia, chainspec.ICAD})
+// getChains returns two chains for testing: celestia and stride.
+func getChains(t *testing.T) (celestia *cosmos.CosmosChain, stride *cosmos.CosmosChain) {
+	factory := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{chainspec.Celestia, chainspec.Stride})
 	chains, err := factory.Chains(t.Name())
 	require.NoError(t, err)
 
