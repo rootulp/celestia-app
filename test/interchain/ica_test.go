@@ -25,7 +25,7 @@ func TestICA(t *testing.T) {
 	celestia := chainspec.GetCelestia(t)
 	cosmosHub := chainspec.GetCosmosHub(t)
 	relayer := getRelayerFactory(t).Build(t, client, network)
-	pathName := fmt.Sprintf("%s-to-%s", celestia.Config().Name, cosmosHub.Config().Name)
+	pathName := fmt.Sprintf("%s-to-%s", celestia.Config().ChainID, cosmosHub.Config().ChainID)
 	ic := interchaintest.NewInterchain().
 		AddChain(celestia).
 		AddChain(cosmosHub).
