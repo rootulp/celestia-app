@@ -48,6 +48,7 @@ const (
 )
 
 // ModifyGenesisStride assumes there is only 1 validator.
+// Confirmed this works per https://www.diffchecker.com/hX3DbmSx/
 func ModifyGenesisStride() func(ibc.ChainConfig, []byte) ([]byte, error) {
 	return func(cfg ibc.ChainConfig, input []byte) ([]byte, error) {
 		genesis := make(map[string]interface{})
