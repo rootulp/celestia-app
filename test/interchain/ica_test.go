@@ -7,6 +7,7 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/celestiaorg/celestia-app/test/interchain/chainspec"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/strangelove-ventures/interchaintest/v6"
 	"github.com/strangelove-ventures/interchaintest/v6/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v6/testreporter"
@@ -46,15 +47,6 @@ func TestICA(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = interchain.Close() })
 
-	// err = relayer.CreateClients(ctx, reporter, pathName, ibc.DefaultClientOpts())
-	// require.NoError(t, err)
-
-	// err = testutil.WaitForBlocks(ctx, 2, celestia, cosmosHub)
-	// require.NoError(t, err)
-
-	// err = relayer.CreateConnections(ctx, reporter, pathName)
-	// require.NoError(t, err)
-
 	err = relayer.StartRelayer(ctx, reporter, pathName)
 	require.NoError(t, err)
 
@@ -70,9 +62,7 @@ func TestICA(t *testing.T) {
 	require.Len(t, cosmosConnections, 2) // 2 connections: the first is connection-0 and the second is connection-localhost.
 	cosmosConnection := cosmosConnections[0]
 
-	amount := math.NewIntFromUint64(uint64(10_000_000_000))
-	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), amount, celestia, cosmosHub)
-
+	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), math.NewInt(10_000_000_000), celestia, cosmosHub)
 	err = testutil.WaitForBlocks(ctx, 5, celestia, cosmosHub)
 	require.NoError(t, err)
 
@@ -83,28 +73,32 @@ func TestICA(t *testing.T) {
 
 	registerICA := []string{
 		cosmosHub.Config().Bin, "tx", "interchain-accounts", "controller", "register", cosmosConnection.ID,
+		"--chain-id", cosmosHub.Config().ChainID,
+		"--home", cosmosHub.HomeDir(),
+		"--node", cosmosHub.GetRPCAddress(),
 		"--from", cosmosUser.KeyName(),
+		"--keyring-backend", keyring.BackendTest,
+		"--fees", "20000uatom",
+		"--yes",
+	}
+	stdout, stderr, err := cosmosHub.Exec(ctx, registerICA, nil)
+	require.NoError(t, err)
+	require.Empty(t, stderr)
+	t.Logf("stdout %v", string(stdout))
+
+	err = testutil.WaitForBlocks(ctx, 5, celestia, cosmosHub)
+	require.NoError(t, err)
+
+	queryICA := []string{
+		cosmosHub.Config().Bin, "query", "interchain-accounts", "controller", "interchain-account", cosmosAddr, cosmosConnection.ID,
 		"--chain-id", cosmosHub.Config().ChainID,
 		"--home", cosmosHub.HomeDir(),
 		"--node", cosmosHub.GetRPCAddress(),
 	}
-	stdout, _, err := cosmosHub.Exec(ctx, registerICA, nil)
-	require.NoError(t, err)
-	t.Log(stdout)
-
-	err = testutil.WaitForBlocks(ctx, 100, celestia, cosmosHub)
-	require.NoError(t, err)
-	// version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
-	// msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, strideAddr, version)
-	// txResp := BroadcastMessages(t, ctx, celestia, stride, strideUser, msgRegisterInterchainAccount)
-	// fmt.Printf("txResp %v\n", txResp)
-
-	// celestiaHeight, err := celestia.Height(ctx)
+	stdout, stderr, err = cosmosHub.Exec(ctx, queryICA, nil)
+	t.Logf("stdout %v\n", string(stdout))
+	t.Logf("stderr %v\n", string(stderr))
+	t.Logf("err %v\n", err)
 	// require.NoError(t, err)
-
-	// isChannelOpen := func(found *chantypes.MsgChannelOpenConfirm) bool {
-	// 	return found.PortId == "icahost"
-	// }
-	// _, err = cosmos.PollForMessage(ctx, celestia, cosmos.DefaultEncoding().InterfaceRegistry, celestiaHeight, celestiaHeight+30, isChannelOpen)
-	// require.NoError(t, err)
+	_ = testutil.WaitForBlocks(ctx, 100, celestia, cosmosHub)
 }
