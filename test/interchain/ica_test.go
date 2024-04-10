@@ -89,16 +89,31 @@ func TestICA(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, celestia, cosmosHub)
 	require.NoError(t, err)
 
-	queryICA := []string{
-		cosmosHub.Config().Bin, "query", "interchain-accounts", "controller", "interchain-account", cosmosAddr, cosmosConnection.ID,
-		"--chain-id", cosmosHub.Config().ChainID,
-		"--home", cosmosHub.HomeDir(),
-		"--node", cosmosHub.GetRPCAddress(),
-	}
-	stdout, stderr, err = cosmosHub.Exec(ctx, queryICA, nil)
-	t.Logf("stdout %v\n", string(stdout))
-	t.Logf("stderr %v\n", string(stderr))
-	t.Logf("err %v\n", err)
+	// queryICA := []string{
+	// 	cosmosHub.Config().Bin, "query", "interchain-accounts", "controller", "interchain-account", cosmosAddr, cosmosConnection.ID,
+	// 	"--chain-id", cosmosHub.Config().ChainID,
+	// 	"--home", cosmosHub.HomeDir(),
+	// 	"--node", cosmosHub.GetRPCAddress(),
+	// }
+	// stdout, stderr, err = cosmosHub.Exec(ctx, queryICA, nil)
+	// t.Logf("stdout %v\n", string(stdout))
+	// t.Logf("stderr %v\n", string(stderr))
+	// t.Logf("err %v\n", err)
 	// require.NoError(t, err)
+
+	for i := 0; i < 5; i++ {
+		queryHost := []string{
+			celestia.Config().Bin, "query", "interchain-accounts", "host", "packet-events", cosmosConnection.ID, fmt.Sprint(i),
+			"--chain-id", celestia.Config().ChainID,
+			"--home", celestia.HomeDir(),
+			"--node", celestia.GetRPCAddress(),
+		}
+		stdout, stderr, err = celestia.Exec(ctx, queryHost, nil)
+		t.Logf("i %v\n", i)
+		t.Logf("stdout %v\n", string(stdout))
+		t.Logf("stderr %v\n", string(stderr))
+		t.Logf("err %v\n", err)
+	}
+
 	_ = testutil.WaitForBlocks(ctx, 100, celestia, cosmosHub)
 }
