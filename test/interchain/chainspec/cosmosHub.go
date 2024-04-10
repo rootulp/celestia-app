@@ -26,9 +26,9 @@ func GetCosmosHub(t *testing.T) *cosmos.CosmosChain {
 var cosmosHub = &interchaintest.ChainSpec{
 	Name: "gaia",
 	ChainConfig: ibc.ChainConfig{
-		Type:                   "cosmos",
 		Name:                   "gaia",
-		ChainID:                "cosmoshub-4",
+		Type:                   "cosmos",
+		ChainID:                "gaia",
 		Bin:                    "gaiad",
 		Bech32Prefix:           "cosmos",
 		Denom:                  "uatom",

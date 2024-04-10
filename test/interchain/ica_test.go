@@ -26,7 +26,7 @@ func TestICA(t *testing.T) {
 	cosmosHub := chainspec.GetCosmosHub(t)
 	relayer := getRelayerFactory(t).Build(t, client, network)
 	pathName := fmt.Sprintf("%s-to-%s", celestia.Config().ChainID, cosmosHub.Config().ChainID)
-	ic := interchaintest.NewInterchain().
+	interchain := interchaintest.NewInterchain().
 		AddChain(celestia).
 		AddChain(cosmosHub).
 		AddRelayer(relayer, getRelayerName()).
@@ -39,15 +39,22 @@ func TestICA(t *testing.T) {
 
 	ctx := context.Background()
 	reporter := testreporter.NewNopReporter().RelayerExecReporter(t)
-	err := ic.Build(ctx, reporter, interchaintest.InterchainBuildOptions{
-		TestName:  t.Name(),
-		Client:    client,
-		NetworkID: network,
+	err := interchain.Build(ctx, reporter, interchaintest.InterchainBuildOptions{
+		TestName:         t.Name(),
+		Client:           client,
+		NetworkID:        network,
+		SkipPathCreation: true,
 	})
 	require.NoError(t, err)
-	// t.Cleanup(func() { _ = ic.Close() })
+	// t.Cleanup(func() { _ = interchain.Close() })
 
-	err = relayer.CreateClients(ctx, reporter, pathName, ibc.CreateClientOptions{TrustingPeriod: "330h"})
+	err = relayer.GeneratePath(ctx, reporter, celestia.Config().ChainID, cosmosHub.Config().ChainID, pathName)
+	require.NoError(t, err)
+
+	err = relayer.LinkPath(ctx, reporter, pathName, ibc.CreateChannelOptions{}, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = relayer.CreateClients(ctx, reporter, pathName, ibc.DefaultClientOpts())
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 2, celestia, cosmosHub)
