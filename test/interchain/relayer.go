@@ -10,13 +10,19 @@ import (
 )
 
 func getRelayerName() string {
-	return "hermes-relayer"
+	return "cosmos-relayer"
 }
+
+const (
+	dockerRepo    = "ghcr.io/cosmos/relayer"
+	dockerVersion = "v2.4.1"
+	uidGid        = "100:1000"
+)
 
 func getRelayerFactory(t *testing.T) interchaintest.RelayerFactory {
 	return interchaintest.NewBuiltinRelayerFactory(
-		ibc.Hermes,
+		ibc.CosmosRly,
 		zaptest.NewLogger(t),
-		relayer.CustomDockerImage("informalsystems/hermes", "v1.8.2", "1000:1000"),
+		relayer.CustomDockerImage(dockerRepo, dockerVersion, uidGid),
 	)
 }

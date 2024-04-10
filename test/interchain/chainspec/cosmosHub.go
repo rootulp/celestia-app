@@ -33,7 +33,7 @@ var cosmosHub = &interchaintest.ChainSpec{
 		Bech32Prefix:           "cosmos",
 		Denom:                  "uatom",
 		GasPrices:              "0.01uatom",
-		GasAdjustment:          1.9,
+		GasAdjustment:          *gasAdjustment(),
 		TrustingPeriod:         "504hours",
 		NoHostMount:            false,
 		Images:                 cosmosDockerImages(),
@@ -41,6 +41,7 @@ var cosmosHub = &interchaintest.ChainSpec{
 	},
 	NumValidators: numValidators(),
 	NumFullNodes:  numFullNodes(),
+	GasAdjustment: gasAdjustment(), // the default gas estimation fails to create a client on Cosmos Hub so we need to bump it up.
 }
 
 func cosmosDockerImages() []ibc.DockerImage {

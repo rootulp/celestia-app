@@ -9,7 +9,6 @@ import (
 	"github.com/celestiaorg/celestia-app/test/interchain/chainspec"
 	"github.com/strangelove-ventures/interchaintest/v6"
 	"github.com/strangelove-ventures/interchaintest/v6/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v6/ibc"
 	"github.com/strangelove-ventures/interchaintest/v6/testreporter"
 	"github.com/strangelove-ventures/interchaintest/v6/testutil"
 	"github.com/stretchr/testify/require"
@@ -40,28 +39,21 @@ func TestICA(t *testing.T) {
 	ctx := context.Background()
 	reporter := testreporter.NewNopReporter().RelayerExecReporter(t)
 	err := interchain.Build(ctx, reporter, interchaintest.InterchainBuildOptions{
-		TestName:         t.Name(),
-		Client:           client,
-		NetworkID:        network,
-		SkipPathCreation: true,
+		TestName:  t.Name(),
+		Client:    client,
+		NetworkID: network,
 	})
 	require.NoError(t, err)
-	// t.Cleanup(func() { _ = interchain.Close() })
+	t.Cleanup(func() { _ = interchain.Close() })
 
-	err = relayer.GeneratePath(ctx, reporter, celestia.Config().ChainID, cosmosHub.Config().ChainID, pathName)
-	require.NoError(t, err)
+	// err = relayer.CreateClients(ctx, reporter, pathName, ibc.DefaultClientOpts())
+	// require.NoError(t, err)
 
-	err = relayer.LinkPath(ctx, reporter, pathName, ibc.CreateChannelOptions{}, ibc.DefaultClientOpts())
-	require.NoError(t, err)
+	// err = testutil.WaitForBlocks(ctx, 2, celestia, cosmosHub)
+	// require.NoError(t, err)
 
-	err = relayer.CreateClients(ctx, reporter, pathName, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 2, celestia, cosmosHub)
-	require.NoError(t, err)
-
-	err = relayer.CreateConnections(ctx, reporter, pathName)
-	require.NoError(t, err)
+	// err = relayer.CreateConnections(ctx, reporter, pathName)
+	// require.NoError(t, err)
 
 	err = relayer.StartRelayer(ctx, reporter, pathName)
 	require.NoError(t, err)
@@ -75,19 +67,23 @@ func TestICA(t *testing.T) {
 
 	cosmosConnections, err := relayer.GetConnections(ctx, reporter, cosmosHub.Config().ChainID)
 	require.NoError(t, err)
-	require.Len(t, cosmosConnections, 1)
+	require.Len(t, cosmosConnections, 2) // 2 connections: the first is connection-0 and the second is connection-localhost.
 	cosmosConnection := cosmosConnections[0]
 
 	amount := math.NewIntFromUint64(uint64(10_000_000_000))
 	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), amount, celestia, cosmosHub)
 
-	celestiaUser, strideUser := users[0], users[1]
+	err = testutil.WaitForBlocks(ctx, 5, celestia, cosmosHub)
+	require.NoError(t, err)
+
+	celestiaUser, cosmosUser := users[0], users[1]
 	celestiaAddr := celestiaUser.(*cosmos.CosmosWallet).FormattedAddressWithPrefix(celestia.Config().Bech32Prefix)
-	strideAddr := strideUser.(*cosmos.CosmosWallet).FormattedAddressWithPrefix(cosmosHub.Config().Bech32Prefix)
-	fmt.Printf("celestiaAddr: %s, strideAddr: %v\n", celestiaAddr, strideAddr)
+	cosmosAddr := cosmosUser.(*cosmos.CosmosWallet).FormattedAddressWithPrefix(cosmosHub.Config().Bech32Prefix)
+	fmt.Printf("celestiaAddr: %s, cosmosAddr: %v\n", celestiaAddr, cosmosAddr)
 
 	registerICA := []string{
 		cosmosHub.Config().Bin, "tx", "interchain-accounts", "controller", "register", cosmosConnection.ID,
+		"--from", cosmosUser.KeyName(),
 		"--chain-id", cosmosHub.Config().ChainID,
 		"--home", cosmosHub.HomeDir(),
 		"--node", cosmosHub.GetRPCAddress(),

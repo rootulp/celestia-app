@@ -34,13 +34,14 @@ var celestia = &interchaintest.ChainSpec{
 		Bech32Prefix:        "celestia",
 		Denom:               "utia",
 		GasPrices:           "0.002utia",
-		GasAdjustment:       1.9,
+		GasAdjustment:       *gasAdjustment(),
 		TrustingPeriod:      "336hours",
 		Images:              celestiaDockerImages(),
 		ConfigFileOverrides: celestiaConfigFileOverrides(),
 	},
 	NumValidators: numValidators(),
 	NumFullNodes:  numFullNodes(),
+	GasAdjustment: gasAdjustment(),
 }
 
 func celestiaDockerImages() []ibc.DockerImage {
