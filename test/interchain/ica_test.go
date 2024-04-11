@@ -8,11 +8,15 @@ import (
 	"cosmossdk.io/math"
 	"github.com/celestiaorg/celestia-app/test/interchain/chainspec"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	"github.com/strangelove-ventures/interchaintest/v6"
 	"github.com/strangelove-ventures/interchaintest/v6/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v6/ibc"
 	"github.com/strangelove-ventures/interchaintest/v6/testreporter"
 	"github.com/strangelove-ventures/interchaintest/v6/testutil"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // TestICA verifies that Interchain Accounts work as expected.
@@ -100,20 +104,27 @@ func TestICA(t *testing.T) {
 	// t.Logf("stderr %v\n", string(stderr))
 	// t.Logf("err %v\n", err)
 	// require.NoError(t, err)
-
-	for i := 0; i < 5; i++ {
-		queryHost := []string{
-			celestia.Config().Bin, "query", "interchain-accounts", "host", "packet-events", cosmosConnection.ID, fmt.Sprint(i),
-			"--chain-id", celestia.Config().ChainID,
-			"--home", celestia.HomeDir(),
-			"--node", celestia.GetRPCAddress(),
-		}
-		stdout, stderr, err = celestia.Exec(ctx, queryHost, nil)
-		t.Logf("i %v\n", i)
-		t.Logf("stdout %v\n", string(stdout))
-		t.Logf("stderr %v\n", string(stderr))
-		t.Logf("err %v\n", err)
-	}
+	account, err := queryInterchainAccount(ctx, cosmosHub, cosmosAddr, cosmosConnection.ID)
+	require.NoError(t, err)
+	fmt.Printf("account %v\n", account)
 
 	_ = testutil.WaitForBlocks(ctx, 100, celestia, cosmosHub)
+}
+
+// queryInterchainAccount queries the interchain account for the given owner and connectionID.
+func queryInterchainAccount(ctx context.Context, chain ibc.Chain, owner string, connectionID string) (string, error) {
+	grpcConn, err := grpc.Dial(chain.GetHostGRPCAddress(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return "", err
+	}
+
+	res, err := controllertypes.NewQueryClient(grpcConn).InterchainAccount(ctx, &controllertypes.QueryInterchainAccountRequest{
+		Owner:        owner,
+		ConnectionId: connectionID,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return res.Address, nil
 }
