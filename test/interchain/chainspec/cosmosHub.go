@@ -11,8 +11,12 @@ import (
 )
 
 const (
-	cosmosDockerRepository = "ghcr.io/strangelove-ventures/heighliner/gaia"
-	cosmosDockerVersion    = "v15.1.0"
+	// TODO: As of this writing, gaia has no official releases with the ICA
+	// controller enabled. However, they do have it enabled on `main` so the
+	// Docker image below is a custom build from `main`. Replace this with an
+	// official release when available (something after 15.2.0).
+	cosmosDockerRepository = "docker.io/rootulp/gaia"
+	cosmosDockerVersion    = "ica-controller"
 )
 
 // GetCosmosHub returns a CosmosChain for the CosmosHub.
