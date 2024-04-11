@@ -14,7 +14,7 @@ const (
 	// TODO: As of this writing, gaia has no official releases with the ICA
 	// controller enabled. However, they do have it enabled on `main` so the
 	// Docker image below is a custom build from `main`. Replace this with an
-	// official release when available (something after 15.2.0).
+	// official release when available (likely >= 16.0.0).
 	cosmosDockerRepository = "docker.io/rootulp/gaia"
 	cosmosDockerVersion    = "ica-controller"
 )
