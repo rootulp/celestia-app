@@ -17,6 +17,7 @@ const (
 	// official release when available (likely >= 16.0.0).
 	cosmosDockerRepository = "docker.io/rootulp/gaia"
 	cosmosDockerVersion    = "ica-controller"
+	cosmosUidGid           = "1025:1025"
 )
 
 // GetCosmosHub returns a CosmosChain for the CosmosHub.
@@ -53,7 +54,7 @@ func cosmosDockerImages() []ibc.DockerImage {
 		{
 			Repository: cosmosDockerRepository,
 			Version:    cosmosDockerVersion,
-			UidGid:     "1025:1025",
+			UidGid:     cosmosUidGid,
 		},
 	}
 }

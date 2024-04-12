@@ -14,6 +14,7 @@ import (
 const (
 	celestiaDockerRepository = "ghcr.io/celestiaorg/celestia-app"
 	celestiaDockerTag        = "pr-3182"
+	celestiaUidGid           = "10001:10001"
 )
 
 // GetCelestia returns a CosmosChain for Celestia.
@@ -49,7 +50,7 @@ func celestiaDockerImages() []ibc.DockerImage {
 		{
 			Repository: celestiaDockerRepository,
 			Version:    celestiaDockerTag,
-			UidGid:     "10001:10001",
+			UidGid:     celestiaUidGid,
 		},
 	}
 }

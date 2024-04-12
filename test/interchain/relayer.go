@@ -9,20 +9,20 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
+const (
+	relayerDockerRepository = "ghcr.io/cosmos/relayer"
+	relayerDockerVersion    = "v2.4.1"
+	relayerUidGid           = "100:1000"
+)
+
 func getRelayerName() string {
 	return "cosmos-relayer"
 }
-
-const (
-	dockerRepo    = "ghcr.io/cosmos/relayer"
-	dockerVersion = "v2.4.1"
-	uidGid        = "100:1000"
-)
 
 func getRelayerFactory(t *testing.T) interchaintest.RelayerFactory {
 	return interchaintest.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
 		zaptest.NewLogger(t),
-		relayer.CustomDockerImage(dockerRepo, dockerVersion, uidGid),
+		relayer.CustomDockerImage(relayerDockerRepository, relayerDockerVersion, relayerUidGid),
 	)
 }
