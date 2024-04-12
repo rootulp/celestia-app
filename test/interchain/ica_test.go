@@ -8,15 +8,12 @@ import (
 	"cosmossdk.io/math"
 	"github.com/celestiaorg/celestia-app/test/interchain/chainspec"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
 	"github.com/strangelove-ventures/interchaintest/v6"
 	"github.com/strangelove-ventures/interchaintest/v6/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v6/ibc"
 	"github.com/strangelove-ventures/interchaintest/v6/testreporter"
 	"github.com/strangelove-ventures/interchaintest/v6/testutil"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 // TestICA verifies that Interchain Accounts work as expected.
@@ -82,7 +79,8 @@ func TestICA(t *testing.T) {
 		"--node", cosmosHub.GetRPCAddress(),
 		"--from", cosmosUser.KeyName(),
 		"--keyring-backend", keyring.BackendTest,
-		"--fees", "20000uatom",
+		"--fees", "300000uatom",
+		"--gas", "300000",
 		"--yes",
 	}
 	stdout, stderr, err := cosmosHub.Exec(ctx, registerICA, nil)
@@ -93,38 +91,41 @@ func TestICA(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, celestia, cosmosHub)
 	require.NoError(t, err)
 
-	// queryICA := []string{
-	// 	cosmosHub.Config().Bin, "query", "interchain-accounts", "controller", "interchain-account", cosmosAddr, cosmosConnection.ID,
-	// 	"--chain-id", cosmosHub.Config().ChainID,
-	// 	"--home", cosmosHub.HomeDir(),
-	// 	"--node", cosmosHub.GetRPCAddress(),
-	// }
-	// stdout, stderr, err = cosmosHub.Exec(ctx, queryICA, nil)
-	// t.Logf("stdout %v\n", string(stdout))
-	// t.Logf("stderr %v\n", string(stderr))
-	// t.Logf("err %v\n", err)
-	// require.NoError(t, err)
-	account, err := queryInterchainAccount(ctx, cosmosHub, cosmosAddr, cosmosConnection.ID)
+	queryICA := []string{
+		cosmosHub.Config().Bin, "query", "interchain-accounts", "controller", "interchain-account", cosmosAddr, cosmosConnection.ID,
+		"--chain-id", cosmosHub.Config().ChainID,
+		"--home", cosmosHub.HomeDir(),
+		"--node", cosmosHub.GetRPCAddress(),
+	}
+	stdout, stderr, err = cosmosHub.Exec(ctx, queryICA, nil)
 	require.NoError(t, err)
-	fmt.Printf("account %v\n", account)
+	require.Empty(t, stderr)
+	t.Logf("stdout %v\n", string(stdout))
+	assert.NotEmpty(t, string(stdout))
+	// got := string(stdout)
+	// strings.Split(got, ": ")
+
+	// account, err := queryInterchainAccount(ctx, cosmosHub, cosmosAddr, cosmosConnection.ID)
+	// require.NoError(t, err)
+	// fmt.Printf("account %v\n", account)
 
 	_ = testutil.WaitForBlocks(ctx, 100, celestia, cosmosHub)
 }
 
 // queryInterchainAccount queries the interchain account for the given owner and connectionID.
-func queryInterchainAccount(ctx context.Context, chain ibc.Chain, owner string, connectionID string) (string, error) {
-	grpcConn, err := grpc.Dial(chain.GetHostGRPCAddress(), grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return "", err
-	}
+// func queryInterchainAccount(ctx context.Context, chain ibc.Chain, owner string, connectionID string) (string, error) {
+// 	grpcConn, err := grpc.Dial(chain.GetHostGRPCAddress(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	res, err := controllertypes.NewQueryClient(grpcConn).InterchainAccount(ctx, &controllertypes.QueryInterchainAccountRequest{
-		Owner:        owner,
-		ConnectionId: connectionID,
-	})
-	if err != nil {
-		return "", err
-	}
+// 	res, err := controllertypes.NewQueryClient(grpcConn).InterchainAccount(ctx, &controllertypes.QueryInterchainAccountRequest{
+// 		Owner:        owner,
+// 		ConnectionId: connectionID,
+// 	})
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	return res.Address, nil
-}
+// 	return res.Address, nil
+// }
