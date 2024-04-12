@@ -1,13 +1,13 @@
 package chainspec
 
 func numValidators() *int {
-	numValidators := 1
-	return &numValidators
+	nodes := 1
+	return &nodes
 }
 
 func numFullNodes() *int {
-	numValidators := 0
-	return &numValidators
+	nodes := 0
+	return &nodes
 }
 
 func gasAdjustment() *float64 {
