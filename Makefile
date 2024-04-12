@@ -44,7 +44,7 @@ mod:
 	@go mod tidy
 	@echo "--> Updating go.mod in ./test/testground"
 	@(cd ./test/testground && go mod tidy)
-	@echo "--> Updating go.mod in ./test/interchaintest"
+	@echo "--> Updating go.mod in ./test/interchain"
 	@(cd ./test/interchain && go mod tidy)
 .PHONY: mod
 
@@ -176,7 +176,6 @@ test-interchain:
 # Add an alias so that test-ic invokes test-interchain.
 test-ic: test-interchain
 .PHONY: test-ic
-
 
 ## txsim-install: Install the tx simulator.
 txsim-install:
