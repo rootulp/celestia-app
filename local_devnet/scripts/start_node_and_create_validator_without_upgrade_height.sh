@@ -37,34 +37,36 @@ fi
 
   VAL_ADDRESS=$(celestia-appd keys show "${MONIKER}" --keyring-backend test --bech=val --home /opt -a)
   # keep retrying to create a validator
-  while true
-  do
-    # create validator
-    celestia-appd tx staking create-validator \
-      --amount="${AMOUNT}" \
-      --pubkey="$(celestia-appd tendermint show-validator --home "${CELESTIA_HOME}")" \
-      --moniker="${MONIKER}" \
-      --chain-id="local_devnet" \
-      --commission-rate=0.1 \
-      --commission-max-rate=0.2 \
-      --commission-max-change-rate=0.01 \
-      --min-self-delegation=1000000 \
-      --from="${MONIKER}" \
-      --keyring-backend=test \
-      --home="${CELESTIA_HOME}" \
-      --broadcast-mode=block \
-      --fees="300000utia" \
-      --yes
-    output=$(celestia-appd query staking validator "${VAL_ADDRESS}" 2>/dev/null)
-    if [[ -n "${output}" ]] ; then
-      break
-    fi
-    echo "trying to create validator..."
-    sleep 1s
-  done
+#   while true
+#   do
+#     # create validator
+#     celestia-appd tx staking create-validator \
+#       --amount="${AMOUNT}" \
+#       --pubkey="$(celestia-appd tendermint show-validator --home "${CELESTIA_HOME}")" \
+#       --moniker="${MONIKER}" \
+#       --chain-id="local_devnet" \
+#       --commission-rate=0.1 \
+#       --commission-max-rate=0.2 \
+#       --commission-max-change-rate=0.01 \
+#       --min-self-delegation=1000000 \
+#       --from="${MONIKER}" \
+#       --keyring-backend=test \
+#       --home="${CELESTIA_HOME}" \
+#       --broadcast-mode=block \
+#       --fees="300000utia" \
+#       --yes
+#     output=$(celestia-appd query staking validator "${VAL_ADDRESS}" 2>/dev/null)
+#     if [[ -n "${output}" ]] ; then
+#       break
+#     fi
+#     echo "trying to create validator..."
+#     sleep 1s
+#   done
 } &
 
 # start node
+celestia-appd rollback --home="${CELESTIA_HOME}"
+# celestia-appd tendermint unsafe-reset-all --home="${CELESTIA_HOME}"
 celestia-appd start \
 --home="${CELESTIA_HOME}" \
 --moniker="${MONIKER}" \
