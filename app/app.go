@@ -459,6 +459,7 @@ func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.Respo
 		if req.Height == app.upgradeHeightV2-1 {
 			app.SetInitialAppVersionInConsensusParams(ctx, v2)
 			app.SetAppVersion(ctx, v2)
+			// res.ConsensusParamUpdates = app.GetConsensusParams(ctx)
 			// The blobstream module was disabled in v2 so the following line
 			// removes the the params subspace for blobstream.
 			if err := app.ParamsKeeper.DeleteSubspace(blobstreamtypes.ModuleName); err != nil {
@@ -470,9 +471,11 @@ func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.Respo
 		// Version changes must be increasing. Downgrades are not permitted
 		if newVersion > currentVersion {
 			app.SetAppVersion(ctx, newVersion)
+			// res.ConsensusParamUpdates = app.GetConsensusParams(ctx)
 			app.SignalKeeper.ResetTally(ctx)
 		}
 	}
+	fmt.Printf("EndBlocker res %#v", res)
 	return res
 }
 
