@@ -127,7 +127,7 @@ type App struct {
 
 	invCheckPeriod uint
 
-	// keys to access the substores
+	// keyVersions is a map from appVersion -> key names that are supported for that app version.
 	keyVersions map[uint64][]string
 	keys        map[string]*storetypes.KVStoreKey
 	tkeys       map[string]*storetypes.TransientStoreKey
@@ -521,13 +521,7 @@ func (app *App) Info(req abci.RequestInfo) abci.ResponseInfo {
 	}
 
 	resp := app.BaseApp.Info(req)
-	// mount the stores for the provided app version
-	if resp.AppVersion > 0 && !app.IsSealed() {
-		app.MountKVStores(app.versionedKeys(resp.AppVersion))
-		if err := app.LoadLatestVersion(); err != nil {
-			panic(fmt.Sprintf("loading latest version: %s", err.Error()))
-		}
-	}
+	app.maybeMountKeysAndInit(resp.AppVersion)
 	return resp
 }
 
@@ -543,16 +537,30 @@ func (app *App) InitChain(req abci.RequestInitChain) (res abci.ResponseInitChain
 	if req.ConsensusParams.Version.AppVersion == 0 {
 		panic("app version 0 is not accepted. Please set an app version in the genesis")
 	}
+	app.maybeMountKeysAndInit(req.ConsensusParams.Version.AppVersion)
+	return app.BaseApp.InitChain(req)
+}
 
-	// mount the stores for the provided app version if it has not already been mounted
-	if app.AppVersion() == 0 && !app.IsSealed() {
-		app.MountKVStores(app.versionedKeys(req.ConsensusParams.Version.AppVersion))
-		if err := app.LoadLatestVersion(); err != nil {
-			panic(fmt.Sprintf("loading latest version: %s", err.Error()))
-		}
+// maybeMountKeysAndInit conditionally mounts the keys for the provided app version
+// and then invokes baseapp.Init().
+func (app *App) maybeMountKeysAndInit(appVersion uint64) {
+	if app.IsSealed() {
+		return
+	}
+	if appVersion == 0 {
+		return
+	}
+	if app.AppVersion() != 0 {
+		return
 	}
 
-	return app.BaseApp.InitChain(req)
+	keys := app.versionedKeys(appVersion)
+	fmt.Printf("inside maybeMountKeysAndInit. appVersion %v mounting keys %v\n", appVersion, keys)
+	app.MountKVStores(keys)
+	// Invoke load latest version for it's side-effect of invoking baseapp.Init()
+	if err := app.LoadLatestVersion(); err != nil {
+		panic(fmt.Sprintf("loading latest version: %s", err.Error()))
+	}
 }
 
 // InitChainer application update at chain initialization
@@ -581,8 +589,9 @@ func (app *App) SupportedVersions() []uint64 {
 // version.
 func (app *App) versionedKeys(appVersion uint64) map[string]*storetypes.KVStoreKey {
 	output := make(map[string]*storetypes.KVStoreKey)
-	if keys, exists := app.keyVersions[appVersion]; exists {
-		for _, moduleName := range keys {
+
+	if moduleNames, exists := app.keyVersions[appVersion]; exists {
+		for _, moduleName := range moduleNames {
 			if key, exists := app.keys[moduleName]; exists {
 				output[moduleName] = key
 			}
