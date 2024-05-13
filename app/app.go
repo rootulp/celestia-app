@@ -87,6 +87,7 @@ import (
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 )
 
@@ -433,12 +434,17 @@ func New(
 	// assert that keys are present for all supported versions
 	app.assertAllKeysArePresent()
 
-	// we don't seal the store until the app version has been initailised
-	// this will just initialize the base keys (i.e. the param store)
+	// Don't seal the store until the app version has been initailised. This
+	// will just initialize the base keys (i.e. the param store) and load the
+	// lasted state for the base keys.
 	if err := app.CommitMultiStore().LoadLatestVersion(); err != nil {
 		tmos.Exit(err.Error())
 	}
 
+	// fmt.Printf("app version at the end of New %v\n", app.AppVersion())
+	// ctx := app.NewProposalContext(tmproto.Header{})
+	// appVersion := app.GetAppVersionFromParamStore(ctx)
+	// fmt.Printf("app version in param store%v \n", appVersion)
 	return app
 }
 
@@ -517,6 +523,7 @@ func (app *App) Info(req abci.RequestInfo) abci.ResponseInfo {
 			panic(err)
 		}
 		appVersion := app.GetAppVersionFromParamStore(ctx)
+		// fmt.Printf("info before app version %v\n", appVersion)
 		if appVersion > 0 {
 			app.SetAppVersion(ctx, appVersion)
 		} else {
@@ -525,6 +532,7 @@ func (app *App) Info(req abci.RequestInfo) abci.ResponseInfo {
 	}
 
 	resp := app.BaseApp.Info(req)
+	// fmt.Printf("info after app version %v\n", resp.AppVersion)
 	// mount the stores for the provided app version
 	if resp.AppVersion > 0 && !app.IsSealed() {
 		app.mountKeysAndInit(resp.AppVersion)
@@ -547,13 +555,22 @@ func (app *App) InitChain(req abci.RequestInitChain) (res abci.ResponseInitChain
 	if req.ConsensusParams.Version.AppVersion == 0 {
 		panic("app version 0 is not accepted. Please set an app version in the genesis")
 	}
+	appVersion := req.ConsensusParams.Version.AppVersion
 
 	// mount the stores for the provided app version if it has not already been mounted
 	if app.AppVersion() == 0 && !app.IsSealed() {
-		app.mountKeysAndInit(req.ConsensusParams.Version.AppVersion)
+		app.mountKeysAndInit(appVersion)
 	}
 
-	return app.BaseApp.InitChain(req)
+	res = app.BaseApp.InitChain(req)
+
+	ctx := app.NewContext(false, tmproto.Header{})
+	if appVersion != v1 {
+		// set the initial app version in the consensus params
+		app.SetInitialAppVersionInConsensusParams(ctx, appVersion)
+		app.SetAppVersion(ctx, appVersion)
+	}
+	return res
 }
 
 // mountKeysAndInit mounts the keys for the provided app version and then
