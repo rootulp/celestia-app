@@ -8,6 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -203,6 +204,34 @@ func TestPrepareProposalFiltering(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPrepareProposal_BlockDataSize(t *testing.T) {
+	encConf := encoding.MakeConfig(app.ModuleEncodingRegisters...)
+	accounts := testfactory.GenerateAccounts(2)
+	testApp, kr := testutil.SetupTestAppWithGenesisValSet(app.DefaultConsensusParams(), accounts...)
+	sendTxs := coretypes.Txs(testutil.SendTxsWithAccounts(
+		t,
+		testApp,
+		encConf.TxConfig,
+		kr,
+		1000,
+		accounts[0],
+		accounts[1:],
+		testutil.ChainID,
+	)).ToSliceOfBytes()
+
+	assert.NotPanics(t, func() {
+		testApp.PrepareProposal(
+			abci.RequestPrepareProposal{
+				BlockData:     &tmproto.Data{Txs: sendTxs},
+				BlockDataSize: 1,
+				ChainId:       testutil.ChainID,
+				Height:        testApp.LastBlockHeight() + 1,
+				Time:          time.Now(),
+			},
+		)
+	})
 }
 
 func queryAccountInfo(capp *app.App, accs []string, kr keyring.Keyring) []blobfactory.AccountInfo {
