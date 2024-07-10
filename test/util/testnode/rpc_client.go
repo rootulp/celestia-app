@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/celestiaorg/celestia-app/v2/pkg/appconsts"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
@@ -96,7 +95,7 @@ func DefaultAppConfig() *srvconfig.Config {
 	appCfg := srvconfig.DefaultConfig()
 	appCfg.GRPC.Address = fmt.Sprintf("127.0.0.1:%d", mustGetFreePort())
 	appCfg.API.Address = fmt.Sprintf("tcp://127.0.0.1:%d", mustGetFreePort())
-	appCfg.MinGasPrices = fmt.Sprintf("%v%s", appconsts.DefaultMinGasPrice, appconsts.BondDenom)
+	// appCfg.MinGasPrices = fmt.Sprintf("%v%s", appconsts.DefaultMinGasPrice, appconsts.BondDenom)
 	return appCfg
 }
 
