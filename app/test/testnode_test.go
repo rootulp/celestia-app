@@ -11,8 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/connectivity"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func Test_testnode(t *testing.T) {
@@ -24,31 +22,14 @@ func Test_testnode(t *testing.T) {
 		appConfig := testnode.DefaultAppConfig()
 		appConfig.MinGasPrices = want
 		config := testnode.DefaultConfig().WithAppConfig(appConfig)
-		_, _, grpcAddr := testnode.NewNetwork(t, config)
+		cctx, _, _ := testnode.NewNetwork(t, config)
 
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		grpcConn := setup(t, ctx, grpcAddr)
-		got, err := queryMinimumGasPrice(ctx, grpcConn)
+		got, err := queryMinimumGasPrice(ctx, cctx.GRPCClient)
 		require.NoError(t, err)
 		assert.Equal(t, want, got)
 	})
-}
-
-func setup(t *testing.T, ctx context.Context, grpcAddr string) *grpc.ClientConn {
-	client, err := grpc.NewClient(
-		grpcAddr,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	require.NoError(t, err)
-
-	// this ensures we can't start the node without core connection
-	client.Connect()
-	if !client.WaitForStateChange(ctx, connectivity.Ready) {
-		// hits the case when context is canceled
-		t.Fatalf("couldn't connect to core endpoint(%s): %v", grpcAddr, ctx.Err())
-	}
-	return client
 }
 
 func queryMinimumGasPrice(ctx context.Context, grpcConn *grpc.ClientConn) (float64, error) {
