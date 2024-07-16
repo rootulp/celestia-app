@@ -125,7 +125,6 @@ func NewTxClient(
 	}
 
 	txClient := &TxClient{
-		mtx:             sync.Mutex{},
 		signer:          signer,
 		registry:        registry,
 		grpc:            conn,
