@@ -573,7 +573,11 @@ func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.Respo
 		fmt.Printf("HACKHACK: v1 application should upgrade to v2 at hard-coded upgrade height %v\n", upgradeHeight)
 		got.ConsensusParamUpdates.Version.AppVersion = 2
 	}
-	fmt.Printf("EndBlocker returning app version %v\n", got.ConsensusParamUpdates.Version.AppVersion)
+	if got.ConsensusParamUpdates == nil || got.ConsensusParamUpdates.Version == nil {
+		fmt.Printf("EndBlocker returning nil consensus param updates\n")
+	} else {
+		fmt.Printf("EndBlocker returning app version %v\n", got.ConsensusParamUpdates.Version.AppVersion)
+	}
 	return got
 }
 
