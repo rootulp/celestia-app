@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -565,7 +566,13 @@ func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.R
 
 // EndBlocker application updates every end block
 func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	return app.mm.EndBlock(ctx, req)
+	got := app.mm.EndBlock(ctx, req)
+	upgradeHeight := int64(3)
+	if req.Height == upgradeHeight {
+		fmt.Printf("HACKHACK: v1 application should upgrade to v2 at hard-coded upgrade height %v\n", upgradeHeight)
+		got.ConsensusParamUpdates.Version.AppVersion = 2
+	}
+	return got
 }
 
 // InitChainer application update at chain initialization
