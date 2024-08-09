@@ -566,6 +566,7 @@ func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.R
 
 // EndBlocker application updates every end block
 func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+	fmt.Printf("EndBlocker invoked on state machine v1 with req.Height %v\n", req.Height)
 	got := app.mm.EndBlock(ctx, req)
 	upgradeHeight := int64(3)
 	if req.Height == upgradeHeight {
