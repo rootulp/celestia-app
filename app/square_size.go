@@ -1,6 +1,8 @@
 package app
 
 import (
+	"fmt"
+
 	"github.com/celestiaorg/celestia-app/pkg/appconsts"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -17,6 +19,7 @@ func (app *App) GovSquareSizeUpperBound(ctx sdk.Context) int {
 	if ctx.BlockHeader().Height <= 1 {
 		return int(appconsts.DefaultGovMaxSquareSize)
 	}
+	fmt.Printf("block height %v, app version %v\n", ctx.BlockHeader().Height, ctx.BlockHeader().Version.App)
 
 	gmax := int(app.BlobKeeper.GovMaxSquareSize(ctx))
 	// perform a secondary check on the max square size.
