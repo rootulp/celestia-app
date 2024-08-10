@@ -87,6 +87,7 @@ import (
 	"github.com/celestiaorg/celestia-app/app/ante"
 	"github.com/celestiaorg/celestia-app/app/encoding"
 	"github.com/celestiaorg/celestia-app/pkg/appconsts"
+	v1 "github.com/celestiaorg/celestia-app/pkg/appconsts/v1"
 	"github.com/celestiaorg/celestia-app/pkg/proof"
 	blobmodule "github.com/celestiaorg/celestia-app/x/blob"
 	blobmodulekeeper "github.com/celestiaorg/celestia-app/x/blob/keeper"
@@ -566,21 +567,22 @@ func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.R
 
 // EndBlocker application updates every end block
 func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	fmt.Printf("EndBlocker invoked on state machine v1 with req.Height %v\n", req.Height)
-	got := app.mm.EndBlock(ctx, req)
-	upgradeHeight := int64(3)
-	if req.Height == upgradeHeight {
-		fmt.Printf("v1 application should upgrade to v2 at hard-coded upgrade height %v\n", upgradeHeight)
-		consensusParamUpdates := app.GetConsensusParams(ctx)
-		consensusParamUpdates.Version.AppVersion = 2
-		got.ConsensusParamUpdates = consensusParamUpdates
+	currentAppVersion := app.AppVersion()
+	fmt.Printf("EndBlocker invoked on current app version %v with req.Height %v\n", currentAppVersion, req.Height)
+	res := app.mm.EndBlock(ctx, req)
+
+	// For v1 -> v2 only we upgrade using a hard-coded upgrade height
+	upgradeHeight := int64(4)
+	nextAppVersion := uint64(2)
+	if currentAppVersion == v1.Version {
+		// check that we are at the height before the upgrade
+		if req.Height == upgradeHeight-1 {
+			app.BaseApp.Logger().Info(fmt.Sprintf("upgrading from app version %v to %v", currentAppVersion, nextAppVersion))
+			app.SetInitialAppVersionInConsensusParams(ctx, nextAppVersion)
+			app.SetAppVersion(ctx, nextAppVersion)
+		}
 	}
-	if got.ConsensusParamUpdates == nil || got.ConsensusParamUpdates.Version == nil {
-		fmt.Printf("EndBlocker returning nil consensus param updates\n")
-	} else {
-		fmt.Printf("EndBlocker returning app version %v\n", got.ConsensusParamUpdates.Version.AppVersion)
-	}
-	return got
+	return res
 }
 
 // InitChainer application update at chain initialization
