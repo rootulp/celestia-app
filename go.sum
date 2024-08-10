@@ -314,8 +314,6 @@ github.com/bufbuild/protocompile v0.5.1/go.mod h1:G5iLmavmF4NsYtpZFvE3B/zFch2GIY
 github.com/bwesterb/go-ristretto v1.2.0/go.mod h1:fUIoIZaG73pV5biE2Blr2xEzDoMj7NFEuV9ekS419A0=
 github.com/c-bata/go-prompt v0.2.2/go.mod h1:VzqtzE2ksDBcdln8G7mk2RX9QyGjH+OVqOCSiVIqS34=
 github.com/casbin/casbin/v2 v2.1.2/go.mod h1:YcPU1XXisHhLzuxH9coDNf2FbKpjGlbCg3n9yuLkIJQ=
-github.com/celestiaorg/cosmos-sdk v1.24.0-sdk-v0.46.16 h1:AlBZS4WykzrwfcNbKD+yQQM1RTMz7lYDC1NS7ClAidM=
-github.com/celestiaorg/cosmos-sdk v1.24.0-sdk-v0.46.16/go.mod h1:Bpl1LSWiDpQumgOhhMTZBMopqa0j7fRasIhvTZB44P0=
 github.com/celestiaorg/merkletree v0.0.0-20210714075610-a84dc3ddbbe4 h1:CJdIpo8n5MFP2MwK0gSRcOVlDlFdQJO1p+FqdxYzmvc=
 github.com/celestiaorg/merkletree v0.0.0-20210714075610-a84dc3ddbbe4/go.mod h1:fzuHnhzj1pUygGz+1ZkB3uQbEUL4htqCGJ4Qs2LwMZA=
 github.com/celestiaorg/nmt v0.22.0 h1:AGtfmBiVgreR1KkIV5R7XFNeMp/H4IUDLlBbLjZZ3zk=
@@ -1120,6 +1118,8 @@ github.com/rogpeppe/go-internal v1.10.0 h1:TMyTOH3F/DB16zRVcYyreMH6GnZZrwQVAoYjR
 github.com/rogpeppe/go-internal v1.10.0/go.mod h1:UQnix2H7Ngw/k4C5ijL5+65zddjncjaFoBhdsK/akog=
 github.com/rootulp/celestia-core v1.0.0 h1:PbFY+GdOuA8daZqgv/AntA6rRuUQjdITf1FMMuJ/v4U=
 github.com/rootulp/celestia-core v1.0.0/go.mod h1:5jJ5magtH7gQOwSYfS/m5fliIS7irKunLV7kLNaD8o0=
+github.com/rootulp/cosmos-sdk v1.1.0 h1:WeIJtsC4o1ayZmYFwGtP6uQKkgoCpyWFh625v+xohsY=
+github.com/rootulp/cosmos-sdk v1.1.0/go.mod h1:XVADIJVLDglWUvkPAI+omqA/sU1SPOmBNPJxHGv46WQ=
 github.com/rs/cors v1.7.0/go.mod h1:gFx+x8UowdsKA9AchylcLynDq+nNFfI8FkUZdN/jGCU=
 github.com/rs/cors v1.8.3 h1:O+qNyWn7Z+F9M0ILBHgMVPuB1xTOucVd5gtaYyXBpRo=
 github.com/rs/cors v1.8.3/go.mod h1:XyqrcTp5zjWr1wsJ8PIRZssZ8b/WMcMf71DJnit4EMU=
