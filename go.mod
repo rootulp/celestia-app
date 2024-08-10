@@ -1,9 +1,11 @@
 module github.com/celestiaorg/celestia-app
 
-go 1.22.4
+go 1.22.5
+
+toolchain go1.22.6
 
 require (
-	github.com/celestiaorg/nmt v0.21.0
+	github.com/celestiaorg/nmt v0.22.0
 	github.com/ethereum/go-ethereum v1.13.2
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.4
@@ -224,7 +226,7 @@ replace (
 	github.com/cosmos/ledger-cosmos-go => github.com/cosmos/ledger-cosmos-go v0.12.4
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
-	github.com/tendermint/tendermint => github.com/celestiaorg/celestia-core v1.38.0-tm-v0.34.29
+	github.com/tendermint/tendermint => github.com/rootulp/celestia-core v1.0.0
 )
 
 // v1.8.0 was retracted due to a dependency bump in ibc resulting in a consensus

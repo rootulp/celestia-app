@@ -239,6 +239,11 @@ type App struct {
 	mm *module.Manager
 }
 
+// RunMigrations implements types.Application.
+func (app *App) RunMigrations(abci.RequestRunMigrations) abci.ResponseRunMigrations {
+	panic("unimplemented")
+}
+
 // New returns a reference to an initialized celestia app.
 func New(
 	logger log.Logger,
