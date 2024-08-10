@@ -785,3 +785,7 @@ func extractRegisters(m module.BasicManager, soloRegisters ...encoding.ModuleReg
 	}
 	return s
 }
+
+func (*App) RunMigrations() []byte {
+	panic("unimplemented")
+}
