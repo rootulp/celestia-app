@@ -789,3 +789,11 @@ func extractRegisters(m module.BasicManager, soloRegisters ...encoding.ModuleReg
 func (*App) RunMigrations() []byte {
 	panic("unimplemented")
 }
+
+func (app *App) SetCommitMultiStore(cms storetypes.CommitMultiStore) {
+	app.SetCMS(cms)
+}
+
+func (app *App) GetCommitMultiStore() storetypes.CommitMultiStore {
+	return app.CommitMultiStore()
+}
