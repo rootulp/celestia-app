@@ -1,12 +1,8 @@
-# Simple local devnet
+# Local devnet
 
-This directory contains a local Celestia devnet that contains four validators, and prometheus/grafana setup to receive metrics from them.
+This directory contains a local devnet that contains Prometheus, Grafana, OTEL collector, and 4 validators. The devnet uses a Docker image that is built locally using the code in the root directory. If you make any code changes, you must [build the images](#build-the-images) again so that the change is reflected in the local devnet.
 
-The docker image used is built locally using the code in the root directory. So, if you made any change on `celestia-app`, you will have them when [building the images](#build-the-images).
-
-Note: It is necessary to [build the images](#build-the-images) after every change you make so that it is reflected in the network.
-
-Note 2: If you edit the `go.mod` to contain a local package, for example, using a local version of celestia-core:
+Note: If you edit the `go.mod` to contain a local package, for example, using a local version of celestia-core:
 
 ```go
 replace github.com/celestiaorg/celestia-core => ../celestia-core
@@ -18,15 +14,14 @@ You will need to push that version to GitHub, then take the commit and change it
 replace github.com/celestiaorg/celestia-core => github.com/fork_name/celestia-core <commit>
 ```
 
-To have those changes reflected when you [build the images](#build-the-images). Otherwise, the build will fail because the directory containing the changes is not part of the docker context.
+To have those changes reflected when you [build the images](#build-the-images). Otherwise, the build will fail because the directory containing the changes is not part of the Docker context.
 
-## How to run
+## Usage
 
-### Requirements
+### Prerequisites
 
-To run the devnet, a working installation of [docker-compose](https://docs.docker.com/compose/install/) is needed.
-
-Also, make sure you have docker up and running:
+1. Install [Docker](https://docs.docker.com/get-docker/).
+1. Verify that Docker is up and running:
 
 ```shell
 docker run hello-world
@@ -57,22 +52,18 @@ For more examples and ideas, visit:
  https://docs.docker.com/get-started/
 ```
 
-If not, then docker needs to be installed/started directly.
-
 ### Build the images
 
-To build the images:
-
 ```shell
-docker-compose build
+docker compose build
 ```
 
 ### Start the devnet
 
-To run all the validators and the telemetry:
+To run all the validators and the telemetry stack:
 
 ```shell
-docker-compose up -d
+docker compose up --detach
 ```
 
 If you want to run just a specific instance, you can specify its name: `core0`, `core1`, `core2`, `core3`, which are the validators. Then, `prometheus`, `grafana`, `otel-collector` for the telemetry.
@@ -80,7 +71,7 @@ If you want to run just a specific instance, you can specify its name: `core0`, 
 Example:
 
 ```shell
-docker-compose up -d core0 core1
+docker-compose up --detach core0 core1
 ```
 
 Will run only two validators: `core0` and `core1`, and no telemetry.
@@ -111,7 +102,7 @@ For the dashboards, if you create fresh ones and save them, they will be saved o
 
 ## Updating the configuration
 
-The four validators use the same genesis, the same comet's config `celestia-app/config.toml`, and the same app config `celestia-app/app.toml`. If you make a change on one of them, you will make the change on the four validators.
+The four validators use the same genesis, the same comet's config `celestia-app/config.toml`, and the same app config `celestia-app/app.toml`. If you make a change on one of them, you will make the change on all four validators.
 
 Note: if the network is already running, and you make a change in the files, the changes will not be reflected until you [stop the devnet](#stop-the-devnet), then [start](#start-the-devnet) it again. Also, they will be reflected if you [delete it](#delete-the-devnet) and [start](#start-the-devnet) it again.
 
@@ -128,7 +119,7 @@ will return the four validators.
 To send transactions, you will need to first send some tokens to your account:
 
 ```shell
-celestia-appd tx bank send core0 <your_address> <amount> --fees 21000utia --chain-id local_devnet --keyring-backend test --keyring-dir local_devnet/celestia-app/core0 -b block
+celestia-appd tx bank send core0 <your_address> <amount> --fees 21000utia --chain-id local_devnet --keyring-backend test --keyring-dir local_devnet/celestia-app/core0 --broadcast-mode block
 ```
 
 For example, `<amount>` can be `100utia`.

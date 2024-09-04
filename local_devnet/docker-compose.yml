@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   core0:
     user: "0:0"
@@ -99,13 +97,13 @@ services:
       "/bin/bash"
     ]
     command: [
-      "/opt/start_node_and_create_validator.sh"
+      "/opt/start_node_and_create_validator-3.sh"
     ]
     volumes:
       - ${PWD}/celestia-app/core3/config/priv_validator_key.json:/opt/config/priv_validator_key.json:ro
       - ${PWD}/celestia-app/core3/config/node_key.json:/opt/config/node_key.json:ro
       - ${PWD}/celestia-app/core3/keyring-test:/opt/keyring-test:ro
-      - ${PWD}/scripts/start_node_and_create_validator.sh:/opt/start_node_and_create_validator.sh:ro
+      - ${PWD}/scripts/start_node_and_create_validator-3.sh:/opt/start_node_and_create_validator-3.sh:ro
       - ${PWD}/celestia-app/config.toml:/opt/config/config.toml:ro
       - ${PWD}/celestia-app/app.toml:/opt/config/app.toml:ro
       - ${PWD}/celestia-app/genesis.json:/opt/config/genesis.json:ro

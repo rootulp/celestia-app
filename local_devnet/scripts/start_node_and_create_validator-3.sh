@@ -69,5 +69,5 @@ celestia-appd start \
 --home="${CELESTIA_HOME}" \
 --moniker="${MONIKER}" \
 --p2p.persistent_peers=e3c592c0c2ad4b05cef3791456b0d6dd4da72ed2@core0:26656 \
---rpc.laddr=tcp://0.0.0.0:26657 \
---v2-upgrade-height 5
+--rpc.laddr=tcp://0.0.0.0:26657
+# this validator doesn't upgrade to v2
