@@ -1467,6 +1467,7 @@ src="./figures/rs2d_quadrants.svg" alt="Figure 2: rsmt2d" width="400"/> <img src
 <p>The AnteHandler chains together several decorators to ensure the following criteria are met for app version 3:</p>
 <ul>
 <li>The tx does not contain any messages that are unsupported by the current app version. See <code>MsgVersioningGateKeeper</code>.</li>
+<li>The tx size is not larger than the application's configured versioned constant <a href="https://github.com/celestiaorg/celestia-app/blob/8ba82c1b872b7f5686d9bb91b93a0442223d7bb2/pkg/appconsts/v3/app_consts.go#L9">MaxTxSize</a>.</li>
 <li>The tx does not contain any <a href="https://github.com/cosmos/cosmos-sdk/blob/22c28366466e64ebf0df1ce5bec8b1130523552c/proto/cosmos/tx/v1beta1/tx.proto#L119-L122">extension options</a>.</li>
 <li>The tx passes <code>ValidateBasic()</code>.</li>
 <li>The tx's <a href="https://github.com/cosmos/cosmos-sdk/blob/22c28366466e64ebf0df1ce5bec8b1130523552c/proto/cosmos/tx/v1beta1/tx.proto#L115-L117">timeout_height</a> has not been reached if one is specified.</li>
@@ -2175,7 +2176,7 @@ hardcoded in the application or they are blocked by the <code>x/paramfilter</cod
 <tr><td>consensus.evidence.MaxAgeNumBlocks</td><td>120960</td><td>The maximum number of blocks before evidence is considered invalid. This value will stop CometBFT from pruning block data.</td><td>True</td></tr>
 <tr><td>consensus.evidence.MaxBytes</td><td>1MiB</td><td>Maximum size in bytes used by evidence in a given block.</td><td>True</td></tr>
 <tr><td>consensus.validator.PubKeyTypes</td><td>Ed25519</td><td>The type of public key used by validators.</td><td>False</td></tr>
-<tr><td>consensus.Version.AppVersion</td><td>2</td><td>Determines protocol rules used for a given height. Incremented by the application upon an upgrade.</td><td>True</td></tr>
+<tr><td>consensus.Version.AppVersion</td><td>3</td><td>Determines protocol rules used for a given height. Incremented by the application upon an upgrade.</td><td>True</td></tr>
 <tr><td>distribution.BaseProposerReward</td><td>0</td><td>Reward in the mint denomination for proposing a block.</td><td>True</td></tr>
 <tr><td>distribution.BonusProposerReward</td><td>0</td><td>Extra reward in the mint denomination for proposers based on the voting power included in the commit.</td><td>True</td></tr>
 <tr><td>distribution.CommunityTax</td><td>0.02 (2%)</td><td>Percentage of the inflation sent to the community pool.</td><td>True</td></tr>
