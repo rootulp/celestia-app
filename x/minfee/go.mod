@@ -1,4 +1,4 @@
-module github.com/celestiaorg/celestia-app/x/minfee
+module github.com/rootulp/celestia-app/x/minfee
 
 go 1.23.1
 

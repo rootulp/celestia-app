@@ -5,11 +5,11 @@ import (
 	"cosmossdk.io/math"
 	"github.com/celestiaorg/celestia-app/v3/pkg/appconsts"
 	v1 "github.com/celestiaorg/celestia-app/v3/pkg/appconsts/v1"
-	"github.com/celestiaorg/celestia-app/x/minfee"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerror "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	params "github.com/cosmos/cosmos-sdk/x/params/keeper"
+	"github.com/rootulp/celestia-app/x/minfee"
 )
 
 const (

@@ -3,7 +3,6 @@ package minfee_test
 import (
 	"testing"
 
-	"github.com/celestiaorg/celestia-app/x/minfee"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store"
@@ -11,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramkeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/rootulp/celestia-app/x/minfee"
 	"github.com/stretchr/testify/require"
 	tmdb "github.com/tendermint/tm-db"
 )
