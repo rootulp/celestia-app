@@ -237,7 +237,7 @@ func startStandAlone(ctx *server.Context, clientCtx client.Context, appCreator s
 	if config.API.Enable {
 		apiSrv, clientCtx, err = startAPIServer(ctx, clientCtx, app, config, metrics)
 		if err != nil {
-			ctx.Logger.Error("failed to start api server: ", err)
+			ctx.Logger.Error(fmt.Sprintf("failed to start api server: %v", err))
 			return err
 		}
 		defer func() {
@@ -387,7 +387,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator sr
 	if config.API.Enable {
 		apiSrv, clientCtx, err = startAPIServer(ctx, clientCtx, app, config, metrics)
 		if err != nil {
-			ctx.Logger.Error("failed to start api server: ", err)
+			ctx.Logger.Error(fmt.Sprintf("failed to start api server: %v", err))
 			return err
 		}
 		defer func() {
