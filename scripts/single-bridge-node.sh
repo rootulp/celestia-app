@@ -45,8 +45,19 @@ createConfig() {
 }
 
 startCelestia() {
-  echo "Starting celestia bridge node..."
-  celestia bridge start --core.ip $CORE_IP
+    # echo "Waiting for app version 1 before proceeding..."
+    # while true; do
+    #     current_version=$(celestia-appd status | jq -r '.node_info.protocol_version.app')
+    #     if [ "$current_version" = "1" ]; then
+    #         echo "App version 1 detected, proceeding with v3 upgrade..."
+    #         break
+    #     fi
+    #     echo "Current version: $current_version, waiting for version 2..."
+    #     sleep 1
+    # done
+
+    echo "Starting celestia bridge node..."
+    celestia bridge start --core.ip $CORE_IP
 }
 
 deleteCelestiaHome
