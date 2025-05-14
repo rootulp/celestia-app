@@ -10,7 +10,7 @@ set -o nounset
 
 CHAIN_ID="celestia"
 NODE_NAME="node-name"
-SEEDS="e6116822e1a5e283d8a85d3ec38f4d232274eaf3@consensus-full-seed-1.celestia-bootstrap.net:26656,cf7ac8b19ff56a9d47c75551bd4864883d1e24b5@consensus-full-seed-2.celestia-bootstrap.net:26656"
+SEEDS="cf7ac8b19ff56a9d47c75551bd4864883d1e24b5@consensus-full-seed-2.celestia-bootstrap.net:26656"
 CELESTIA_APP_HOME="${HOME}/.celestia-app"
 CELESTIA_APP_VERSION=$(celestia-appd version 2>&1)
 RPC="https://celestia-rpc.polkachu.com:443"
@@ -55,4 +55,4 @@ echo "Downloading genesis file..."
 celestia-appd download-genesis ${CHAIN_ID} > /dev/null 2>&1 # Hide output to reduce terminal noise
 
 echo "Starting celestia-appd..."
-celestia-appd start --v2-upgrade-height 2371495
+celestia-appd start --force-no-bbr
