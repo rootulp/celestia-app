@@ -8,23 +8,21 @@ import (
 	"math"
 	"net"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"strings"
 	"sync"
 	"sync/atomic"
-	"syscall"
 
 	"cosmossdk.io/log"
 	"github.com/celestiaorg/celestia-app/v4/multiplexer/appd"
 	"github.com/celestiaorg/celestia-app/v4/multiplexer/internal"
-	cmtcfg "github.com/cometbft/cometbft/config"
+	cometconfig "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/node"
 	"github.com/cometbft/cometbft/p2p"
-	pvm "github.com/cometbft/cometbft/privval"
+	"github.com/cometbft/cometbft/privval"
 	"github.com/cometbft/cometbft/proxy"
 	"github.com/cometbft/cometbft/rpc/client/local"
-	coregrpc "github.com/cometbft/cometbft/rpc/grpc"
+	cometgrpc "github.com/cometbft/cometbft/rpc/grpc"
 	db "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -32,7 +30,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servergrpc "github.com/cosmos/cosmos-sdk/server/grpc"
-	servercmtlog "github.com/cosmos/cosmos-sdk/server/log"
+	serverlog "github.com/cosmos/cosmos-sdk/server/log"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -52,13 +50,13 @@ const (
 // It manages configuration, connection setup, and cleanup functions for all associated services and resources.
 type Multiplexer struct {
 	logger log.Logger
-	mu     sync.Mutex
+	mutex  sync.Mutex
 	// done is a hack to prevent the multiplexer from catching the above mutex twice and avoiding mu.TryLock
 	// as that could result in an accidental crash.
 	done atomic.Bool
 
-	svrCtx *server.Context
-	svrCfg serverconfig.Config
+	serverContext *server.Context
+	serverConfig  serverconfig.Config
 	// clientContext is used to configure the different services managed by the multiplexer.
 	clientContext client.Context
 	// appVersion is the current version application number.
@@ -76,13 +74,13 @@ type Multiplexer struct {
 	activeVersion Version
 	// chainID is required as it needs to be propagated to the ABCI V1 connection.
 	chainID string
-	// cmNode is the comet node which has been created. A reference is required in order to establish
+	// cometNode is the comet node which has been created. A reference is required in order to establish
 	// a local connection to it.
-	cmNode *node.Node
+	cometNode *node.Node
 	// versions is a list of versions which contain all embedded binaries.
 	versions Versions
-	// conn is a grpc client connection and used when creating remote ABCI connections.
-	conn *grpc.ClientConn
+	// abciConnection is a grpc client connection and used when creating remote ABCI connections.
+	abciConnection *grpc.ClientConn
 	// cleanupFns is a list of functions which should execute upon cleanup of the multiplexer.
 	// any returned errors are logged.
 	cleanupFns []func() error
@@ -99,8 +97,8 @@ func NewMultiplexer(svrCtx *server.Context, svrCfg serverconfig.Config, clientCt
 	}
 
 	mp := &Multiplexer{
-		svrCtx:        svrCtx,
-		svrCfg:        svrCfg,
+		serverContext: svrCtx,
+		serverConfig:  svrCfg,
 		clientContext: clientCtx,
 		appCreator:    appCreator,
 		logger:        svrCtx.Logger.With("multiplexer"),
@@ -126,7 +124,7 @@ func (m *Multiplexer) isEmbeddedApp() bool {
 
 // isGrpcOnly checks if the GRPC-only mode is enabled using the configuration flag.
 func (m *Multiplexer) isGrpcOnly() bool {
-	return m.svrCtx.Viper.GetBool(flagGRPCOnly)
+	return m.serverContext.Viper.GetBool(flagGRPCOnly)
 }
 
 // registerCleanupFn enables the registration of additional cleanup functions that get called during Cleanup
@@ -135,7 +133,7 @@ func (m *Multiplexer) registerCleanupFn(cleanUpFn func() error) {
 }
 
 func (m *Multiplexer) Start() error {
-	m.g, m.ctx = getCtx(m.svrCtx, true)
+	m.g, m.ctx = getCtx(m.serverContext, true)
 
 	emitServerInfoMetrics()
 
@@ -146,7 +144,7 @@ func (m *Multiplexer) Start() error {
 
 	if m.isGrpcOnly() {
 		m.logger.Info("starting node in gRPC only mode; CometBFT is disabled")
-		m.svrCfg.GRPC.Enable = true
+		m.serverConfig.GRPC.Enable = true
 	} else {
 		m.logger.Info("starting comet node")
 		if err := m.startCmtNode(); err != nil {
@@ -176,17 +174,17 @@ func (m *Multiplexer) enableGRPCAndAPIServers(app servertypes.Application) error
 	}
 	// if we are running natively and have specified to enable gRPC or API servers
 	// we need to register the relevant services.
-	if m.svrCfg.API.Enable || m.svrCfg.GRPC.Enable {
+	if m.serverConfig.API.Enable || m.serverConfig.GRPC.Enable {
 		m.logger.Debug("registering services and local comet client")
-		m.clientContext = m.clientContext.WithClient(local.New(m.cmNode))
+		m.clientContext = m.clientContext.WithClient(local.New(m.cometNode))
 		app.RegisterTxService(m.clientContext)
 		app.RegisterTendermintService(m.clientContext)
-		app.RegisterNodeService(m.clientContext, m.svrCfg)
+		app.RegisterNodeService(m.clientContext, m.serverConfig)
 	}
 
 	// startGRPCServer the grpc server in the case of a native app. If using an embedded app
 	// it will use that instead.
-	if m.svrCfg.GRPC.Enable {
+	if m.serverConfig.GRPC.Enable {
 		grpcServer, clientContext, err := m.startGRPCServer()
 		if err != nil {
 			return err
@@ -195,8 +193,8 @@ func (m *Multiplexer) enableGRPCAndAPIServers(app servertypes.Application) error
 
 		// startAPIServer starts the api server for a native app. If using an embedded app
 		// it will use that instead.
-		if m.svrCfg.API.Enable {
-			metrics, err := startTelemetry(m.svrCfg)
+		if m.serverConfig.API.Enable {
+			metrics, err := startTelemetry(m.serverConfig)
 			if err != nil {
 				return err
 			}
@@ -275,8 +273,8 @@ func (m *Multiplexer) initRemoteGrpcConn() error {
 		flagABCIServerAddr = "address"
 	)
 
-	abciClientAddr := m.svrCtx.Viper.GetString(flagABCIClientAddr)
-	abciServerAddr := m.svrCtx.Viper.GetString(flagABCIServerAddr)
+	abciClientAddr := m.serverContext.Viper.GetString(flagABCIClientAddr)
+	abciServerAddr := m.serverContext.Viper.GetString(flagABCIServerAddr)
 	if abciServerAddr != abciClientAddr {
 		return fmt.Errorf("ABCI client and server addresses must match:\n client=%s\n server=%s\n"+
 			"To resolve, please configure the ABCI client (via --proxy_app flag) to match the ABCI server (via --address flag)", abciClientAddr, abciServerAddr)
@@ -298,30 +296,30 @@ func (m *Multiplexer) initRemoteGrpcConn() error {
 	}
 
 	m.logger.Info("initialized remote app client", "address", abciServerAddr)
-	m.conn = conn
+	m.abciConnection = conn
 	return nil
 }
 
 // startGRPCServer initializes and starts a gRPC server if enabled in the configuration, returning the server and updated context.
 func (m *Multiplexer) startGRPCServer() (*grpc.Server, client.Context, error) {
-	_, _, err := net.SplitHostPort(m.svrCfg.GRPC.Address)
+	_, _, err := net.SplitHostPort(m.serverConfig.GRPC.Address)
 	if err != nil {
 		return nil, m.clientContext, err
 	}
 
-	maxSendMsgSize := m.svrCfg.GRPC.MaxSendMsgSize
+	maxSendMsgSize := m.serverConfig.GRPC.MaxSendMsgSize
 	if maxSendMsgSize == 0 {
 		maxSendMsgSize = serverconfig.DefaultGRPCMaxSendMsgSize
 	}
 
-	maxRecvMsgSize := m.svrCfg.GRPC.MaxRecvMsgSize
+	maxRecvMsgSize := m.serverConfig.GRPC.MaxRecvMsgSize
 	if maxRecvMsgSize == 0 {
 		maxRecvMsgSize = serverconfig.DefaultGRPCMaxRecvMsgSize
 	}
 
 	// if gRPC is enabled, configure gRPC client for gRPC gateway
 	grpcClient, err := grpc.NewClient(
-		m.svrCfg.GRPC.Address,
+		m.serverConfig.GRPC.Address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithDefaultCallOptions(
 			grpc.ForceCodec(codec.NewProtoCodec(m.clientContext.InterfaceRegistry).GRPCCodec()),
@@ -334,19 +332,19 @@ func (m *Multiplexer) startGRPCServer() (*grpc.Server, client.Context, error) {
 	}
 
 	m.clientContext = m.clientContext.WithGRPCClient(grpcClient)
-	m.logger.Debug("gRPC client assigned to client context", "target", m.svrCfg.GRPC.Address)
-	grpcSrv, err := servergrpc.NewGRPCServer(m.clientContext, m.nativeApp, m.svrCfg.GRPC)
+	m.logger.Debug("gRPC client assigned to client context", "target", m.serverConfig.GRPC.Address)
+	grpcSrv, err := servergrpc.NewGRPCServer(m.clientContext, m.nativeApp, m.serverConfig.GRPC)
 	if err != nil {
 		return nil, m.clientContext, err
 	}
 
-	coreEnv, err := m.cmNode.ConfigureRPC()
+	coreEnv, err := m.cometNode.ConfigureRPC()
 	if err != nil {
 		return nil, m.clientContext, err
 	}
 
-	blockAPI := coregrpc.NewBlockAPI(coreEnv)
-	coregrpc.RegisterBlockAPIServer(grpcSrv, blockAPI)
+	blockAPI := cometgrpc.NewBlockAPI(coreEnv)
+	cometgrpc.RegisterBlockAPIServer(grpcSrv, blockAPI)
 
 	m.g.Go(func() error {
 		return blockAPI.StartNewBlockEventListener(m.ctx)
@@ -355,10 +353,10 @@ func (m *Multiplexer) startGRPCServer() (*grpc.Server, client.Context, error) {
 	// Start the gRPC server in a goroutine. Note, the provided ctx will ensure
 	// that the server is gracefully shut down.
 	m.g.Go(func() error {
-		return servergrpc.StartGRPCServer(m.ctx, m.logger.With(log.ModuleKey, "grpc-server"), m.svrCfg.GRPC, grpcSrv)
+		return servergrpc.StartGRPCServer(m.ctx, m.logger.With(log.ModuleKey, "grpc-server"), m.serverConfig.GRPC, grpcSrv)
 	})
 
-	m.conn = grpcClient
+	m.abciConnection = grpcClient
 	return grpcSrv, m.clientContext, nil
 }
 
@@ -368,25 +366,25 @@ func (m *Multiplexer) startAPIServer(grpcSrv *grpc.Server, metrics *telemetry.Me
 		return fmt.Errorf("cannot start api server for embedded app")
 	}
 
-	m.clientContext = m.clientContext.WithHomeDir(m.svrCtx.Config.RootDir)
+	m.clientContext = m.clientContext.WithHomeDir(m.serverContext.Config.RootDir)
 
 	apiSrv := api.New(m.clientContext, m.logger.With(log.ModuleKey, "api-server"), grpcSrv)
-	m.nativeApp.RegisterAPIRoutes(apiSrv, m.svrCfg.API)
+	m.nativeApp.RegisterAPIRoutes(apiSrv, m.serverConfig.API)
 
-	if m.svrCfg.Telemetry.Enabled {
+	if m.serverConfig.Telemetry.Enabled {
 		apiSrv.SetTelemetry(metrics)
 	}
 
 	m.logger.Debug("starting api server")
 	m.g.Go(func() error {
-		return apiSrv.Start(m.ctx, m.svrCfg)
+		return apiSrv.Start(m.ctx, m.serverConfig)
 	})
 	return nil
 }
 
 // startNativeApp starts a native app.
 func (m *Multiplexer) startNativeApp() (servertypes.Application, error) {
-	traceWriter, traceCleanupFn, err := setupTraceWriter(m.svrCtx)
+	traceWriter, traceCleanupFn, err := setupTraceWriter(m.serverContext)
 	if err != nil {
 		return nil, err
 	}
@@ -395,14 +393,14 @@ func (m *Multiplexer) startNativeApp() (servertypes.Application, error) {
 		return nil
 	})
 
-	home := m.svrCtx.Config.RootDir
-	db, err := openDB(home, server.GetAppDBBackend(m.svrCtx.Viper))
+	home := m.serverContext.Config.RootDir
+	db, err := openDB(home, server.GetAppDBBackend(m.serverContext.Viper))
 	if err != nil {
 		return nil, err
 	}
 
 	m.logger.Debug("creating native app", "app_version", m.appVersion)
-	m.nativeApp = m.appCreator(m.logger, db, traceWriter, m.svrCtx.Viper)
+	m.nativeApp = m.appCreator(m.logger, db, traceWriter, m.serverContext.Viper)
 	m.started = true
 
 	m.registerCleanupFn(func() error {
@@ -456,10 +454,18 @@ func openTraceWriter(traceWriterFile string) (w io.WriteCloser, err error) {
 func (m *Multiplexer) getApp() (servertypes.ABCI, error) {
 	// hack to get around the multiplexer hitting its own mutex twice or relying on mu.TryLock.
 	if m.done.Load() {
+		m.logger.Debug("getApp called after multiplexer shutdown", "app_version", m.appVersion)
 		return nil, errors.New("multiplexer already stopped")
 	}
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	// Double-check after acquiring the mutex in case shutdown happened while waiting
+	if m.done.Load() {
+		m.logger.Debug("getApp: multiplexer shutdown during mutex wait", "app_version", m.appVersion)
+		return nil, errors.New("multiplexer already stopped")
+	}
+
 	m.logger.Debug("getting app", "app_version", m.appVersion, "next_app_version", m.nextAppVersion)
 
 	// get the appropriate version for the latest app version.
@@ -498,9 +504,9 @@ func (m *Multiplexer) getApp() (servertypes.ABCI, error) {
 
 	switch m.activeVersion.ABCIVersion {
 	case ABCIClientVersion1:
-		return NewRemoteABCIClientV1(m.conn, m.chainID, m.appVersion), nil
+		return NewRemoteABCIClientV1(m.abciConnection, m.chainID, m.appVersion), nil
 	case ABCIClientVersion2:
-		return NewRemoteABCIClientV2(m.conn), nil
+		return NewRemoteABCIClientV2(m.abciConnection), nil
 	}
 
 	return nil, fmt.Errorf("unknown ABCI client version %d", m.activeVersion.ABCIVersion)
@@ -565,31 +571,46 @@ func (m *Multiplexer) stopEmbeddedApp() error {
 
 // Cleanup allows proper multiplexer termination.
 func (m *Multiplexer) Cleanup() error {
-	m.done.Store(true)
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	// Make cleanup idempotent - if already done, return immediately
+	if !m.done.CompareAndSwap(false, true) {
+		m.logger.Debug("multiplexer cleanup already completed")
+		return nil
+	}
+
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
 
 	m.logger.Info("cleaning up multiplexer")
 
 	var errs error
 
-	// stop any running app
+	// stop any running app first
 	if err := m.stopEmbeddedApp(); err != nil {
+		m.logger.Error("failed to stop embedded app during cleanup", "err", err)
 		errs = errors.Join(errs, fmt.Errorf("failed to stop active version: %w", err))
 	}
 
 	// close gRPC connection
-	if m.conn != nil {
-		if err := m.conn.Close(); err != nil {
+	if m.abciConnection != nil {
+		if err := m.abciConnection.Close(); err != nil {
+			m.logger.Error("failed to close gRPC connection during cleanup", "err", err)
 			errs = errors.Join(errs, fmt.Errorf("failed to close gRPC connection: %w", err))
 		}
-		m.conn = nil
+		m.abciConnection = nil
 	}
 
-	for _, fn := range m.cleanupFns {
+	// run registered cleanup functions
+	for i, fn := range m.cleanupFns {
 		if err := fn(); err != nil {
+			m.logger.Error("cleanup function failed", "index", i, "err", err)
 			errs = errors.Join(errs, fmt.Errorf("failed to run cleanup function: %w", err))
 		}
+	}
+
+	if errs != nil {
+		m.logger.Error("multiplexer cleanup completed with errors", "err", errs)
+	} else {
+		m.logger.Info("multiplexer cleanup completed successfully")
 	}
 
 	return errs
@@ -597,13 +618,13 @@ func (m *Multiplexer) Cleanup() error {
 
 // startCmtNode initializes and starts a CometBFT node, sets up cleanup tasks, and assigns it to the Multiplexer instance.
 func (m *Multiplexer) startCmtNode() error {
-	cfg := m.svrCtx.Config
+	cfg := m.serverContext.Config
 	nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
 	if err != nil {
 		return err
 	}
 
-	// no latest app set means an embedded app is being used.
+	// no native app set means an embedded app is being used.
 	if m.nativeApp == nil {
 		m.logger.Debug("using embedded app so registering remote app cleanup")
 		m.setupRemoteAppCleanup(m.Cleanup)
@@ -612,13 +633,13 @@ func (m *Multiplexer) startCmtNode() error {
 	tmNode, err := node.NewNodeWithContext(
 		m.ctx,
 		cfg,
-		pvm.LoadOrGenFilePV(cfg.PrivValidatorKeyFile(), cfg.PrivValidatorStateFile()),
+		privval.LoadOrGenFilePV(cfg.PrivValidatorKeyFile(), cfg.PrivValidatorStateFile()),
 		nodeKey,
 		proxy.NewConnSyncLocalClientCreator(m),
 		internal.GetGenDocProvider(cfg),
-		cmtcfg.DefaultDBProvider,
+		cometconfig.DefaultDBProvider,
 		node.DefaultMetricsProvider(cfg.Instrumentation),
-		servercmtlog.CometLoggerWrapper{Logger: m.logger},
+		serverlog.CometLoggerWrapper{Logger: m.logger},
 	)
 	if err != nil {
 		return err
@@ -635,32 +656,16 @@ func (m *Multiplexer) startCmtNode() error {
 		return nil
 	})
 
-	m.cmNode = tmNode
+	m.cometNode = tmNode
 	return nil
 }
 
 // setupRemoteAppCleanup ensures that remote app processes are terminated when the main process receives termination signals
 func (m *Multiplexer) setupRemoteAppCleanup(cleanupFn func() error) {
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
-
-	go func() {
-		sig := <-sigCh
-		m.logger.Info("Received signal, stopping remote apps...", "signal", sig)
-
-		if err := cleanupFn(); err != nil {
-			m.logger.Error("Error stopping remote apps", "err", err)
-		} else {
-			m.logger.Info("Successfully stopped remote apps")
-		}
-
-		// Re-send the signal to allow the normal process termination
-		signal.Reset(os.Interrupt, syscall.SIGTERM)
-		err := syscall.Kill(os.Getpid(), sig.(syscall.Signal))
-		if err != nil {
-			m.logger.Error("Error killing process", "err", err)
-		}
-	}()
+	m.registerCleanupFn(func() error {
+		m.logger.Info("Cleaning up embedded app processes...")
+		return cleanupFn()
+	})
 }
 
 func startTelemetry(cfg serverconfig.Config) (*telemetry.Metrics, error) {
