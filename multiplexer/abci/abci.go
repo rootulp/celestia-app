@@ -65,6 +65,13 @@ func (m *Multiplexer) ExtendVote(ctx context.Context, req *abci.RequestExtendVot
 }
 
 func (m *Multiplexer) FinalizeBlock(_ context.Context, req *abci.RequestFinalizeBlock) (*abci.ResponseFinalizeBlock, error) {
+	if m.shouldHalt(req) {
+		// Note: it is not possible to shutdown the multiplexer via m.cancel()
+		// or m.Stop() here because CometBFT is blocked on the response from
+		// this method. So this just returns an error to CometBFT so the user
+		// can exit the process.
+		return nil, fmt.Errorf("failed to finalize block because the node should halt")
+	}
 	app, err := m.getApp()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get app for version %d: %w", m.appVersion, err)
@@ -154,4 +161,18 @@ func (m *Multiplexer) VerifyVoteExtension(_ context.Context, req *abci.RequestVe
 		return nil, fmt.Errorf("failed to get app for version %d: %w", m.appVersion, err)
 	}
 	return app.VerifyVoteExtension(req)
+}
+
+// shouldHalt returns true if the node should halt based on a halt-height or
+// halt-time configured in app.toml.
+func (m *Multiplexer) shouldHalt(req *abci.RequestFinalizeBlock) bool {
+	if m.svrCfg.HaltHeight > 0 && uint64(req.Height) >= m.svrCfg.HaltHeight {
+		m.logger.Info("halting node per configuration at height", "height", m.svrCfg.HaltHeight)
+		return true
+	}
+	if m.svrCfg.HaltTime > 0 && req.Time.Unix() >= int64(m.svrCfg.HaltTime) {
+		m.logger.Info("halting node per configuration at time", "time", m.svrCfg.HaltTime)
+		return true
+	}
+	return false
 }
