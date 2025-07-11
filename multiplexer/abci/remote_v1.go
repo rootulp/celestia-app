@@ -145,25 +145,16 @@ func (a *RemoteABCIClientV1) FinalizeBlock(req *abciv2.RequestFinalizeBlock) (*a
 		return nil, err
 	}
 
-	commitBlockResps := make([]*abciv1.ResponseDeliverTx, 0, len(req.Txs))
+	deliverTxResponses := make([]*abciv1.ResponseDeliverTx, 0, len(req.Txs))
 	for _, tx := range req.Txs {
-		commitBlockResp, err := a.DeliverTx(context.Background(), &abciv1.RequestDeliverTx{
-			Tx: tx,
-		}, grpc.WaitForReady(true))
+		response, err := a.DeliverTx(context.Background(), &abciv1.RequestDeliverTx{Tx: tx}, grpc.WaitForReady(true))
 		if err != nil {
 			return nil, err
 		}
-
-		commitBlockResps = append(commitBlockResps, commitBlockResp)
+		deliverTxResponses = append(deliverTxResponses, response)
 	}
 
-	endBlockResp, err := a.EndBlock(
-		context.Background(),
-		&abciv1.RequestEndBlock{
-			Height: req.Height,
-		},
-		grpc.WaitForReady(true),
-	)
+	endBlockResp, err := a.EndBlock(context.Background(), &abciv1.RequestEndBlock{Height: req.Height}, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, err
 	}
@@ -171,13 +162,13 @@ func (a *RemoteABCIClientV1) FinalizeBlock(req *abciv2.RequestFinalizeBlock) (*a
 	// convert events
 	var events []abciv2.Event
 	events = append(events, abciEventV1ToV2(beginBlockResp.Events...)...)
-	for _, commitBlockResp := range commitBlockResps {
-		events = append(events, abciEventV1ToV2(commitBlockResp.Events...)...)
+	for _, deliverTxResponse := range deliverTxResponses {
+		events = append(events, abciEventV1ToV2(deliverTxResponse.Events...)...)
 	}
 	events = append(events, abciEventV1ToV2(endBlockResp.Events...)...)
 
-	txResults := make([]*abciv2.ExecTxResult, len(commitBlockResps))
-	for i, commitBlockResp := range commitBlockResps {
+	txResults := make([]*abciv2.ExecTxResult, len(deliverTxResponses))
+	for i, commitBlockResp := range deliverTxResponses {
 		txResults[i] = &abciv2.ExecTxResult{
 			Code:      commitBlockResp.Code,
 			Data:      commitBlockResp.Data,
