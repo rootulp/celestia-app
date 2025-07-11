@@ -159,14 +159,6 @@ func (a *RemoteABCIClientV1) FinalizeBlock(req *abciv2.RequestFinalizeBlock) (*a
 		return nil, err
 	}
 
-	// convert events
-	var events []abciv2.Event
-	events = append(events, abciEventV1ToV2(beginBlockResp.Events...)...)
-	for _, deliverTxResponse := range deliverTxResponses {
-		events = append(events, abciEventV1ToV2(deliverTxResponse.Events...)...)
-	}
-	events = append(events, abciEventV1ToV2(endBlockResp.Events...)...)
-
 	txResults := make([]*abciv2.ExecTxResult, len(deliverTxResponses))
 	for i, commitBlockResp := range deliverTxResponses {
 		txResults[i] = &abciv2.ExecTxResult{
@@ -181,7 +173,6 @@ func (a *RemoteABCIClientV1) FinalizeBlock(req *abciv2.RequestFinalizeBlock) (*a
 		}
 	}
 
-	// commit result
 	commitResp, err := a.ABCIApplicationClient.Commit(context.Background(), &abciv1.RequestCommit{}, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, err
@@ -192,6 +183,8 @@ func (a *RemoteABCIClientV1) FinalizeBlock(req *abciv2.RequestFinalizeBlock) (*a
 	// get the app version from the end block response
 	a.endBlockConsensusAppVersion = endBlockResp.GetConsensusParamUpdates().Version.AppVersion
 
+	events := combineEvents(beginBlockResp, deliverTxResponses, endBlockResp)
+
 	return &abciv2.ResponseFinalizeBlock{
 		Events:                events,
 		TxResults:             txResults,
@@ -200,6 +193,15 @@ func (a *RemoteABCIClientV1) FinalizeBlock(req *abciv2.RequestFinalizeBlock) (*a
 		AppHash:               commitResp.Data,
 		TimeoutInfo:           timeoutInfoV1ToV2(endBlockResp.Timeouts),
 	}, nil
+}
+
+func combineEvents(beginBlockResp *abciv1.ResponseBeginBlock, deliverTxResponses []*abciv1.ResponseDeliverTx, endBlockResp *abciv1.ResponseEndBlock) (events []abciv2.Event) {
+	events = append(events, abciEventV1ToV2(beginBlockResp.Events...)...)
+	for _, deliverTxResponse := range deliverTxResponses {
+		events = append(events, abciEventV1ToV2(deliverTxResponse.Events...)...)
+	}
+	events = append(events, abciEventV1ToV2(endBlockResp.Events...)...)
+	return events
 }
 
 // Info implements abciv2.ABCI
