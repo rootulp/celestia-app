@@ -86,6 +86,7 @@ func (m *Multiplexer) FinalizeBlock(_ context.Context, req *abci.RequestFinalize
 	if err != nil {
 		return nil, fmt.Errorf("failed to finalize block: %w", err)
 	}
+	fmt.Printf("FinalizeBlock response: %+v\n", resp.Events)
 
 	// set the app version to be used in the next block.
 	if resp.ConsensusParamUpdates != nil && resp.ConsensusParamUpdates.GetVersion() != nil {

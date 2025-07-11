@@ -184,7 +184,6 @@ func (a *RemoteABCIClientV1) FinalizeBlock(req *abciv2.RequestFinalizeBlock) (*a
 	a.endBlockConsensusAppVersion = endBlockResp.GetConsensusParamUpdates().Version.AppVersion
 
 	events := combineEvents(beginBlockResp, deliverTxResponses, endBlockResp)
-
 	return &abciv2.ResponseFinalizeBlock{
 		Events:                events,
 		TxResults:             txResults,
