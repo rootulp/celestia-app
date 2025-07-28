@@ -278,7 +278,7 @@ require (
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
 
-// These replace statements were inspired by interchaintest/v6.
+// These replace statements were inspired by interchaintest/v8.
 replace (
 	github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d
 	github.com/ChainSafe/go-schnorrkel/1 => github.com/ChainSafe/go-schnorrkel v1.0.0
@@ -291,5 +291,6 @@ replace (
 replace (
 	github.com/docker/docker => github.com/docker/docker v24.0.7+incompatible
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
+	github.com/interchainio/interchaintest/v8 => github.com/strangelove-ventures/interchaintest/v8 v8.8.1-34a13b0e5f1117f63a3d90a961abfeeede2e98af
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
