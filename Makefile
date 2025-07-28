@@ -273,6 +273,12 @@ test-fuzz:
 	bash -x scripts/test_fuzz.sh
 .PHONY: test-fuzz
 
+## test-interchain: Run all inteerchain tests.
+test-interchain:
+	@echo "--> Running interchain tests..."
+	@cd test/interchain && go test ./...
+.PHONY: test-interchain
+
 ## txsim-install: Install the tx simulator.
 txsim-install:
 	@echo "--> Installing tx simulator"
