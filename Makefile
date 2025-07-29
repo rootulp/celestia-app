@@ -275,6 +275,8 @@ test-fuzz:
 
 ## test-ibc: Start a local devnet with Docker to test IBC.
 test-ibc:
+	@echo "--> Stopping local devnet with Docker to test IBC"
+	@docker compose -f test/ibc/docker-compose.yml down
 	@echo "--> Deleting .tmp directory"
 	@rm -rf ./test/ibc/.tmp
 	@echo "--> Starting local devnet with Docker to test IBC"
