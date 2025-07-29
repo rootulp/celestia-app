@@ -1,0 +1,47 @@
+services:
+  celestia-validator:
+    image: celestiaorg/celestia-app:v4.0.10-fix-ibc
+    container_name: celestia-validator
+    volumes:
+      - ./.tmp/celestia-validator:/home/celestia
+      - ./celestia-validator:/testapp_files
+    ports:
+      - "9090:9090"
+      - "26656:26656"
+      - "26657:26657"
+    entrypoint: /testapp_files/entrypoint.sh
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          '/bin/sh -c ''BLOCK_HEIGHT=$(curl -sf http://localhost:26657/status | jq -r .result.sync_info.latest_block_height); if [ "$$BLOCK_HEIGHT" -gt 1 ]; then exit 0; else echo "Block height too low: $$BLOCK_HEIGHT"; exit 1; fi''',
+        ]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    networks:
+      - ibc-network
+
+  # simapp-validator:
+  #   image: ghcr.io/celestiaorg/celestia-zkevm-ibc-demo/simapp:latest
+  #   container_name: simapp-validator
+  #   environment:
+  #     - EVM_PROVER_URL=evm-prover:50052
+  #   volumes:
+  #     - ./.tmp/simapp-validator:/home/celestia
+  #     - ./testing/files/simapp-validator:/testapp_files
+  #   entrypoint: /testapp_files/entrypoint.sh
+  #   ports:
+  #     - "9190:9090"
+  #     - "5123:26657"
+  #     - "1318:1317"
+  #   networks:
+  #     - ibc-network
+
+networks:
+  ibc-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.0.0/24
