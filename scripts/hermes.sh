@@ -1,9 +1,13 @@
 #!/bin/sh
 
-# This script is used to test IBC between Celestia and IBC-0 (a Gaia chain managed via GM).
-# Run celestia-app via ./scripts/single-node.sh or ./scripts/single-node-upgrades.sh
-# Then run this script to set up Hermes.
-# Then run ./scripts/transfer.sh to transfer tokens from Celestia to IBC-0.
+# This script is used to test IBC between Celestia and IBC-0 (a Gaia chain managed via Gaia Manager).
+# Follow the prerequisites and tutorial at https://hermes.informal.systems/tutorials/index.html
+#
+# Steps:
+# 1. Run celestia-app via ./scripts/single-node.sh or ./scripts/single-node-upgrades.sh
+# 2. Run Gaia Manager via ./bin/gm start
+# 3. Set up Hermes via ./scripts/hermes.sh
+# 4. Transfer tokens from Celestia to IBC-0 via ./scripts/transfer.sh
 
 set -o errexit # Stop script execution if an error is encountered
 set -o nounset # Stop script execution if an undefined variable is used
