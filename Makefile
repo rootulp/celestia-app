@@ -147,8 +147,8 @@ proto-update-deps:
 
 ## build-docker: Build the celestia-appd Docker image using the local Dockerfile.
 build-docker:
-	@echo "--> Building Docker image"
-	$(DOCKER) build -t celestiaorg/celestia-app -f docker/Dockerfile .
+	@echo "--> Building Docker image for multiplexer"
+	$(DOCKER) build -t celestiaorg/celestia-app -f docker/multiplexer.Dockerfile .
 .PHONY: build-docker
 
 ## docker-build: Build the celestia-appd docker image from the current branch. Requires docker.
