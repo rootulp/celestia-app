@@ -1,6 +1,0 @@
-{
-  "priv_key": {
-    "type": "tendermint/PrivKeyEd25519",
-    "value": "simapp_node_key_placeholder_for_testing_only_not_secure_0123456789abcdef"
-  }
-}
