@@ -49,7 +49,7 @@ db_dir = "data"
 blockstore_dir = "data"
 
 # Output level for logging, including package level options
-log_level = "info"
+log_level = "*:error,p2p:info,state:info"
 
 # Output format: 'plain' (colored text) or 'json'
 log_format = "plain"
