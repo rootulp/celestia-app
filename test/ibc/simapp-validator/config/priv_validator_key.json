@@ -1,0 +1,11 @@
+{
+  "address": "E2DCC28E96BCB5465CB49F82BCCE73B3B3C4F57E",
+  "pub_key": {
+    "type": "tendermint/PubKeyEd25519",
+    "value": "simapp_validator_pubkey_placeholder_for_testing_only_not_secure_123456"
+  },
+  "priv_key": {
+    "type": "tendermint/PrivKeyEd25519",
+    "value": "simapp_validator_privkey_placeholder_for_testing_only_not_secure_abcdef"
+  }
+}
