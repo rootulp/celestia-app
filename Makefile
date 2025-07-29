@@ -273,6 +273,14 @@ test-fuzz:
 	bash -x scripts/test_fuzz.sh
 .PHONY: test-fuzz
 
+## test-ibc: Start a local devnet with Docker to test IBC.
+test-ibc:
+	@echo "--> Deleting .tmp directory"
+	@rm -rf ./test/ibc/.tmp
+	@echo "--> Starting local devnet with Docker to test IBC"
+	@docker compose -f test/ibc/docker-compose.yml up -d
+.PHONY: test-ibc
+
 ## txsim-install: Install the tx simulator.
 txsim-install:
 	@echo "--> Installing tx simulator"

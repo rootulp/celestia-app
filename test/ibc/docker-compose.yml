@@ -1,6 +1,6 @@
 services:
   celestia-validator:
-    image: celestiaorg/celestia-app:v4.0.10-fix-ibc
+    image: ghcr.io/celestiaorg/celestia-app-standalone:v4.0.10
     container_name: celestia-validator
     volumes:
       - ./.tmp/celestia-validator:/home/celestia

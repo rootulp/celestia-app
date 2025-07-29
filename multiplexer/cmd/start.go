@@ -59,6 +59,7 @@ func getState(cfg *cmtcfg.Config) (chainId string, appVersion uint64, err error)
 	defer db.Close()
 
 	genVer, err := internal.GetGenesisVersion(cfg.GenesisFile())
+	fmt.Printf("genVer: %v\n", genVer)
 	if err != nil {
 		// fallback to latest version if the genesis version doesn't exist
 		if errors.Is(err, internal.ErrGenesisNotFound) {
