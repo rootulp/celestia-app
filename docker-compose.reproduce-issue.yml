@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  celestia-validator:
+    image: ghcr.io/celestiaorg/celestia-app:v5.0.5-mocha
+    container_name: celestia-mocha-validator
+    user: "0:0"  # Run as root to avoid permission issues
+    volumes:
+      - ./reproduce-issue-entrypoint.sh:/entrypoint.sh:ro
+      - celestia_data:/celestia
+    environment:
+      - NODE_NAME=reproduce-issue-validator
+      - CHAIN_ID=mocha-4
+      - CELESTIA_HOME=/celestia
+    entrypoint: ["/entrypoint.sh"]
+    ports:
+      - "26656:26656"  # P2P
+      - "26657:26657"  # RPC
+      - "1317:1317"    # API
+      - "9090:9090"    # gRPC
+    networks:
+      - celestia-net
+    restart: "no"  # Don't restart automatically to see the error
+
+volumes:
+  celestia_data:
+
+networks:
+  celestia-net:
+    driver: bridge
