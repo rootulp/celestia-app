@@ -23,8 +23,13 @@ DELEGATOR_ADDRESS=$(celestia-appd keys show ${DELEGATOR_KEY_NAME} -a --keyring-b
 VALIDATOR_VALOPER_ADDRESS=$(celestia-appd keys show ${VALIDATOR_KEY_NAME} -a --bech val --keyring-backend=${KEYRING_BACKEND} --home "${APP_HOME}")
 VALIDATOR_2_VALOPER_ADDRESS=$(celestia-appd keys show ${VALIDATOR_2_KEY_NAME} -a --bech val --keyring-backend=${KEYRING_BACKEND} --home "${APP_HOME}")
 
-echo "Validator address: $VALIDATOR_ADDRESS"
 echo "Delegator address: $DELEGATOR_ADDRESS"
+
+echo "Validator address: $VALIDATOR_ADDRESS"
+echo "Validator2 address: $VALIDATOR_2_ADDRESS"
+
+echo "Validator valoper address: $VALIDATOR_VALOPER_ADDRESS"
+echo "Validator2 valoper address: $VALIDATOR_2_VALOPER_ADDRESS"
 
 echo "Sending funds from validator to delegator..."
 celestia-appd tx bank send $VALIDATOR_ADDRESS $DELEGATOR_ADDRESS 1000000000utia --fees 100000utia --yes
@@ -43,7 +48,7 @@ echo "Querying delegation..."
 celestia-appd query staking delegation $DELEGATOR_ADDRESS $VALIDATOR_VALOPER_ADDRESS
 
 echo "Redelegating funds from validator to validator2..."
-celestia-appd tx staking redelegate $VALIDATOR_VALOPER_ADDRESS $VALIDATOR_2_VALOPER_ADDRESS 100000000utia --from $DELEGATOR_ADDRESS --fees 100000utia  --yes
+celestia-appd tx staking redelegate $VALIDATOR_VALOPER_ADDRESS $VALIDATOR_2_VALOPER_ADDRESS 100000000utia --from $DELEGATOR_ADDRESS --fees 100000utia --gas auto --gas-adjustment 1.5 --yes
 sleep 2
 
 echo "Querying redelegation..."
