@@ -54,6 +54,13 @@ createGenesis() {
       --home "${APP_HOME}" \
       > /dev/null 2>&1 # Hide output to reduce terminal noise
 
+    echo "Creating validator 2 key directory..."
+    mkdir -p "${APP_HOME}/validator2"
+    celestia-appd init ${CHAIN_ID} \
+      --chain-id ${CHAIN_ID} \
+      --home "${APP_HOME}/validator2" \
+      > /dev/null 2>&1 # Hide output to reduce terminal noise
+
     echo "Adding genesis account..."
     celestia-appd genesis add-genesis-account \
       "$(celestia-appd keys show ${KEY_NAME} -a --keyring-backend=${KEYRING_BACKEND} --home "${APP_HOME}")" \
@@ -66,13 +73,31 @@ createGenesis() {
       "1000000000000000utia" \
       --home "${APP_HOME}"
 
-    echo "Creating a genesis tx..."
+    echo "Cleaning any existing gentx files..."
+    rm -rf "${APP_HOME}/config/gentx"
+    mkdir -p "${APP_HOME}/config/gentx"
+
+    echo "Creating a genesis tx for validator 1..."
     celestia-appd genesis gentx ${KEY_NAME} 5000000000utia \
       --fees ${FEES} \
       --keyring-backend=${KEYRING_BACKEND} \
       --chain-id ${CHAIN_ID} \
       --home "${APP_HOME}" \
-      > /dev/null 2>&1 # Hide output to reduce terminal noise
+      --moniker="validator1" \
+      --output-document="${APP_HOME}/config/gentx/gentx-validator1.json" \
+      --pubkey="$(celestia-appd tendermint show-validator --home "${APP_HOME}")"
+      # > /dev/null 2>&1 # Hide output to reduce terminal noise
+
+    echo "Creating a genesis tx for validator 2..."
+    celestia-appd genesis gentx ${KEY_NAME_2} 1utia \
+      --fees ${FEES} \
+      --keyring-backend=${KEYRING_BACKEND} \
+      --chain-id ${CHAIN_ID} \
+      --home "${APP_HOME}" \
+      --moniker="validator2" \
+      --output-document="${APP_HOME}/config/gentx/gentx-validator2.json" \
+      --pubkey="$(celestia-appd tendermint show-validator --home "${APP_HOME}/validator2")"
+      # > /dev/null 2>&1 # Hide output to reduce terminal noise
 
     echo "Collecting genesis txs..."
     celestia-appd genesis collect-gentxs \

@@ -9,15 +9,19 @@ KEYRING_BACKEND="test"
 FEES="500utia"
 
 # Key names
-KEY_NAME="validator"
-KEY_NAME_2="validator2"
+VALIDATOR_KEY_NAME="validator"
+VALIDATOR_2_KEY_NAME="validator2"
 DELEGATOR_KEY_NAME="delegator"
 
 echo "Adding delegator key to the keyring..."
 celestia-appd keys add ${DELEGATOR_KEY_NAME} --keyring-backend=${KEYRING_BACKEND} --home "${APP_HOME}"
 
-VALIDATOR_ADDRESS=$(celestia-appd keys show ${KEY_NAME} -a --keyring-backend=${KEYRING_BACKEND} --home "${APP_HOME}")
+VALIDATOR_ADDRESS=$(celestia-appd keys show ${VALIDATOR_KEY_NAME} -a --keyring-backend=${KEYRING_BACKEND} --home "${APP_HOME}")
+VALIDATOR_2_ADDRESS=$(celestia-appd keys show ${VALIDATOR_2_KEY_NAME} -a --keyring-backend=${KEYRING_BACKEND} --home "${APP_HOME}")
 DELEGATOR_ADDRESS=$(celestia-appd keys show ${DELEGATOR_KEY_NAME} -a --keyring-backend=${KEYRING_BACKEND} --home "${APP_HOME}")
+
+VALIDATOR_VALOPER_ADDRESS=$(celestia-appd keys show ${VALIDATOR_KEY_NAME} -a --bech val --keyring-backend=${KEYRING_BACKEND} --home "${APP_HOME}")
+VALIDATOR_2_VALOPER_ADDRESS=$(celestia-appd keys show ${VALIDATOR_2_KEY_NAME} -a --bech val --keyring-backend=${KEYRING_BACKEND} --home "${APP_HOME}")
 
 echo "Validator address: $VALIDATOR_ADDRESS"
 echo "Delegator address: $DELEGATOR_ADDRESS"
@@ -29,3 +33,18 @@ sleep 1
 
 echo "Querying delegator balance..."
 celestia-appd query bank balances $DELEGATOR_ADDRESS
+
+
+echo "Delegating funds to validator..."
+celestia-appd tx staking delegate $VALIDATOR_VALOPER_ADDRESS 100000000utia --from $DELEGATOR_ADDRESS --fees 100000utia --yes
+sleep 1
+
+echo "Querying delegation..."
+celestia-appd query staking delegation $DELEGATOR_ADDRESS $VALIDATOR_VALOPER_ADDRESS
+
+echo "Redelegating funds from validator to validator2..."
+celestia-appd tx staking redelegate $VALIDATOR_VALOPER_ADDRESS $VALIDATOR_2_VALOPER_ADDRESS 100000000utia --from $DELEGATOR_ADDRESS --fees 100000utia  --yes
+sleep 2
+
+echo "Querying redelegation..."
+celestia-appd query staking delegation $DELEGATOR_ADDRESS $VALIDATOR_2_VALOPER_ADDRESS
