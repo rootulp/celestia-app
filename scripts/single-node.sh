@@ -23,6 +23,7 @@ fi
 # Constants
 CHAIN_ID="test"
 KEY_NAME="validator"
+KEY_NAME_2="validator2"
 KEYRING_BACKEND="test"
 FEES="500utia"
 
@@ -47,9 +48,21 @@ createGenesis() {
       --home "${APP_HOME}" \
       > /dev/null 2>&1 # Hide output to reduce terminal noise
 
+    echo "Adding a second key to the keyring..."
+    celestia-appd keys add ${KEY_NAME_2} \
+      --keyring-backend=${KEYRING_BACKEND} \
+      --home "${APP_HOME}" \
+      > /dev/null 2>&1 # Hide output to reduce terminal noise
+
     echo "Adding genesis account..."
     celestia-appd genesis add-genesis-account \
       "$(celestia-appd keys show ${KEY_NAME} -a --keyring-backend=${KEYRING_BACKEND} --home "${APP_HOME}")" \
+      "1000000000000000utia" \
+      --home "${APP_HOME}"
+
+    echo "Adding a second genesis account..."
+    celestia-appd genesis add-genesis-account \
+      "$(celestia-appd keys show ${KEY_NAME_2} -a --keyring-backend=${KEYRING_BACKEND} --home "${APP_HOME}")" \
       "1000000000000000utia" \
       --home "${APP_HOME}"
 
