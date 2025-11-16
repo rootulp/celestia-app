@@ -514,6 +514,7 @@ func (app *App) Name() string { return app.BaseApp.Name() }
 // Info implements the abci interface. It overrides baseapp's Info method, essentially becoming a decorator
 // in order to assign TimeoutInfo values in the response.
 func (app *App) Info(req *abci.RequestInfo) (*abci.ResponseInfo, error) {
+	fmt.Printf("v5.x app/app.go Info invoked\n")
 	res, err := app.BaseApp.Info(req)
 	if err != nil {
 		return nil, err
@@ -521,6 +522,7 @@ func (app *App) Info(req *abci.RequestInfo) (*abci.ResponseInfo, error) {
 
 	res.TimeoutInfo.TimeoutCommit = app.TimeoutCommit()
 	res.TimeoutInfo.TimeoutPropose = app.TimeoutPropose()
+	fmt.Printf("v5.x app/app.go Info result: %v\n", res)
 
 	return res, nil
 }
@@ -825,16 +827,19 @@ func (app *App) NewProposalContext(header tmproto.Header) sdk.Context {
 // It returns the user specified value as overridden by the --timeout-commit flag, otherwise
 // the default timeout commit value for the current app version.
 func (app *App) TimeoutCommit() time.Duration {
+	fmt.Printf("v5.x app/app.go TimeoutCommit invoked\n")
 	if app.timeoutCommit != 0 {
+		fmt.Printf("v5.x app/app.go TimeoutCommit returning user specified value: %v\n", app.timeoutCommit)
 		return app.timeoutCommit
 	}
-
+	fmt.Printf("v5.x app/app.go TimeoutCommit returning default value: %v\n", appconsts.TimeoutCommit)
 	return appconsts.TimeoutCommit
 }
 
 // TimeoutPropose returns the timeout propose duration to be used on the next block.
 // It returns the default timeout propose value for the current app version.
 func (app *App) TimeoutPropose() time.Duration {
+	fmt.Printf("v5.x app/app.go TimeoutPropose returning default value: %v\n", appconsts.TimeoutPropose)
 	return appconsts.TimeoutPropose
 }
 
