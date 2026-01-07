@@ -73,11 +73,11 @@ services:
     ports:
       - "9876:9876"  # API endpoint
     healthcheck:
-      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/9876'"]
+      test: ["CMD-SHELL", "curl -f http://localhost:9876/v1/health || curl -f http://localhost:9876/ || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 60s
     networks:
       - celestia-network
     depends_on:
@@ -102,7 +102,7 @@ services:
       - celestia-network
     depends_on:
       celestia-indexer:
-        condition: service_healthy
+        condition: service_started
 
 volumes:
   postgres_data:
