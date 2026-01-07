@@ -1,0 +1,113 @@
+services:
+  postgres:
+    image: timescale/timescaledb-ha:pg15-latest
+    container_name: celestia-postgres
+    environment:
+      POSTGRES_USER: celestia
+      POSTGRES_PASSWORD: celestia
+      POSTGRES_DB: celestia
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-postgres.sql:/docker-entrypoint-initdb.d/init-postgres.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U celestia"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - celestia-network
+
+  celestia-app:
+    build:
+      context: .
+      dockerfile: docker/standalone.Dockerfile
+    image: celestia-app:local
+    container_name: celestia-app
+    volumes:
+      - celestia_app_data:/home/celestia/.celestia-app
+      - ./docker/init-celestia-app.sh:/opt/init-celestia-app.sh:ro
+    ports:
+      - "26657:26657"  # RPC
+      - "26656:26656"  # P2P
+      - "1317:1317"    # API
+      - "9090:9090"    # gRPC
+    entrypoint: ["/bin/bash", "-c"]
+    command: >
+      "
+      if [ ! -f /home/celestia/.celestia-app/config/genesis.json ]; then
+        echo 'Initializing celestia-app...'
+        /bin/bash /opt/init-celestia-app.sh
+      else
+        echo 'Using existing celestia-app data'
+      fi &&
+      /bin/bash /opt/entrypoint.sh start --api.enable --grpc.enable --grpc-web.enable --delayed-precommit-timeout 1s --force-no-bbr
+      "
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:26657/status || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - celestia-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  celestia-indexer:
+    build:
+      context: .
+      dockerfile: docker/celestia-indexer.Dockerfile
+    image: celestia-indexer:local
+    container_name: celestia-indexer
+    working_dir: /app
+    volumes:
+      - ./docker/dipdup.yml:/app/dipdup.yml:ro
+    environment:
+      CELESTIA_NODE_URL: http://celestia-app:26657
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: celestia
+      POSTGRES_USER: celestia
+      POSTGRES_PASSWORD: celestia
+      POSTGRES_PORT: 5432
+    ports:
+      - "9876:9876"  # API endpoint
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/9876'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - celestia-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      celestia-app:
+        condition: service_healthy
+
+  celenium-interface:
+    build:
+      context: .
+      dockerfile: docker/celenium-interface.Dockerfile
+    image: celenium-interface:local
+    container_name: celenium-interface
+    environment:
+      NUXT_PUBLIC_API_DEV: http://celestia-indexer:9876/v1
+      NUXT_PUBLIC_WSS_DEV: ws://celestia-indexer:9876/v1/ws
+      NUXT_PUBLIC_SELFHOSTED: "true"
+    ports:
+      - "3000:3000"
+    networks:
+      - celestia-network
+    depends_on:
+      celestia-indexer:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  celestia_app_data:
+
+networks:
+  celestia-network:
+    driver: bridge
