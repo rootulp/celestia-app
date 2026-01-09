@@ -1,0 +1,438 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "tags": ["celestia", "storage", "monitoring"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": ["10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
+  },
+  "timezone": "browser",
+  "title": "Celestia App Storage Monitoring",
+  "uid": "storage-monitoring",
+  "version": 1,
+    "panels": [
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "id": 1,
+        "title": "Total Data Directory Size",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 12, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "sum(celestia_data_directory_size_bytes)",
+            "refId": "A",
+            "legendFormat": "Total Size"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "bytes",
+            "decimals": 2,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": null, "color": "green"},
+                {"value": 107374182400, "color": "yellow"},
+                {"value": 536870912000, "color": "red"}
+              ]
+            }
+          }
+        },
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value"
+        }
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "id": 2,
+        "title": "Storage Growth Rate (Total)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "rate(sum(celestia_data_directory_size_bytes)[5m])",
+            "refId": "A",
+            "legendFormat": "Growth Rate (bytes/sec)"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "Bps",
+            "label": "Bytes per Second"
+          },
+          {
+            "format": "short"
+          }
+        ],
+        "xaxis": {
+          "mode": "time"
+        }
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "id": 3,
+        "title": "application.db Size",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 4},
+        "targets": [
+          {
+            "expr": "celestia_data_directory_size_bytes{directory=\"application.db\"}",
+            "refId": "A",
+            "legendFormat": "application.db"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "bytes",
+            "label": "Size (bytes)"
+          },
+          {
+            "format": "short"
+          }
+        ],
+        "xaxis": {
+          "mode": "time"
+        }
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "id": 4,
+        "title": "blockstore.db Size",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 4},
+        "targets": [
+          {
+            "expr": "celestia_data_directory_size_bytes{directory=\"blockstore.db\"}",
+            "refId": "A",
+            "legendFormat": "blockstore.db"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "bytes",
+            "label": "Size (bytes)"
+          },
+          {
+            "format": "short"
+          }
+        ],
+        "xaxis": {
+          "mode": "time"
+        }
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "id": 5,
+        "title": "cs.wal Size",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 4},
+        "targets": [
+          {
+            "expr": "celestia_data_directory_size_bytes{directory=\"cs.wal\"}",
+            "refId": "A",
+            "legendFormat": "cs.wal"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "bytes",
+            "label": "Size (bytes)"
+          },
+          {
+            "format": "short"
+          }
+        ],
+        "xaxis": {
+          "mode": "time"
+        }
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "id": 6,
+        "title": "evidence.db Size",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 4},
+        "targets": [
+          {
+            "expr": "celestia_data_directory_size_bytes{directory=\"evidence.db\"}",
+            "refId": "A",
+            "legendFormat": "evidence.db"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "bytes",
+            "label": "Size (bytes)"
+          },
+          {
+            "format": "short"
+          }
+        ],
+        "xaxis": {
+          "mode": "time"
+        }
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "id": 7,
+        "title": "fibre-store Size",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 12},
+        "targets": [
+          {
+            "expr": "celestia_data_directory_size_bytes{directory=\"fibre-store\"}",
+            "refId": "A",
+            "legendFormat": "fibre-store"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "bytes",
+            "label": "Size (bytes)"
+          },
+          {
+            "format": "short"
+          }
+        ],
+        "xaxis": {
+          "mode": "time"
+        }
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "id": 8,
+        "title": "snapshots Size",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 12},
+        "targets": [
+          {
+            "expr": "celestia_data_directory_size_bytes{directory=\"snapshots\"}",
+            "refId": "A",
+            "legendFormat": "snapshots"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "bytes",
+            "label": "Size (bytes)"
+          },
+          {
+            "format": "short"
+          }
+        ],
+        "xaxis": {
+          "mode": "time"
+        }
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "id": 9,
+        "title": "state.db Size",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 12},
+        "targets": [
+          {
+            "expr": "celestia_data_directory_size_bytes{directory=\"state.db\"}",
+            "refId": "A",
+            "legendFormat": "state.db"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "bytes",
+            "label": "Size (bytes)"
+          },
+          {
+            "format": "short"
+          }
+        ],
+        "xaxis": {
+          "mode": "time"
+        }
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "id": 10,
+        "title": "tx_index.db Size",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 12},
+        "targets": [
+          {
+            "expr": "celestia_data_directory_size_bytes{directory=\"tx_index.db\"}",
+            "refId": "A",
+            "legendFormat": "tx_index.db"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "bytes",
+            "label": "Size (bytes)"
+          },
+          {
+            "format": "short"
+          }
+        ],
+        "xaxis": {
+          "mode": "time"
+        }
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "id": 11,
+        "title": "Directory Growth Rates",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 20},
+        "targets": [
+          {
+            "expr": "rate(celestia_data_directory_size_bytes[5m])",
+            "refId": "A",
+            "legendFormat": "{{directory}}"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "Bps",
+            "label": "Bytes per Second"
+          },
+          {
+            "format": "short"
+          }
+        ],
+        "xaxis": {
+          "mode": "time"
+        },
+        "legend": {
+          "show": true,
+          "values": false,
+          "current": false
+        }
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "id": 12,
+        "title": "System Disk Usage",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 28},
+        "targets": [
+          {
+            "expr": "node_filesystem_size_bytes{mountpoint=\"/\"} - node_filesystem_avail_bytes{mountpoint=\"/\"}",
+            "refId": "A",
+            "legendFormat": "Used"
+          },
+          {
+            "expr": "node_filesystem_avail_bytes{mountpoint=\"/\"}",
+            "refId": "B",
+            "legendFormat": "Available"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "bytes",
+            "label": "Size (bytes)"
+          },
+          {
+            "format": "short"
+          }
+        ],
+        "xaxis": {
+          "mode": "time"
+        }
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "id": 13,
+        "title": "All Directory Sizes (Stacked)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 28},
+        "targets": [
+          {
+            "expr": "celestia_data_directory_size_bytes",
+            "refId": "A",
+            "legendFormat": "{{directory}}"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "bytes",
+            "label": "Size (bytes)"
+          },
+          {
+            "format": "short"
+          }
+        ],
+        "xaxis": {
+          "mode": "time"
+        },
+        "legend": {
+          "show": true,
+          "values": false,
+          "current": false
+        },
+        "stack": true,
+        "fill": 1
+      }
+    ],
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": ["10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
+    }
+  }
+}

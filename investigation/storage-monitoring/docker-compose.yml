@@ -1,0 +1,115 @@
+name: celestia-app-monitoring
+
+services:
+  celestia-app:
+    build:
+      context: ../..
+      dockerfile: docker/standalone.Dockerfile
+    container_name: celestia-app
+    user: root
+    volumes:
+      - celestia-app-data:/home/celestia/.celestia-app/data
+      - celestia-app-config:/home/celestia/.celestia-app/config
+      - ./scripts/init-celestia-app.sh:/opt/init-celestia-app.sh:ro
+      - ./scripts/custom-entrypoint.sh:/opt/custom-entrypoint.sh:ro
+    environment:
+      - CELESTIA_APP_HOME=/home/celestia/.celestia-app
+    entrypoint: ["/bin/bash", "/opt/custom-entrypoint.sh"]
+    command: ["start", "--force-no-bbr"]
+    ports:
+      - "26657:26657"  # RPC
+      - "26660:26660"  # Prometheus metrics
+    networks:
+      - monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  prometheus:
+    image: prom/prometheus:v3.8.1
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+    restart: unless-stopped
+    depends_on:
+      - celestia-app
+      - node-exporter
+      - directory-exporter
+
+  grafana:
+    image: grafana/grafana:12.3.1
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/storage-monitoring.json
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+    networks:
+      - monitoring
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    ports:
+      - "9100:9100"
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  directory-exporter:
+    build:
+      context: ./exporters
+      dockerfile: Dockerfile
+    container_name: directory-exporter
+    volumes:
+      - celestia-app-data:/data:ro
+    ports:
+      - "9101:9101"
+    networks:
+      - monitoring
+    restart: unless-stopped
+    environment:
+      - DATA_DIR=/data
+
+volumes:
+  celestia-app-data:
+  celestia-app-config:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  monitoring:
+    driver: bridge
